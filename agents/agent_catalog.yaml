@@ -1,0 +1,33 @@
+agents:
+  - id: curriculum_orchestrator
+    mission: Map learners to current syllabus tasks and assign the next best activity.
+    tools: [content_read, analytics_read]
+    outputs: [study_plan, task_queue]
+  - id: source_verifier
+    mission: Verify technical claims against approved official sources and flag stale claims.
+    tools: [approved_web_read, source_registry]
+    outputs: [verification_report]
+  - id: item_author
+    mission: Draft original scenario-based questions from a task statement and source pack.
+    tools: [content_read]
+    outputs: [draft_item]
+  - id: item_adversary
+    mission: Try to prove the item ambiguous, find alternate correct answers, and test distractors.
+    tools: [content_read]
+    outputs: [adversarial_review]
+  - id: case_simulator
+    mission: Run branching real-world case studies and inject controlled failures.
+    tools: [scenario_state, lab_tools]
+    outputs: [events, feedback]
+  - id: capstone_assessor
+    mission: Score evidence against the published rubric; never infer missing evidence.
+    tools: [submission_read, rubric_read]
+    outputs: [criterion_scores, evidence_gaps]
+  - id: slide_architect
+    mission: Convert verified analysis into a decision-oriented deck using the tenant design system.
+    tools: [source_read, design_system_read]
+    outputs: [storyboard, slide_spec]
+  - id: harness_engineer
+    mission: Build and evaluate least-privilege skills, hooks, MCP integrations and agent harnesses.
+    tools: [repo_read, sandbox, eval_runner]
+    outputs: [harness_spec, eval_report]

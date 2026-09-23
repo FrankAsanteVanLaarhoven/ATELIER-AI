@@ -1,0 +1,1818 @@
+{
+  "seed": 42,
+  "scenario_focus": [
+    "S6",
+    "S1",
+    "S5",
+    "S3"
+  ],
+  "time_minutes": 120,
+  "question_count": 60,
+  "items": [
+    {
+      "id": "Q-35-3",
+      "version": 1,
+      "status": "seed",
+      "domain": 3,
+      "task": "3.5",
+      "task_title": "Iterative refinement",
+      "scenario": "S6",
+      "scenario_title": "Structured Data Extraction",
+      "type": "single",
+      "select_n": 1,
+      "stem": "In the Structured Data Extraction scenario, A generated implementation repeatedly violates one interface contract despite increasingly long prose instructions. What is the best architectural response?",
+      "options": {
+        "A": "Keep adding adjectives such as robust and production-grade.",
+        "B": "Lower the temperature until every output becomes deterministic.",
+        "C": "Add concrete input/output examples and executable tests, then iterate against failures rather than only lengthening the prompt.",
+        "D": "Switch models without collecting a failing example."
+      },
+      "correct": [
+        "C"
+      ],
+      "rationale": "Examples and tests create observable feedback for progressive improvement.",
+      "why_others_fail": "The distractors rely on prompt-only enforcement, excessive scope, hidden failure semantics, or other mechanisms that do not directly address the stated architectural defect.",
+      "difficulty_target": "advanced",
+      "source_refs": [
+        "public-ccar-f-task-map",
+        "official-claude-docs"
+      ],
+      "last_verified": "2026-09-23"
+    },
+    {
+      "id": "Q-14-2",
+      "version": 1,
+      "status": "seed",
+      "domain": 1,
+      "task": "1.4",
+      "task_title": "Workflow enforcement and handoff",
+      "scenario": "S5",
+      "scenario_title": "Claude Code for Continuous Integration",
+      "type": "single",
+      "select_n": 1,
+      "stem": "In the Claude Code for Continuous Integration scenario, A regulated workflow occasionally skips a mandatory verification step before a consequential action. What is the best architectural response?",
+      "options": {
+        "A": "Strengthen the prose prompt and trust the model to remember the step.",
+        "B": "Enforce the prerequisite programmatically and require a structured handoff when the workflow cannot proceed safely.",
+        "C": "Ask the user to repeat the policy at the start of every session.",
+        "D": "Add more temperature randomness so the agent explores alternative paths."
+      },
+      "correct": [
+        "B"
+      ],
+      "rationale": "Hard invariants belong in deterministic gates; handoffs should preserve the facts needed by the next actor.",
+      "why_others_fail": "The distractors rely on prompt-only enforcement, excessive scope, hidden failure semantics, or other mechanisms that do not directly address the stated architectural defect.",
+      "difficulty_target": "applied",
+      "source_refs": [
+        "public-ccar-f-task-map",
+        "official-claude-docs"
+      ],
+      "last_verified": "2026-09-23"
+    },
+    {
+      "id": "Q-15-2",
+      "version": 1,
+      "status": "seed",
+      "domain": 1,
+      "task": "1.5",
+      "task_title": "Agent SDK hooks",
+      "scenario": "S5",
+      "scenario_title": "Claude Code for Continuous Integration",
+      "type": "single",
+      "select_n": 1,
+      "stem": "In the Claude Code for Continuous Integration scenario, Tool calls need consistent normalization and policy checks before and after execution. What is the best architectural response?",
+      "options": {
+        "A": "Duplicate the same policy text inside every tool description.",
+        "B": "Run a second model after the entire session and hope it catches violations.",
+        "C": "Use hooks to intercept the relevant tool lifecycle events, enforce policy, normalize inputs/outputs, and record the outcome.",
+        "D": "Encode the policy only in the final response template."
+      },
+      "correct": [
+        "C"
+      ],
+      "rationale": "Hooks are appropriate for cross-cutting checks around tool execution.",
+      "why_others_fail": "The distractors rely on prompt-only enforcement, excessive scope, hidden failure semantics, or other mechanisms that do not directly address the stated architectural defect.",
+      "difficulty_target": "applied",
+      "source_refs": [
+        "public-ccar-f-task-map",
+        "official-claude-docs"
+      ],
+      "last_verified": "2026-09-23"
+    },
+    {
+      "id": "Q-21-2",
+      "version": 1,
+      "status": "seed",
+      "domain": 2,
+      "task": "2.1",
+      "task_title": "Tool interface design",
+      "scenario": "S3",
+      "scenario_title": "Multi-Agent Research System",
+      "type": "single",
+      "select_n": 1,
+      "stem": "In the Multi-Agent Research System scenario, Two similar tools are frequently confused because their names and descriptions overlap. What is the best architectural response?",
+      "options": {
+        "A": "Clarify each tool\u2019s purpose, accepted inputs, boundaries, examples, and when to use it instead of adjacent tools.",
+        "B": "Merge unrelated operations into one catch-all tool.",
+        "C": "Keep the descriptions short and route by keywords in the user message.",
+        "D": "Add more tools so the model has extra alternatives."
+      },
+      "correct": [
+        "A"
+      ],
+      "rationale": "Tool descriptions are a primary selection signal; clear boundaries reduce misrouting.",
+      "why_others_fail": "The distractors rely on prompt-only enforcement, excessive scope, hidden failure semantics, or other mechanisms that do not directly address the stated architectural defect.",
+      "difficulty_target": "applied",
+      "source_refs": [
+        "public-ccar-f-task-map",
+        "official-claude-docs"
+      ],
+      "last_verified": "2026-09-23"
+    },
+    {
+      "id": "Q-43-3",
+      "version": 1,
+      "status": "seed",
+      "domain": 4,
+      "task": "4.3",
+      "task_title": "Structured output",
+      "scenario": "S5",
+      "scenario_title": "Claude Code for Continuous Integration",
+      "type": "multiple",
+      "select_n": 2,
+      "stem": "In the Claude Code for Continuous Integration scenario, Downstream software requires valid structured records, but the model sometimes returns prose around JSON. Select TWO actions that best address the problem.",
+      "options": {
+        "A": "Validate required business semantics after schema validation succeeds.",
+        "B": "Use tool/schema-constrained structured output and validate the returned fields semantically before acceptance.",
+        "C": "Ask for JSON in plain text and trust it without validation.",
+        "D": "Strip non-JSON text with a regular expression and accept the remainder."
+      },
+      "correct": [
+        "A",
+        "B"
+      ],
+      "rationale": "Schema enforcement improves syntactic reliability; semantic validation is still required. The complementary action adds deterministic assurance, least privilege, reproducibility, bounded recovery, or explicit provenance as appropriate to the task.",
+      "why_others_fail": "The distractors rely on prompt-only enforcement, excessive scope, hidden failure semantics, or other mechanisms that do not directly address the stated architectural defect.",
+      "difficulty_target": "advanced",
+      "source_refs": [
+        "public-ccar-f-task-map",
+        "official-claude-docs"
+      ],
+      "last_verified": "2026-09-23"
+    },
+    {
+      "id": "Q-21-3",
+      "version": 1,
+      "status": "seed",
+      "domain": 2,
+      "task": "2.1",
+      "task_title": "Tool interface design",
+      "scenario": "S6",
+      "scenario_title": "Structured Data Extraction",
+      "type": "single",
+      "select_n": 1,
+      "stem": "In the Structured Data Extraction scenario, Two similar tools are frequently confused because their names and descriptions overlap. What is the best architectural response?",
+      "options": {
+        "A": "Keep the descriptions short and route by keywords in the user message.",
+        "B": "Clarify each tool\u2019s purpose, accepted inputs, boundaries, examples, and when to use it instead of adjacent tools.",
+        "C": "Merge unrelated operations into one catch-all tool.",
+        "D": "Add more tools so the model has extra alternatives."
+      },
+      "correct": [
+        "B"
+      ],
+      "rationale": "Tool descriptions are a primary selection signal; clear boundaries reduce misrouting.",
+      "why_others_fail": "The distractors rely on prompt-only enforcement, excessive scope, hidden failure semantics, or other mechanisms that do not directly address the stated architectural defect.",
+      "difficulty_target": "advanced",
+      "source_refs": [
+        "public-ccar-f-task-map",
+        "official-claude-docs"
+      ],
+      "last_verified": "2026-09-23"
+    },
+    {
+      "id": "Q-45-2",
+      "version": 1,
+      "status": "seed",
+      "domain": 4,
+      "task": "4.5",
+      "task_title": "Batch processing",
+      "scenario": "S3",
+      "scenario_title": "Multi-Agent Research System",
+      "type": "single",
+      "select_n": 1,
+      "stem": "In the Multi-Agent Research System scenario, Thousands of independent, non-urgent records must be processed cost-efficiently overnight. What is the best architectural response?",
+      "options": {
+        "A": "Combine all records into one giant prompt so there is only one request.",
+        "B": "Send every item synchronously at interactive priority.",
+        "C": "Drop identifiers because output order will always match input order.",
+        "D": "Use an asynchronous batch strategy when latency permits, attach stable IDs for reconciliation, and handle item-level failures separately."
+      },
+      "correct": [
+        "D"
+      ],
+      "rationale": "Batching fits high-volume, latency-tolerant workloads and requires reliable result correlation.",
+      "why_others_fail": "The distractors rely on prompt-only enforcement, excessive scope, hidden failure semantics, or other mechanisms that do not directly address the stated architectural defect.",
+      "difficulty_target": "applied",
+      "source_refs": [
+        "public-ccar-f-task-map",
+        "official-claude-docs"
+      ],
+      "last_verified": "2026-09-23"
+    },
+    {
+      "id": "Q-32-1",
+      "version": 1,
+      "status": "seed",
+      "domain": 3,
+      "task": "3.2",
+      "task_title": "Commands and skills",
+      "scenario": "S2",
+      "scenario_title": "Code Generation with Claude Code",
+      "type": "single",
+      "select_n": 1,
+      "stem": "In the Code Generation with Claude Code scenario, A repeatable workflow should be discoverable and reusable across tasks, with instructions loaded only when relevant. What is the best architectural response?",
+      "options": {
+        "A": "Place the entire workflow permanently in the global system prompt.",
+        "B": "Duplicate the workflow in every project file.",
+        "C": "Create a new MCP server even though no external integration is required.",
+        "D": "Package the workflow as a well-described skill; use an explicit command when the user should invoke a named action directly."
+      },
+      "correct": [
+        "D"
+      ],
+      "rationale": "Skills provide reusable contextual procedures; commands are appropriate for explicit invocations.",
+      "why_others_fail": "The distractors rely on prompt-only enforcement, excessive scope, hidden failure semantics, or other mechanisms that do not directly address the stated architectural defect.",
+      "difficulty_target": "foundational",
+      "source_refs": [
+        "public-ccar-f-task-map",
+        "official-claude-docs"
+      ],
+      "last_verified": "2026-09-23"
+    },
+    {
+      "id": "Q-42-2",
+      "version": 1,
+      "status": "seed",
+      "domain": 4,
+      "task": "4.2",
+      "task_title": "Few-shot prompting",
+      "scenario": "S1",
+      "scenario_title": "Customer Support Resolution Agent",
+      "type": "single",
+      "select_n": 1,
+      "stem": "In the Customer Support Resolution Agent scenario, Outputs have the right concept but inconsistent format and boundary decisions. What is the best architectural response?",
+      "options": {
+        "A": "Add a very long abstract definition with no examples.",
+        "B": "Provide a small set of representative examples showing desired outputs and important edge/boundary cases.",
+        "C": "Randomize the system prompt between requests.",
+        "D": "Force all outputs to the same length regardless of content."
+      },
+      "correct": [
+        "B"
+      ],
+      "rationale": "Few-shot examples are especially useful for format and nuanced decision boundaries.",
+      "why_others_fail": "The distractors rely on prompt-only enforcement, excessive scope, hidden failure semantics, or other mechanisms that do not directly address the stated architectural defect.",
+      "difficulty_target": "applied",
+      "source_refs": [
+        "public-ccar-f-task-map",
+        "official-claude-docs"
+      ],
+      "last_verified": "2026-09-23"
+    },
+    {
+      "id": "Q-17-2",
+      "version": 1,
+      "status": "seed",
+      "domain": 1,
+      "task": "1.7",
+      "task_title": "Session state",
+      "scenario": "S3",
+      "scenario_title": "Multi-Agent Research System",
+      "type": "single",
+      "select_n": 1,
+      "stem": "In the Multi-Agent Research System scenario, A long-running task fails midway and the team must continue without replaying every completed step. What is the best architectural response?",
+      "options": {
+        "A": "Store state only in an informal human note outside the workflow.",
+        "B": "Persist resumable session/checkpoint state and distinguish resume from fork so continuation preserves history while experiments branch safely.",
+        "C": "Restart from the initial prompt and rely on the model to recreate prior work.",
+        "D": "Copy only the final assistant message into a new session."
+      },
+      "correct": [
+        "B"
+      ],
+      "rationale": "Explicit session state enables reliable continuation and controlled branching.",
+      "why_others_fail": "The distractors rely on prompt-only enforcement, excessive scope, hidden failure semantics, or other mechanisms that do not directly address the stated architectural defect.",
+      "difficulty_target": "applied",
+      "source_refs": [
+        "public-ccar-f-task-map",
+        "official-claude-docs"
+      ],
+      "last_verified": "2026-09-23"
+    },
+    {
+      "id": "Q-23-1",
+      "version": 1,
+      "status": "seed",
+      "domain": 2,
+      "task": "2.3",
+      "task_title": "Tool distribution",
+      "scenario": "S3",
+      "scenario_title": "Multi-Agent Research System",
+      "type": "single",
+      "select_n": 1,
+      "stem": "In the Multi-Agent Research System scenario, One agent has dozens of tools and frequently selects the wrong one. What is the best architectural response?",
+      "options": {
+        "A": "Give every agent every tool to maximize flexibility.",
+        "B": "Give each agent the minimum tool set required for its role and use tool-choice controls only when the workflow requires a tool or a specific tool.",
+        "C": "Force the same tool on every turn.",
+        "D": "Replace tool descriptions with a list of trigger keywords."
+      },
+      "correct": [
+        "B"
+      ],
+      "rationale": "Least-tool access improves selection reliability and supports least privilege.",
+      "why_others_fail": "The distractors rely on prompt-only enforcement, excessive scope, hidden failure semantics, or other mechanisms that do not directly address the stated architectural defect.",
+      "difficulty_target": "foundational",
+      "source_refs": [
+        "public-ccar-f-task-map",
+        "official-claude-docs"
+      ],
+      "last_verified": "2026-09-23"
+    },
+    {
+      "id": "Q-52-2",
+      "version": 1,
+      "status": "seed",
+      "domain": 5,
+      "task": "5.2",
+      "task_title": "Escalation and ambiguity",
+      "scenario": "S3",
+      "scenario_title": "Multi-Agent Research System",
+      "type": "single",
+      "select_n": 1,
+      "stem": "In the Multi-Agent Research System scenario, The system guesses between two plausible customer/account matches and also refuses to hand off when a user explicitly asks for a human. What is the best architectural response?",
+      "options": {
+        "A": "Ask a clarifying question when identity is ambiguous and honor explicit human escalation or policy-gap triggers.",
+        "B": "Choose the most likely match based on model confidence.",
+        "C": "Use negative sentiment as the primary escalation rule.",
+        "D": "Never escalate if the model can produce any answer."
+      },
+      "correct": [
+        "A"
+      ],
+      "rationale": "Ambiguity should be resolved, not guessed; escalation needs explicit operational triggers.",
+      "why_others_fail": "The distractors rely on prompt-only enforcement, excessive scope, hidden failure semantics, or other mechanisms that do not directly address the stated architectural defect.",
+      "difficulty_target": "applied",
+      "source_refs": [
+        "public-ccar-f-task-map",
+        "official-claude-docs"
+      ],
+      "last_verified": "2026-09-23"
+    },
+    {
+      "id": "Q-22-1",
+      "version": 1,
+      "status": "seed",
+      "domain": 2,
+      "task": "2.2",
+      "task_title": "Structured errors",
+      "scenario": "S1",
+      "scenario_title": "Customer Support Resolution Agent",
+      "type": "single",
+      "select_n": 1,
+      "stem": "In the Customer Support Resolution Agent scenario, A tool returns the same generic error string for timeouts, permission failures, and valid empty results. What is the best architectural response?",
+      "options": {
+        "A": "Return structured error information that distinguishes retryable failures, non-retryable failures, and valid empty results, with actionable context.",
+        "B": "Throw unstructured stack traces directly into the model context.",
+        "C": "Convert all failures into an empty successful result.",
+        "D": "Retry every failure indefinitely with no backoff or classification."
+      },
+      "correct": [
+        "A"
+      ],
+      "rationale": "Typed error semantics let the agent choose retry, alternate action, escalation, or normal continuation correctly.",
+      "why_others_fail": "The distractors rely on prompt-only enforcement, excessive scope, hidden failure semantics, or other mechanisms that do not directly address the stated architectural defect.",
+      "difficulty_target": "foundational",
+      "source_refs": [
+        "public-ccar-f-task-map",
+        "official-claude-docs"
+      ],
+      "last_verified": "2026-09-23"
+    },
+    {
+      "id": "Q-34-3",
+      "version": 1,
+      "status": "seed",
+      "domain": 3,
+      "task": "3.4",
+      "task_title": "Plan vs direct execution",
+      "scenario": "S5",
+      "scenario_title": "Claude Code for Continuous Integration",
+      "type": "single",
+      "select_n": 1,
+      "stem": "In the Claude Code for Continuous Integration scenario, A broad refactor touches architecture, migrations, tests, and multiple services. What is the best architectural response?",
+      "options": {
+        "A": "Decide solely from the number of tokens in the request.",
+        "B": "Use plan mode to explore dependencies and agree the change strategy before execution; use direct execution for small, well-bounded edits.",
+        "C": "Always use plan mode even for one-line obvious fixes.",
+        "D": "Always execute immediately because planning adds latency."
+      },
+      "correct": [
+        "B"
+      ],
+      "rationale": "The choice depends on uncertainty, blast radius, and need for exploration\u2014not task length alone.",
+      "why_others_fail": "The distractors rely on prompt-only enforcement, excessive scope, hidden failure semantics, or other mechanisms that do not directly address the stated architectural defect.",
+      "difficulty_target": "advanced",
+      "source_refs": [
+        "public-ccar-f-task-map",
+        "official-claude-docs"
+      ],
+      "last_verified": "2026-09-23"
+    },
+    {
+      "id": "Q-55-1",
+      "version": 1,
+      "status": "seed",
+      "domain": 5,
+      "task": "5.5",
+      "task_title": "Human review and calibration",
+      "scenario": "S6",
+      "scenario_title": "Structured Data Extraction",
+      "type": "single",
+      "select_n": 1,
+      "stem": "In the Structured Data Extraction scenario, Aggregate accuracy looks high, but one rare high-risk segment performs poorly. What is the best architectural response?",
+      "options": {
+        "A": "Remove human review once the aggregate score exceeds a threshold.",
+        "B": "Use only overall average accuracy to decide automation.",
+        "C": "Let the model self-report confidence and treat it as calibrated.",
+        "D": "Measure performance by segment and field, calibrate confidence against labeled data, and route high-risk or uncertain cases to human review."
+      },
+      "correct": [
+        "D"
+      ],
+      "rationale": "Risk-sensitive systems need segmented evaluation and calibrated routing.",
+      "why_others_fail": "The distractors rely on prompt-only enforcement, excessive scope, hidden failure semantics, or other mechanisms that do not directly address the stated architectural defect.",
+      "difficulty_target": "foundational",
+      "source_refs": [
+        "public-ccar-f-task-map",
+        "official-claude-docs"
+      ],
+      "last_verified": "2026-09-23"
+    },
+    {
+      "id": "Q-15-1",
+      "version": 1,
+      "status": "seed",
+      "domain": 1,
+      "task": "1.5",
+      "task_title": "Agent SDK hooks",
+      "scenario": "S1",
+      "scenario_title": "Customer Support Resolution Agent",
+      "type": "single",
+      "select_n": 1,
+      "stem": "In the Customer Support Resolution Agent scenario, Tool calls need consistent normalization and policy checks before and after execution. What is the best architectural response?",
+      "options": {
+        "A": "Use hooks to intercept the relevant tool lifecycle events, enforce policy, normalize inputs/outputs, and record the outcome.",
+        "B": "Duplicate the same policy text inside every tool description.",
+        "C": "Run a second model after the entire session and hope it catches violations.",
+        "D": "Encode the policy only in the final response template."
+      },
+      "correct": [
+        "A"
+      ],
+      "rationale": "Hooks are appropriate for cross-cutting checks around tool execution.",
+      "why_others_fail": "The distractors rely on prompt-only enforcement, excessive scope, hidden failure semantics, or other mechanisms that do not directly address the stated architectural defect.",
+      "difficulty_target": "foundational",
+      "source_refs": [
+        "public-ccar-f-task-map",
+        "official-claude-docs"
+      ],
+      "last_verified": "2026-09-23"
+    },
+    {
+      "id": "Q-45-1",
+      "version": 1,
+      "status": "seed",
+      "domain": 4,
+      "task": "4.5",
+      "task_title": "Batch processing",
+      "scenario": "S6",
+      "scenario_title": "Structured Data Extraction",
+      "type": "single",
+      "select_n": 1,
+      "stem": "In the Structured Data Extraction scenario, Thousands of independent, non-urgent records must be processed cost-efficiently overnight. What is the best architectural response?",
+      "options": {
+        "A": "Use an asynchronous batch strategy when latency permits, attach stable IDs for reconciliation, and handle item-level failures separately.",
+        "B": "Drop identifiers because output order will always match input order.",
+        "C": "Send every item synchronously at interactive priority.",
+        "D": "Combine all records into one giant prompt so there is only one request."
+      },
+      "correct": [
+        "A"
+      ],
+      "rationale": "Batching fits high-volume, latency-tolerant workloads and requires reliable result correlation.",
+      "why_others_fail": "The distractors rely on prompt-only enforcement, excessive scope, hidden failure semantics, or other mechanisms that do not directly address the stated architectural defect.",
+      "difficulty_target": "foundational",
+      "source_refs": [
+        "public-ccar-f-task-map",
+        "official-claude-docs"
+      ],
+      "last_verified": "2026-09-23"
+    },
+    {
+      "id": "Q-34-2",
+      "version": 1,
+      "status": "seed",
+      "domain": 3,
+      "task": "3.4",
+      "task_title": "Plan vs direct execution",
+      "scenario": "S4",
+      "scenario_title": "Developer Productivity with Claude",
+      "type": "single",
+      "select_n": 1,
+      "stem": "In the Developer Productivity with Claude scenario, A broad refactor touches architecture, migrations, tests, and multiple services. What is the best architectural response?",
+      "options": {
+        "A": "Always execute immediately because planning adds latency.",
+        "B": "Decide solely from the number of tokens in the request.",
+        "C": "Use plan mode to explore dependencies and agree the change strategy before execution; use direct execution for small, well-bounded edits.",
+        "D": "Always use plan mode even for one-line obvious fixes."
+      },
+      "correct": [
+        "C"
+      ],
+      "rationale": "The choice depends on uncertainty, blast radius, and need for exploration\u2014not task length alone.",
+      "why_others_fail": "The distractors rely on prompt-only enforcement, excessive scope, hidden failure semantics, or other mechanisms that do not directly address the stated architectural defect.",
+      "difficulty_target": "applied",
+      "source_refs": [
+        "public-ccar-f-task-map",
+        "official-claude-docs"
+      ],
+      "last_verified": "2026-09-23"
+    },
+    {
+      "id": "Q-32-3",
+      "version": 1,
+      "status": "seed",
+      "domain": 3,
+      "task": "3.2",
+      "task_title": "Commands and skills",
+      "scenario": "S5",
+      "scenario_title": "Claude Code for Continuous Integration",
+      "type": "single",
+      "select_n": 1,
+      "stem": "In the Claude Code for Continuous Integration scenario, A repeatable workflow should be discoverable and reusable across tasks, with instructions loaded only when relevant. What is the best architectural response?",
+      "options": {
+        "A": "Create a new MCP server even though no external integration is required.",
+        "B": "Duplicate the workflow in every project file.",
+        "C": "Place the entire workflow permanently in the global system prompt.",
+        "D": "Package the workflow as a well-described skill; use an explicit command when the user should invoke a named action directly."
+      },
+      "correct": [
+        "D"
+      ],
+      "rationale": "Skills provide reusable contextual procedures; commands are appropriate for explicit invocations.",
+      "why_others_fail": "The distractors rely on prompt-only enforcement, excessive scope, hidden failure semantics, or other mechanisms that do not directly address the stated architectural defect.",
+      "difficulty_target": "advanced",
+      "source_refs": [
+        "public-ccar-f-task-map",
+        "official-claude-docs"
+      ],
+      "last_verified": "2026-09-23"
+    },
+    {
+      "id": "Q-45-3",
+      "version": 1,
+      "status": "seed",
+      "domain": 4,
+      "task": "4.5",
+      "task_title": "Batch processing",
+      "scenario": "S5",
+      "scenario_title": "Claude Code for Continuous Integration",
+      "type": "single",
+      "select_n": 1,
+      "stem": "In the Claude Code for Continuous Integration scenario, Thousands of independent, non-urgent records must be processed cost-efficiently overnight. What is the best architectural response?",
+      "options": {
+        "A": "Drop identifiers because output order will always match input order.",
+        "B": "Send every item synchronously at interactive priority.",
+        "C": "Use an asynchronous batch strategy when latency permits, attach stable IDs for reconciliation, and handle item-level failures separately.",
+        "D": "Combine all records into one giant prompt so there is only one request."
+      },
+      "correct": [
+        "C"
+      ],
+      "rationale": "Batching fits high-volume, latency-tolerant workloads and requires reliable result correlation.",
+      "why_others_fail": "The distractors rely on prompt-only enforcement, excessive scope, hidden failure semantics, or other mechanisms that do not directly address the stated architectural defect.",
+      "difficulty_target": "advanced",
+      "source_refs": [
+        "public-ccar-f-task-map",
+        "official-claude-docs"
+      ],
+      "last_verified": "2026-09-23"
+    },
+    {
+      "id": "Q-14-3",
+      "version": 1,
+      "status": "seed",
+      "domain": 1,
+      "task": "1.4",
+      "task_title": "Workflow enforcement and handoff",
+      "scenario": "S6",
+      "scenario_title": "Structured Data Extraction",
+      "type": "multiple",
+      "select_n": 2,
+      "stem": "In the Structured Data Extraction scenario, A regulated workflow occasionally skips a mandatory verification step before a consequential action. Select TWO actions that best address the problem.",
+      "options": {
+        "A": "Enforce the prerequisite programmatically and require a structured handoff when the workflow cannot proceed safely.",
+        "B": "Include the verified facts and unresolved reason in a structured handoff payload.",
+        "C": "Strengthen the prose prompt and trust the model to remember the step.",
+        "D": "Add more temperature randomness so the agent explores alternative paths."
+      },
+      "correct": [
+        "A",
+        "B"
+      ],
+      "rationale": "Hard invariants belong in deterministic gates; handoffs should preserve the facts needed by the next actor. The complementary action adds deterministic assurance, least privilege, reproducibility, bounded recovery, or explicit provenance as appropriate to the task.",
+      "why_others_fail": "The distractors rely on prompt-only enforcement, excessive scope, hidden failure semantics, or other mechanisms that do not directly address the stated architectural defect.",
+      "difficulty_target": "advanced",
+      "source_refs": [
+        "public-ccar-f-task-map",
+        "official-claude-docs"
+      ],
+      "last_verified": "2026-09-23"
+    },
+    {
+      "id": "Q-12-2",
+      "version": 1,
+      "status": "seed",
+      "domain": 1,
+      "task": "1.2",
+      "task_title": "Multi-agent orchestration",
+      "scenario": "S1",
+      "scenario_title": "Customer Support Resolution Agent",
+      "type": "single",
+      "select_n": 1,
+      "stem": "In the Customer Support Resolution Agent scenario, A coordinator delegates work to several specialists, but their scopes overlap and the final synthesis misses coverage. What is the best architectural response?",
+      "options": {
+        "A": "Give the coordinator explicit decomposition and aggregation responsibilities, with non-overlapping specialist scopes and a completeness check before synthesis.",
+        "B": "Remove the coordinator and allow specialists to call one another freely.",
+        "C": "Let every specialist investigate the entire problem independently and concatenate their answers.",
+        "D": "Use one generalist agent with every available tool so no routing is required."
+      },
+      "correct": [
+        "A"
+      ],
+      "rationale": "Coordinator\u2013subagent designs work when ownership, context, and aggregation criteria are explicit.",
+      "why_others_fail": "The distractors rely on prompt-only enforcement, excessive scope, hidden failure semantics, or other mechanisms that do not directly address the stated architectural defect.",
+      "difficulty_target": "applied",
+      "source_refs": [
+        "public-ccar-f-task-map",
+        "official-claude-docs"
+      ],
+      "last_verified": "2026-09-23"
+    },
+    {
+      "id": "Q-13-1",
+      "version": 1,
+      "status": "seed",
+      "domain": 1,
+      "task": "1.3",
+      "task_title": "Subagent context",
+      "scenario": "S3",
+      "scenario_title": "Multi-Agent Research System",
+      "type": "single",
+      "select_n": 1,
+      "stem": "In the Multi-Agent Research System scenario, Subagents receive the entire parent history, causing context bloat and inconsistent focus. What is the best architectural response?",
+      "options": {
+        "A": "Give subagents no context and rely on them to rediscover everything.",
+        "B": "Share only the user\u2019s last sentence regardless of the task.",
+        "C": "Pass only the task-relevant context, expected output contract, and necessary evidence to each subagent; return compact structured results to the parent.",
+        "D": "Always clone the full parent conversation into every subagent."
+      },
+      "correct": [
+        "C"
+      ],
+      "rationale": "Bounded context improves focus and avoids unnecessary context-window pressure.",
+      "why_others_fail": "The distractors rely on prompt-only enforcement, excessive scope, hidden failure semantics, or other mechanisms that do not directly address the stated architectural defect.",
+      "difficulty_target": "foundational",
+      "source_refs": [
+        "public-ccar-f-task-map",
+        "official-claude-docs"
+      ],
+      "last_verified": "2026-09-23"
+    },
+    {
+      "id": "Q-51-1",
+      "version": 1,
+      "status": "seed",
+      "domain": 5,
+      "task": "5.1",
+      "task_title": "Context preservation",
+      "scenario": "S1",
+      "scenario_title": "Customer Support Resolution Agent",
+      "type": "single",
+      "select_n": 1,
+      "stem": "In the Customer Support Resolution Agent scenario, Long conversations are summarized, but exact amounts, dates, commitments, or identifiers disappear. What is the best architectural response?",
+      "options": {
+        "A": "Make the rolling summary longer every turn.",
+        "B": "Discard earlier facts once a new topic appears.",
+        "C": "Trust the model to remember exact values from distant turns.",
+        "D": "Maintain critical case facts in structured persistent state and keep summaries for narrative context rather than as the sole source of truth."
+      },
+      "correct": [
+        "D"
+      ],
+      "rationale": "Critical facts should survive compaction in structured state.",
+      "why_others_fail": "The distractors rely on prompt-only enforcement, excessive scope, hidden failure semantics, or other mechanisms that do not directly address the stated architectural defect.",
+      "difficulty_target": "foundational",
+      "source_refs": [
+        "public-ccar-f-task-map",
+        "official-claude-docs"
+      ],
+      "last_verified": "2026-09-23"
+    },
+    {
+      "id": "Q-35-1",
+      "version": 1,
+      "status": "seed",
+      "domain": 3,
+      "task": "3.5",
+      "task_title": "Iterative refinement",
+      "scenario": "S2",
+      "scenario_title": "Code Generation with Claude Code",
+      "type": "single",
+      "select_n": 1,
+      "stem": "In the Code Generation with Claude Code scenario, A generated implementation repeatedly violates one interface contract despite increasingly long prose instructions. What is the best architectural response?",
+      "options": {
+        "A": "Add concrete input/output examples and executable tests, then iterate against failures rather than only lengthening the prompt.",
+        "B": "Switch models without collecting a failing example.",
+        "C": "Keep adding adjectives such as robust and production-grade.",
+        "D": "Lower the temperature until every output becomes deterministic."
+      },
+      "correct": [
+        "A"
+      ],
+      "rationale": "Examples and tests create observable feedback for progressive improvement.",
+      "why_others_fail": "The distractors rely on prompt-only enforcement, excessive scope, hidden failure semantics, or other mechanisms that do not directly address the stated architectural defect.",
+      "difficulty_target": "foundational",
+      "source_refs": [
+        "public-ccar-f-task-map",
+        "official-claude-docs"
+      ],
+      "last_verified": "2026-09-23"
+    },
+    {
+      "id": "Q-22-3",
+      "version": 1,
+      "status": "seed",
+      "domain": 2,
+      "task": "2.2",
+      "task_title": "Structured errors",
+      "scenario": "S6",
+      "scenario_title": "Structured Data Extraction",
+      "type": "multiple",
+      "select_n": 2,
+      "stem": "In the Structured Data Extraction scenario, A tool returns the same generic error string for timeouts, permission failures, and valid empty results. Select TWO actions that best address the problem.",
+      "options": {
+        "A": "Throw unstructured stack traces directly into the model context.",
+        "B": "Include a machine-readable retryability/category field rather than forcing the model to infer it from prose.",
+        "C": "Return structured error information that distinguishes retryable failures, non-retryable failures, and valid empty results, with actionable context.",
+        "D": "Convert all failures into an empty successful result."
+      },
+      "correct": [
+        "B",
+        "C"
+      ],
+      "rationale": "Typed error semantics let the agent choose retry, alternate action, escalation, or normal continuation correctly. The complementary action adds deterministic assurance, least privilege, reproducibility, bounded recovery, or explicit provenance as appropriate to the task.",
+      "why_others_fail": "The distractors rely on prompt-only enforcement, excessive scope, hidden failure semantics, or other mechanisms that do not directly address the stated architectural defect.",
+      "difficulty_target": "advanced",
+      "source_refs": [
+        "public-ccar-f-task-map",
+        "official-claude-docs"
+      ],
+      "last_verified": "2026-09-23"
+    },
+    {
+      "id": "Q-35-2",
+      "version": 1,
+      "status": "seed",
+      "domain": 3,
+      "task": "3.5",
+      "task_title": "Iterative refinement",
+      "scenario": "S5",
+      "scenario_title": "Claude Code for Continuous Integration",
+      "type": "single",
+      "select_n": 1,
+      "stem": "In the Claude Code for Continuous Integration scenario, A generated implementation repeatedly violates one interface contract despite increasingly long prose instructions. What is the best architectural response?",
+      "options": {
+        "A": "Add concrete input/output examples and executable tests, then iterate against failures rather than only lengthening the prompt.",
+        "B": "Switch models without collecting a failing example.",
+        "C": "Lower the temperature until every output becomes deterministic.",
+        "D": "Keep adding adjectives such as robust and production-grade."
+      },
+      "correct": [
+        "A"
+      ],
+      "rationale": "Examples and tests create observable feedback for progressive improvement.",
+      "why_others_fail": "The distractors rely on prompt-only enforcement, excessive scope, hidden failure semantics, or other mechanisms that do not directly address the stated architectural defect.",
+      "difficulty_target": "applied",
+      "source_refs": [
+        "public-ccar-f-task-map",
+        "official-claude-docs"
+      ],
+      "last_verified": "2026-09-23"
+    },
+    {
+      "id": "Q-33-3",
+      "version": 1,
+      "status": "seed",
+      "domain": 3,
+      "task": "3.3",
+      "task_title": "Path-specific rules",
+      "scenario": "S5",
+      "scenario_title": "Claude Code for Continuous Integration",
+      "type": "single",
+      "select_n": 1,
+      "stem": "In the Claude Code for Continuous Integration scenario, Frontend, backend, and infrastructure conventions are all loading for every file edit. What is the best architectural response?",
+      "options": {
+        "A": "Ask the developer to mention the file type in every prompt.",
+        "B": "Increase model context so unrelated rules are less noticeable.",
+        "C": "Repeat all conventions in every nested directory.",
+        "D": "Use path-specific rules/globs so conventions load conditionally for the relevant files."
+      },
+      "correct": [
+        "D"
+      ],
+      "rationale": "Conditional rules reduce irrelevant context and keep conventions precise.",
+      "why_others_fail": "The distractors rely on prompt-only enforcement, excessive scope, hidden failure semantics, or other mechanisms that do not directly address the stated architectural defect.",
+      "difficulty_target": "advanced",
+      "source_refs": [
+        "public-ccar-f-task-map",
+        "official-claude-docs"
+      ],
+      "last_verified": "2026-09-23"
+    },
+    {
+      "id": "Q-55-3",
+      "version": 1,
+      "status": "seed",
+      "domain": 5,
+      "task": "5.5",
+      "task_title": "Human review and calibration",
+      "scenario": "S5",
+      "scenario_title": "Claude Code for Continuous Integration",
+      "type": "single",
+      "select_n": 1,
+      "stem": "In the Claude Code for Continuous Integration scenario, Aggregate accuracy looks high, but one rare high-risk segment performs poorly. What is the best architectural response?",
+      "options": {
+        "A": "Let the model self-report confidence and treat it as calibrated.",
+        "B": "Remove human review once the aggregate score exceeds a threshold.",
+        "C": "Measure performance by segment and field, calibrate confidence against labeled data, and route high-risk or uncertain cases to human review.",
+        "D": "Use only overall average accuracy to decide automation."
+      },
+      "correct": [
+        "C"
+      ],
+      "rationale": "Risk-sensitive systems need segmented evaluation and calibrated routing.",
+      "why_others_fail": "The distractors rely on prompt-only enforcement, excessive scope, hidden failure semantics, or other mechanisms that do not directly address the stated architectural defect.",
+      "difficulty_target": "advanced",
+      "source_refs": [
+        "public-ccar-f-task-map",
+        "official-claude-docs"
+      ],
+      "last_verified": "2026-09-23"
+    },
+    {
+      "id": "Q-54-3",
+      "version": 1,
+      "status": "seed",
+      "domain": 5,
+      "task": "5.4",
+      "task_title": "Large-codebase context",
+      "scenario": "S5",
+      "scenario_title": "Claude Code for Continuous Integration",
+      "type": "single",
+      "select_n": 1,
+      "stem": "In the Claude Code for Continuous Integration scenario, After exploring a large repository, the agent starts relying on generic patterns instead of the actual codebase. What is the best architectural response?",
+      "options": {
+        "A": "Use targeted search/read steps, scratch/manifest state, bounded subagents for noisy exploration, and compact/resume techniques as context grows.",
+        "B": "Stop reading source files and rely on general framework knowledge.",
+        "C": "Restart the investigation whenever context gets large.",
+        "D": "Load the whole repository into context at once."
+      },
+      "correct": [
+        "A"
+      ],
+      "rationale": "Large-codebase work needs progressive discovery and explicit working state.",
+      "why_others_fail": "The distractors rely on prompt-only enforcement, excessive scope, hidden failure semantics, or other mechanisms that do not directly address the stated architectural defect.",
+      "difficulty_target": "advanced",
+      "source_refs": [
+        "public-ccar-f-task-map",
+        "official-claude-docs"
+      ],
+      "last_verified": "2026-09-23"
+    },
+    {
+      "id": "Q-21-1",
+      "version": 1,
+      "status": "seed",
+      "domain": 2,
+      "task": "2.1",
+      "task_title": "Tool interface design",
+      "scenario": "S1",
+      "scenario_title": "Customer Support Resolution Agent",
+      "type": "single",
+      "select_n": 1,
+      "stem": "In the Customer Support Resolution Agent scenario, Two similar tools are frequently confused because their names and descriptions overlap. What is the best architectural response?",
+      "options": {
+        "A": "Add more tools so the model has extra alternatives.",
+        "B": "Merge unrelated operations into one catch-all tool.",
+        "C": "Clarify each tool\u2019s purpose, accepted inputs, boundaries, examples, and when to use it instead of adjacent tools.",
+        "D": "Keep the descriptions short and route by keywords in the user message."
+      },
+      "correct": [
+        "C"
+      ],
+      "rationale": "Tool descriptions are a primary selection signal; clear boundaries reduce misrouting.",
+      "why_others_fail": "The distractors rely on prompt-only enforcement, excessive scope, hidden failure semantics, or other mechanisms that do not directly address the stated architectural defect.",
+      "difficulty_target": "foundational",
+      "source_refs": [
+        "public-ccar-f-task-map",
+        "official-claude-docs"
+      ],
+      "last_verified": "2026-09-23"
+    },
+    {
+      "id": "Q-13-2",
+      "version": 1,
+      "status": "seed",
+      "domain": 1,
+      "task": "1.3",
+      "task_title": "Subagent context",
+      "scenario": "S2",
+      "scenario_title": "Code Generation with Claude Code",
+      "type": "single",
+      "select_n": 1,
+      "stem": "In the Code Generation with Claude Code scenario, Subagents receive the entire parent history, causing context bloat and inconsistent focus. What is the best architectural response?",
+      "options": {
+        "A": "Pass only the task-relevant context, expected output contract, and necessary evidence to each subagent; return compact structured results to the parent.",
+        "B": "Give subagents no context and rely on them to rediscover everything.",
+        "C": "Always clone the full parent conversation into every subagent.",
+        "D": "Share only the user\u2019s last sentence regardless of the task."
+      },
+      "correct": [
+        "A"
+      ],
+      "rationale": "Bounded context improves focus and avoids unnecessary context-window pressure.",
+      "why_others_fail": "The distractors rely on prompt-only enforcement, excessive scope, hidden failure semantics, or other mechanisms that do not directly address the stated architectural defect.",
+      "difficulty_target": "applied",
+      "source_refs": [
+        "public-ccar-f-task-map",
+        "official-claude-docs"
+      ],
+      "last_verified": "2026-09-23"
+    },
+    {
+      "id": "Q-11-2",
+      "version": 1,
+      "status": "seed",
+      "domain": 1,
+      "task": "1.1",
+      "task_title": "Agentic loops",
+      "scenario": "S3",
+      "scenario_title": "Multi-Agent Research System",
+      "type": "single",
+      "select_n": 1,
+      "stem": "In the Multi-Agent Research System scenario, The agent stops after emitting ordinary text even though a tool call is still required to finish the task. What is the best architectural response?",
+      "options": {
+        "A": "Drive termination from the response stop reason: execute requested tools on tool_use, append tool results, and continue until an end-turn condition is reached.",
+        "B": "Use a fixed maximum of two turns and assume the task is complete afterward.",
+        "C": "Replace the loop with a keyword classifier that looks for words such as done or complete.",
+        "D": "Stop whenever the assistant produces a complete-sounding paragraph."
+      },
+      "correct": [
+        "A"
+      ],
+      "rationale": "The loop must follow the model/tool protocol, not natural-language guesses about completion.",
+      "why_others_fail": "The distractors rely on prompt-only enforcement, excessive scope, hidden failure semantics, or other mechanisms that do not directly address the stated architectural defect.",
+      "difficulty_target": "applied",
+      "source_refs": [
+        "public-ccar-f-task-map",
+        "official-claude-docs"
+      ],
+      "last_verified": "2026-09-23"
+    },
+    {
+      "id": "Q-24-2",
+      "version": 1,
+      "status": "seed",
+      "domain": 2,
+      "task": "2.4",
+      "task_title": "MCP integration",
+      "scenario": "S3",
+      "scenario_title": "Multi-Agent Research System",
+      "type": "single",
+      "select_n": 1,
+      "stem": "In the Multi-Agent Research System scenario, A team needs reusable access to an external service across Claude clients and workflows. What is the best architectural response?",
+      "options": {
+        "A": "Expose the capability through a well-scoped MCP server with typed tools/resources/prompts and configure the client at the appropriate scope.",
+        "B": "Build a separate custom protocol for each Claude surface.",
+        "C": "Paste credentials and API examples into the system prompt.",
+        "D": "Use browser automation even though a direct structured integration is available."
+      },
+      "correct": [
+        "A"
+      ],
+      "rationale": "MCP standardizes reusable context/tool integration and should be scoped deliberately.",
+      "why_others_fail": "The distractors rely on prompt-only enforcement, excessive scope, hidden failure semantics, or other mechanisms that do not directly address the stated architectural defect.",
+      "difficulty_target": "applied",
+      "source_refs": [
+        "public-ccar-f-task-map",
+        "official-claude-docs"
+      ],
+      "last_verified": "2026-09-23"
+    },
+    {
+      "id": "Q-12-1",
+      "version": 1,
+      "status": "seed",
+      "domain": 1,
+      "task": "1.2",
+      "task_title": "Multi-agent orchestration",
+      "scenario": "S3",
+      "scenario_title": "Multi-Agent Research System",
+      "type": "single",
+      "select_n": 1,
+      "stem": "In the Multi-Agent Research System scenario, A coordinator delegates work to several specialists, but their scopes overlap and the final synthesis misses coverage. What is the best architectural response?",
+      "options": {
+        "A": "Give the coordinator explicit decomposition and aggregation responsibilities, with non-overlapping specialist scopes and a completeness check before synthesis.",
+        "B": "Remove the coordinator and allow specialists to call one another freely.",
+        "C": "Let every specialist investigate the entire problem independently and concatenate their answers.",
+        "D": "Use one generalist agent with every available tool so no routing is required."
+      },
+      "correct": [
+        "A"
+      ],
+      "rationale": "Coordinator\u2013subagent designs work when ownership, context, and aggregation criteria are explicit.",
+      "why_others_fail": "The distractors rely on prompt-only enforcement, excessive scope, hidden failure semantics, or other mechanisms that do not directly address the stated architectural defect.",
+      "difficulty_target": "foundational",
+      "source_refs": [
+        "public-ccar-f-task-map",
+        "official-claude-docs"
+      ],
+      "last_verified": "2026-09-23"
+    },
+    {
+      "id": "Q-52-3",
+      "version": 1,
+      "status": "seed",
+      "domain": 5,
+      "task": "5.2",
+      "task_title": "Escalation and ambiguity",
+      "scenario": "S6",
+      "scenario_title": "Structured Data Extraction",
+      "type": "single",
+      "select_n": 1,
+      "stem": "In the Structured Data Extraction scenario, The system guesses between two plausible customer/account matches and also refuses to hand off when a user explicitly asks for a human. What is the best architectural response?",
+      "options": {
+        "A": "Use negative sentiment as the primary escalation rule.",
+        "B": "Ask a clarifying question when identity is ambiguous and honor explicit human escalation or policy-gap triggers.",
+        "C": "Choose the most likely match based on model confidence.",
+        "D": "Never escalate if the model can produce any answer."
+      },
+      "correct": [
+        "B"
+      ],
+      "rationale": "Ambiguity should be resolved, not guessed; escalation needs explicit operational triggers.",
+      "why_others_fail": "The distractors rely on prompt-only enforcement, excessive scope, hidden failure semantics, or other mechanisms that do not directly address the stated architectural defect.",
+      "difficulty_target": "advanced",
+      "source_refs": [
+        "public-ccar-f-task-map",
+        "official-claude-docs"
+      ],
+      "last_verified": "2026-09-23"
+    },
+    {
+      "id": "Q-51-2",
+      "version": 1,
+      "status": "seed",
+      "domain": 5,
+      "task": "5.1",
+      "task_title": "Context preservation",
+      "scenario": "S3",
+      "scenario_title": "Multi-Agent Research System",
+      "type": "single",
+      "select_n": 1,
+      "stem": "In the Multi-Agent Research System scenario, Long conversations are summarized, but exact amounts, dates, commitments, or identifiers disappear. What is the best architectural response?",
+      "options": {
+        "A": "Make the rolling summary longer every turn.",
+        "B": "Trust the model to remember exact values from distant turns.",
+        "C": "Discard earlier facts once a new topic appears.",
+        "D": "Maintain critical case facts in structured persistent state and keep summaries for narrative context rather than as the sole source of truth."
+      },
+      "correct": [
+        "D"
+      ],
+      "rationale": "Critical facts should survive compaction in structured state.",
+      "why_others_fail": "The distractors rely on prompt-only enforcement, excessive scope, hidden failure semantics, or other mechanisms that do not directly address the stated architectural defect.",
+      "difficulty_target": "applied",
+      "source_refs": [
+        "public-ccar-f-task-map",
+        "official-claude-docs"
+      ],
+      "last_verified": "2026-09-23"
+    },
+    {
+      "id": "Q-31-3",
+      "version": 1,
+      "status": "seed",
+      "domain": 3,
+      "task": "3.1",
+      "task_title": "CLAUDE.md hierarchy",
+      "scenario": "S5",
+      "scenario_title": "Claude Code for Continuous Integration",
+      "type": "multiple",
+      "select_n": 2,
+      "stem": "In the Claude Code for Continuous Integration scenario, Shared coding conventions work for one developer but not teammates, and a single instruction file has become bloated. Select TWO actions that best address the problem.",
+      "options": {
+        "A": "Use conditional/path-specific rules so unrelated conventions are not loaded for every task.",
+        "B": "Put every rule into one ever-growing root file.",
+        "C": "Keep the conventions in a user-only file and ask teammates to copy it manually.",
+        "D": "Move shared instructions to project scope, modularize reusable guidance, and use the hierarchy/rules system so only relevant instructions load."
+      },
+      "correct": [
+        "A",
+        "D"
+      ],
+      "rationale": "Correct scope and modular loading are essential for predictable team behavior. The complementary action adds deterministic assurance, least privilege, reproducibility, bounded recovery, or explicit provenance as appropriate to the task.",
+      "why_others_fail": "The distractors rely on prompt-only enforcement, excessive scope, hidden failure semantics, or other mechanisms that do not directly address the stated architectural defect.",
+      "difficulty_target": "advanced",
+      "source_refs": [
+        "public-ccar-f-task-map",
+        "official-claude-docs"
+      ],
+      "last_verified": "2026-09-23"
+    },
+    {
+      "id": "Q-42-3",
+      "version": 1,
+      "status": "seed",
+      "domain": 4,
+      "task": "4.2",
+      "task_title": "Few-shot prompting",
+      "scenario": "S5",
+      "scenario_title": "Claude Code for Continuous Integration",
+      "type": "single",
+      "select_n": 1,
+      "stem": "In the Claude Code for Continuous Integration scenario, Outputs have the right concept but inconsistent format and boundary decisions. What is the best architectural response?",
+      "options": {
+        "A": "Add a very long abstract definition with no examples.",
+        "B": "Randomize the system prompt between requests.",
+        "C": "Force all outputs to the same length regardless of content.",
+        "D": "Provide a small set of representative examples showing desired outputs and important edge/boundary cases."
+      },
+      "correct": [
+        "D"
+      ],
+      "rationale": "Few-shot examples are especially useful for format and nuanced decision boundaries.",
+      "why_others_fail": "The distractors rely on prompt-only enforcement, excessive scope, hidden failure semantics, or other mechanisms that do not directly address the stated architectural defect.",
+      "difficulty_target": "advanced",
+      "source_refs": [
+        "public-ccar-f-task-map",
+        "official-claude-docs"
+      ],
+      "last_verified": "2026-09-23"
+    },
+    {
+      "id": "Q-43-1",
+      "version": 1,
+      "status": "seed",
+      "domain": 4,
+      "task": "4.3",
+      "task_title": "Structured output",
+      "scenario": "S6",
+      "scenario_title": "Structured Data Extraction",
+      "type": "single",
+      "select_n": 1,
+      "stem": "In the Structured Data Extraction scenario, Downstream software requires valid structured records, but the model sometimes returns prose around JSON. What is the best architectural response?",
+      "options": {
+        "A": "Ask for JSON in plain text and trust it without validation.",
+        "B": "Use tool/schema-constrained structured output and validate the returned fields semantically before acceptance.",
+        "C": "Store the whole response as an untyped string.",
+        "D": "Strip non-JSON text with a regular expression and accept the remainder."
+      },
+      "correct": [
+        "B"
+      ],
+      "rationale": "Schema enforcement improves syntactic reliability; semantic validation is still required.",
+      "why_others_fail": "The distractors rely on prompt-only enforcement, excessive scope, hidden failure semantics, or other mechanisms that do not directly address the stated architectural defect.",
+      "difficulty_target": "foundational",
+      "source_refs": [
+        "public-ccar-f-task-map",
+        "official-claude-docs"
+      ],
+      "last_verified": "2026-09-23"
+    },
+    {
+      "id": "Q-31-2",
+      "version": 1,
+      "status": "seed",
+      "domain": 3,
+      "task": "3.1",
+      "task_title": "CLAUDE.md hierarchy",
+      "scenario": "S4",
+      "scenario_title": "Developer Productivity with Claude",
+      "type": "single",
+      "select_n": 1,
+      "stem": "In the Developer Productivity with Claude scenario, Shared coding conventions work for one developer but not teammates, and a single instruction file has become bloated. What is the best architectural response?",
+      "options": {
+        "A": "Encode conventions only in chat history.",
+        "B": "Keep the conventions in a user-only file and ask teammates to copy it manually.",
+        "C": "Move shared instructions to project scope, modularize reusable guidance, and use the hierarchy/rules system so only relevant instructions load.",
+        "D": "Put every rule into one ever-growing root file."
+      },
+      "correct": [
+        "C"
+      ],
+      "rationale": "Correct scope and modular loading are essential for predictable team behavior.",
+      "why_others_fail": "The distractors rely on prompt-only enforcement, excessive scope, hidden failure semantics, or other mechanisms that do not directly address the stated architectural defect.",
+      "difficulty_target": "applied",
+      "source_refs": [
+        "public-ccar-f-task-map",
+        "official-claude-docs"
+      ],
+      "last_verified": "2026-09-23"
+    },
+    {
+      "id": "Q-16-3",
+      "version": 1,
+      "status": "seed",
+      "domain": 1,
+      "task": "1.6",
+      "task_title": "Task decomposition",
+      "scenario": "S4",
+      "scenario_title": "Developer Productivity with Claude",
+      "type": "single",
+      "select_n": 1,
+      "stem": "In the Developer Productivity with Claude scenario, A complex task is split into dozens of tiny subtasks, increasing overhead and losing the end goal. What is the best architectural response?",
+      "options": {
+        "A": "Split work randomly so each agent receives an equal token budget.",
+        "B": "Avoid decomposition and keep all work in one unbounded context.",
+        "C": "Create one subtask for every sentence in the user request.",
+        "D": "Decompose by meaningful deliverables with clear dependencies and acceptance criteria, keeping tightly coupled work together."
+      },
+      "correct": [
+        "D"
+      ],
+      "rationale": "Good decomposition reduces coupling while preserving coherent units of work.",
+      "why_others_fail": "The distractors rely on prompt-only enforcement, excessive scope, hidden failure semantics, or other mechanisms that do not directly address the stated architectural defect.",
+      "difficulty_target": "advanced",
+      "source_refs": [
+        "public-ccar-f-task-map",
+        "official-claude-docs"
+      ],
+      "last_verified": "2026-09-23"
+    },
+    {
+      "id": "Q-11-1",
+      "version": 1,
+      "status": "seed",
+      "domain": 1,
+      "task": "1.1",
+      "task_title": "Agentic loops",
+      "scenario": "S1",
+      "scenario_title": "Customer Support Resolution Agent",
+      "type": "single",
+      "select_n": 1,
+      "stem": "In the Customer Support Resolution Agent scenario, The agent stops after emitting ordinary text even though a tool call is still required to finish the task. What is the best architectural response?",
+      "options": {
+        "A": "Replace the loop with a keyword classifier that looks for words such as done or complete.",
+        "B": "Use a fixed maximum of two turns and assume the task is complete afterward.",
+        "C": "Stop whenever the assistant produces a complete-sounding paragraph.",
+        "D": "Drive termination from the response stop reason: execute requested tools on tool_use, append tool results, and continue until an end-turn condition is reached."
+      },
+      "correct": [
+        "D"
+      ],
+      "rationale": "The loop must follow the model/tool protocol, not natural-language guesses about completion.",
+      "why_others_fail": "The distractors rely on prompt-only enforcement, excessive scope, hidden failure semantics, or other mechanisms that do not directly address the stated architectural defect.",
+      "difficulty_target": "foundational",
+      "source_refs": [
+        "public-ccar-f-task-map",
+        "official-claude-docs"
+      ],
+      "last_verified": "2026-09-23"
+    },
+    {
+      "id": "Q-53-2",
+      "version": 1,
+      "status": "seed",
+      "domain": 5,
+      "task": "5.3",
+      "task_title": "Error propagation",
+      "scenario": "S1",
+      "scenario_title": "Customer Support Resolution Agent",
+      "type": "single",
+      "select_n": 1,
+      "stem": "In the Customer Support Resolution Agent scenario, A research subagent encounters an access failure but reports \u201cno evidence found,\u201d causing the coordinator to treat missing coverage as negative evidence. What is the best architectural response?",
+      "options": {
+        "A": "Propagate structured failure context, partial results, and coverage gaps so downstream agents can distinguish failure from a valid empty result.",
+        "B": "Convert every failure into an empty successful result.",
+        "C": "Hide the error from the final synthesis to keep the output concise.",
+        "D": "Abort the entire workflow on any recoverable subagent error."
+      },
+      "correct": [
+        "A"
+      ],
+      "rationale": "Downstream reasoning depends on preserving the difference between failure, absence, and partial coverage.",
+      "why_others_fail": "The distractors rely on prompt-only enforcement, excessive scope, hidden failure semantics, or other mechanisms that do not directly address the stated architectural defect.",
+      "difficulty_target": "applied",
+      "source_refs": [
+        "public-ccar-f-task-map",
+        "official-claude-docs"
+      ],
+      "last_verified": "2026-09-23"
+    },
+    {
+      "id": "Q-23-2",
+      "version": 1,
+      "status": "seed",
+      "domain": 2,
+      "task": "2.3",
+      "task_title": "Tool distribution",
+      "scenario": "S1",
+      "scenario_title": "Customer Support Resolution Agent",
+      "type": "single",
+      "select_n": 1,
+      "stem": "In the Customer Support Resolution Agent scenario, One agent has dozens of tools and frequently selects the wrong one. What is the best architectural response?",
+      "options": {
+        "A": "Force the same tool on every turn.",
+        "B": "Replace tool descriptions with a list of trigger keywords.",
+        "C": "Give every agent every tool to maximize flexibility.",
+        "D": "Give each agent the minimum tool set required for its role and use tool-choice controls only when the workflow requires a tool or a specific tool."
+      },
+      "correct": [
+        "D"
+      ],
+      "rationale": "Least-tool access improves selection reliability and supports least privilege.",
+      "why_others_fail": "The distractors rely on prompt-only enforcement, excessive scope, hidden failure semantics, or other mechanisms that do not directly address the stated architectural defect.",
+      "difficulty_target": "applied",
+      "source_refs": [
+        "public-ccar-f-task-map",
+        "official-claude-docs"
+      ],
+      "last_verified": "2026-09-23"
+    },
+    {
+      "id": "Q-41-2",
+      "version": 1,
+      "status": "seed",
+      "domain": 4,
+      "task": "4.1",
+      "task_title": "Explicit criteria",
+      "scenario": "S6",
+      "scenario_title": "Structured Data Extraction",
+      "type": "single",
+      "select_n": 1,
+      "stem": "In the Structured Data Extraction scenario, A review prompt produces many false positives because it only says to find problems. What is the best architectural response?",
+      "options": {
+        "A": "Tell the model to be more careful without changing the criteria.",
+        "B": "Increase the number of reviewer agents before clarifying the task.",
+        "C": "Ask for every possible issue so recall is maximized regardless of precision.",
+        "D": "Define explicit, testable finding criteria, severity rules, and conditions that should not be reported."
+      },
+      "correct": [
+        "D"
+      ],
+      "rationale": "Precise criteria improve calibration and reduce false positives.",
+      "why_others_fail": "The distractors rely on prompt-only enforcement, excessive scope, hidden failure semantics, or other mechanisms that do not directly address the stated architectural defect.",
+      "difficulty_target": "applied",
+      "source_refs": [
+        "public-ccar-f-task-map",
+        "official-claude-docs"
+      ],
+      "last_verified": "2026-09-23"
+    },
+    {
+      "id": "Q-13-3",
+      "version": 1,
+      "status": "seed",
+      "domain": 1,
+      "task": "1.3",
+      "task_title": "Subagent context",
+      "scenario": "S1",
+      "scenario_title": "Customer Support Resolution Agent",
+      "type": "single",
+      "select_n": 1,
+      "stem": "In the Customer Support Resolution Agent scenario, Subagents receive the entire parent history, causing context bloat and inconsistent focus. What is the best architectural response?",
+      "options": {
+        "A": "Give subagents no context and rely on them to rediscover everything.",
+        "B": "Share only the user\u2019s last sentence regardless of the task.",
+        "C": "Pass only the task-relevant context, expected output contract, and necessary evidence to each subagent; return compact structured results to the parent.",
+        "D": "Always clone the full parent conversation into every subagent."
+      },
+      "correct": [
+        "C"
+      ],
+      "rationale": "Bounded context improves focus and avoids unnecessary context-window pressure.",
+      "why_others_fail": "The distractors rely on prompt-only enforcement, excessive scope, hidden failure semantics, or other mechanisms that do not directly address the stated architectural defect.",
+      "difficulty_target": "advanced",
+      "source_refs": [
+        "public-ccar-f-task-map",
+        "official-claude-docs"
+      ],
+      "last_verified": "2026-09-23"
+    },
+    {
+      "id": "Q-53-3",
+      "version": 1,
+      "status": "seed",
+      "domain": 5,
+      "task": "5.3",
+      "task_title": "Error propagation",
+      "scenario": "S5",
+      "scenario_title": "Claude Code for Continuous Integration",
+      "type": "multiple",
+      "select_n": 2,
+      "stem": "In the Claude Code for Continuous Integration scenario, A research subagent encounters an access failure but reports \u201cno evidence found,\u201d causing the coordinator to treat missing coverage as negative evidence. Select TWO actions that best address the problem.",
+      "options": {
+        "A": "Convert every failure into an empty successful result.",
+        "B": "Mark downstream synthesis with the resulting coverage gap when a source could not be accessed.",
+        "C": "Abort the entire workflow on any recoverable subagent error.",
+        "D": "Propagate structured failure context, partial results, and coverage gaps so downstream agents can distinguish failure from a valid empty result."
+      },
+      "correct": [
+        "B",
+        "D"
+      ],
+      "rationale": "Downstream reasoning depends on preserving the difference between failure, absence, and partial coverage. The complementary action adds deterministic assurance, least privilege, reproducibility, bounded recovery, or explicit provenance as appropriate to the task.",
+      "why_others_fail": "The distractors rely on prompt-only enforcement, excessive scope, hidden failure semantics, or other mechanisms that do not directly address the stated architectural defect.",
+      "difficulty_target": "advanced",
+      "source_refs": [
+        "public-ccar-f-task-map",
+        "official-claude-docs"
+      ],
+      "last_verified": "2026-09-23"
+    },
+    {
+      "id": "Q-14-1",
+      "version": 1,
+      "status": "seed",
+      "domain": 1,
+      "task": "1.4",
+      "task_title": "Workflow enforcement and handoff",
+      "scenario": "S1",
+      "scenario_title": "Customer Support Resolution Agent",
+      "type": "single",
+      "select_n": 1,
+      "stem": "In the Customer Support Resolution Agent scenario, A regulated workflow occasionally skips a mandatory verification step before a consequential action. What is the best architectural response?",
+      "options": {
+        "A": "Strengthen the prose prompt and trust the model to remember the step.",
+        "B": "Enforce the prerequisite programmatically and require a structured handoff when the workflow cannot proceed safely.",
+        "C": "Ask the user to repeat the policy at the start of every session.",
+        "D": "Add more temperature randomness so the agent explores alternative paths."
+      },
+      "correct": [
+        "B"
+      ],
+      "rationale": "Hard invariants belong in deterministic gates; handoffs should preserve the facts needed by the next actor.",
+      "why_others_fail": "The distractors rely on prompt-only enforcement, excessive scope, hidden failure semantics, or other mechanisms that do not directly address the stated architectural defect.",
+      "difficulty_target": "foundational",
+      "source_refs": [
+        "public-ccar-f-task-map",
+        "official-claude-docs"
+      ],
+      "last_verified": "2026-09-23"
+    },
+    {
+      "id": "Q-41-1",
+      "version": 1,
+      "status": "seed",
+      "domain": 4,
+      "task": "4.1",
+      "task_title": "Explicit criteria",
+      "scenario": "S5",
+      "scenario_title": "Claude Code for Continuous Integration",
+      "type": "single",
+      "select_n": 1,
+      "stem": "In the Claude Code for Continuous Integration scenario, A review prompt produces many false positives because it only says to find problems. What is the best architectural response?",
+      "options": {
+        "A": "Ask for every possible issue so recall is maximized regardless of precision.",
+        "B": "Tell the model to be more careful without changing the criteria.",
+        "C": "Increase the number of reviewer agents before clarifying the task.",
+        "D": "Define explicit, testable finding criteria, severity rules, and conditions that should not be reported."
+      },
+      "correct": [
+        "D"
+      ],
+      "rationale": "Precise criteria improve calibration and reduce false positives.",
+      "why_others_fail": "The distractors rely on prompt-only enforcement, excessive scope, hidden failure semantics, or other mechanisms that do not directly address the stated architectural defect.",
+      "difficulty_target": "foundational",
+      "source_refs": [
+        "public-ccar-f-task-map",
+        "official-claude-docs"
+      ],
+      "last_verified": "2026-09-23"
+    },
+    {
+      "id": "Q-25-3",
+      "version": 1,
+      "status": "seed",
+      "domain": 2,
+      "task": "2.5",
+      "task_title": "Built-in tools",
+      "scenario": "S5",
+      "scenario_title": "Claude Code for Continuous Integration",
+      "type": "single",
+      "select_n": 1,
+      "stem": "In the Claude Code for Continuous Integration scenario, A coding agent needs to locate all files containing a specific import across a large repository. What is the best architectural response?",
+      "options": {
+        "A": "Use Grep for content search, optionally constrained by file pattern; then Read only the relevant files.",
+        "B": "Use Write to create a manifest and inspect it manually.",
+        "C": "Read every file in the repository into context first.",
+        "D": "Use Bash for all searching even when a dedicated search tool is available."
+      },
+      "correct": [
+        "A"
+      ],
+      "rationale": "Use the narrowest built-in tool for the job and grow context incrementally.",
+      "why_others_fail": "The distractors rely on prompt-only enforcement, excessive scope, hidden failure semantics, or other mechanisms that do not directly address the stated architectural defect.",
+      "difficulty_target": "advanced",
+      "source_refs": [
+        "public-ccar-f-task-map",
+        "official-claude-docs"
+      ],
+      "last_verified": "2026-09-23"
+    },
+    {
+      "id": "Q-44-2",
+      "version": 1,
+      "status": "seed",
+      "domain": 4,
+      "task": "4.4",
+      "task_title": "Validation and retry",
+      "scenario": "S1",
+      "scenario_title": "Customer Support Resolution Agent",
+      "type": "single",
+      "select_n": 1,
+      "stem": "In the Customer Support Resolution Agent scenario, Extraction output is syntactically valid but occasionally violates business rules or contradicts the source. What is the best architectural response?",
+      "options": {
+        "A": "Accept any schema-valid record as correct.",
+        "B": "Retry the same prompt indefinitely with no feedback.",
+        "C": "Run deterministic validation, return specific validation errors to a bounded retry loop, and escalate when the source cannot support a valid answer.",
+        "D": "Discard the source after the first extraction attempt."
+      },
+      "correct": [
+        "C"
+      ],
+      "rationale": "Validation must cover semantics as well as shape, and retries need actionable feedback and stopping rules.",
+      "why_others_fail": "The distractors rely on prompt-only enforcement, excessive scope, hidden failure semantics, or other mechanisms that do not directly address the stated architectural defect.",
+      "difficulty_target": "applied",
+      "source_refs": [
+        "public-ccar-f-task-map",
+        "official-claude-docs"
+      ],
+      "last_verified": "2026-09-23"
+    },
+    {
+      "id": "Q-17-3",
+      "version": 1,
+      "status": "seed",
+      "domain": 1,
+      "task": "1.7",
+      "task_title": "Session state",
+      "scenario": "S4",
+      "scenario_title": "Developer Productivity with Claude",
+      "type": "single",
+      "select_n": 1,
+      "stem": "In the Developer Productivity with Claude scenario, A long-running task fails midway and the team must continue without replaying every completed step. What is the best architectural response?",
+      "options": {
+        "A": "Copy only the final assistant message into a new session.",
+        "B": "Persist resumable session/checkpoint state and distinguish resume from fork so continuation preserves history while experiments branch safely.",
+        "C": "Store state only in an informal human note outside the workflow.",
+        "D": "Restart from the initial prompt and rely on the model to recreate prior work."
+      },
+      "correct": [
+        "B"
+      ],
+      "rationale": "Explicit session state enables reliable continuation and controlled branching.",
+      "why_others_fail": "The distractors rely on prompt-only enforcement, excessive scope, hidden failure semantics, or other mechanisms that do not directly address the stated architectural defect.",
+      "difficulty_target": "advanced",
+      "source_refs": [
+        "public-ccar-f-task-map",
+        "official-claude-docs"
+      ],
+      "last_verified": "2026-09-23"
+    },
+    {
+      "id": "Q-34-1",
+      "version": 1,
+      "status": "seed",
+      "domain": 3,
+      "task": "3.4",
+      "task_title": "Plan vs direct execution",
+      "scenario": "S2",
+      "scenario_title": "Code Generation with Claude Code",
+      "type": "single",
+      "select_n": 1,
+      "stem": "In the Code Generation with Claude Code scenario, A broad refactor touches architecture, migrations, tests, and multiple services. What is the best architectural response?",
+      "options": {
+        "A": "Always execute immediately because planning adds latency.",
+        "B": "Decide solely from the number of tokens in the request.",
+        "C": "Always use plan mode even for one-line obvious fixes.",
+        "D": "Use plan mode to explore dependencies and agree the change strategy before execution; use direct execution for small, well-bounded edits."
+      },
+      "correct": [
+        "D"
+      ],
+      "rationale": "The choice depends on uncertainty, blast radius, and need for exploration\u2014not task length alone.",
+      "why_others_fail": "The distractors rely on prompt-only enforcement, excessive scope, hidden failure semantics, or other mechanisms that do not directly address the stated architectural defect.",
+      "difficulty_target": "foundational",
+      "source_refs": [
+        "public-ccar-f-task-map",
+        "official-claude-docs"
+      ],
+      "last_verified": "2026-09-23"
+    },
+    {
+      "id": "Q-43-2",
+      "version": 1,
+      "status": "seed",
+      "domain": 4,
+      "task": "4.3",
+      "task_title": "Structured output",
+      "scenario": "S1",
+      "scenario_title": "Customer Support Resolution Agent",
+      "type": "single",
+      "select_n": 1,
+      "stem": "In the Customer Support Resolution Agent scenario, Downstream software requires valid structured records, but the model sometimes returns prose around JSON. What is the best architectural response?",
+      "options": {
+        "A": "Ask for JSON in plain text and trust it without validation.",
+        "B": "Strip non-JSON text with a regular expression and accept the remainder.",
+        "C": "Store the whole response as an untyped string.",
+        "D": "Use tool/schema-constrained structured output and validate the returned fields semantically before acceptance."
+      },
+      "correct": [
+        "D"
+      ],
+      "rationale": "Schema enforcement improves syntactic reliability; semantic validation is still required.",
+      "why_others_fail": "The distractors rely on prompt-only enforcement, excessive scope, hidden failure semantics, or other mechanisms that do not directly address the stated architectural defect.",
+      "difficulty_target": "applied",
+      "source_refs": [
+        "public-ccar-f-task-map",
+        "official-claude-docs"
+      ],
+      "last_verified": "2026-09-23"
+    },
+    {
+      "id": "Q-41-3",
+      "version": 1,
+      "status": "seed",
+      "domain": 4,
+      "task": "4.1",
+      "task_title": "Explicit criteria",
+      "scenario": "S1",
+      "scenario_title": "Customer Support Resolution Agent",
+      "type": "single",
+      "select_n": 1,
+      "stem": "In the Customer Support Resolution Agent scenario, A review prompt produces many false positives because it only says to find problems. What is the best architectural response?",
+      "options": {
+        "A": "Ask for every possible issue so recall is maximized regardless of precision.",
+        "B": "Tell the model to be more careful without changing the criteria.",
+        "C": "Define explicit, testable finding criteria, severity rules, and conditions that should not be reported.",
+        "D": "Increase the number of reviewer agents before clarifying the task."
+      },
+      "correct": [
+        "C"
+      ],
+      "rationale": "Precise criteria improve calibration and reduce false positives.",
+      "why_others_fail": "The distractors rely on prompt-only enforcement, excessive scope, hidden failure semantics, or other mechanisms that do not directly address the stated architectural defect.",
+      "difficulty_target": "advanced",
+      "source_refs": [
+        "public-ccar-f-task-map",
+        "official-claude-docs"
+      ],
+      "last_verified": "2026-09-23"
+    },
+    {
+      "id": "Q-24-3",
+      "version": 1,
+      "status": "seed",
+      "domain": 2,
+      "task": "2.4",
+      "task_title": "MCP integration",
+      "scenario": "S1",
+      "scenario_title": "Customer Support Resolution Agent",
+      "type": "single",
+      "select_n": 1,
+      "stem": "In the Customer Support Resolution Agent scenario, A team needs reusable access to an external service across Claude clients and workflows. What is the best architectural response?",
+      "options": {
+        "A": "Expose the capability through a well-scoped MCP server with typed tools/resources/prompts and configure the client at the appropriate scope.",
+        "B": "Use browser automation even though a direct structured integration is available.",
+        "C": "Build a separate custom protocol for each Claude surface.",
+        "D": "Paste credentials and API examples into the system prompt."
+      },
+      "correct": [
+        "A"
+      ],
+      "rationale": "MCP standardizes reusable context/tool integration and should be scoped deliberately.",
+      "why_others_fail": "The distractors rely on prompt-only enforcement, excessive scope, hidden failure semantics, or other mechanisms that do not directly address the stated architectural defect.",
+      "difficulty_target": "advanced",
+      "source_refs": [
+        "public-ccar-f-task-map",
+        "official-claude-docs"
+      ],
+      "last_verified": "2026-09-23"
+    },
+    {
+      "id": "Q-22-2",
+      "version": 1,
+      "status": "seed",
+      "domain": 2,
+      "task": "2.2",
+      "task_title": "Structured errors",
+      "scenario": "S3",
+      "scenario_title": "Multi-Agent Research System",
+      "type": "single",
+      "select_n": 1,
+      "stem": "In the Multi-Agent Research System scenario, A tool returns the same generic error string for timeouts, permission failures, and valid empty results. What is the best architectural response?",
+      "options": {
+        "A": "Retry every failure indefinitely with no backoff or classification.",
+        "B": "Throw unstructured stack traces directly into the model context.",
+        "C": "Return structured error information that distinguishes retryable failures, non-retryable failures, and valid empty results, with actionable context.",
+        "D": "Convert all failures into an empty successful result."
+      },
+      "correct": [
+        "C"
+      ],
+      "rationale": "Typed error semantics let the agent choose retry, alternate action, escalation, or normal continuation correctly.",
+      "why_others_fail": "The distractors rely on prompt-only enforcement, excessive scope, hidden failure semantics, or other mechanisms that do not directly address the stated architectural defect.",
+      "difficulty_target": "applied",
+      "source_refs": [
+        "public-ccar-f-task-map",
+        "official-claude-docs"
+      ],
+      "last_verified": "2026-09-23"
+    },
+    {
+      "id": "Q-36-1",
+      "version": 1,
+      "status": "seed",
+      "domain": 3,
+      "task": "3.6",
+      "task_title": "CI/CD integration",
+      "scenario": "S5",
+      "scenario_title": "Claude Code for Continuous Integration",
+      "type": "single",
+      "select_n": 1,
+      "stem": "In the Claude Code for Continuous Integration scenario, An automated review job must run non-interactively and feed machine-readable results into a pipeline. What is the best architectural response?",
+      "options": {
+        "A": "Reuse the same long interactive session for every pull request.",
+        "B": "Launch an interactive terminal session and scrape the screen output.",
+        "C": "Run Claude Code non-interactively, enforce a structured output contract, pin shared review criteria, and validate the result before gating CI.",
+        "D": "Accept free-form prose and parse it with regular expressions."
+      },
+      "correct": [
+        "C"
+      ],
+      "rationale": "CI needs reproducible configuration, machine-readable output, and deterministic validation.",
+      "why_others_fail": "The distractors rely on prompt-only enforcement, excessive scope, hidden failure semantics, or other mechanisms that do not directly address the stated architectural defect.",
+      "difficulty_target": "foundational",
+      "source_refs": [
+        "public-ccar-f-task-map",
+        "official-claude-docs"
+      ],
+      "last_verified": "2026-09-23"
+    },
+    {
+      "id": "Q-16-1",
+      "version": 1,
+      "status": "seed",
+      "domain": 1,
+      "task": "1.6",
+      "task_title": "Task decomposition",
+      "scenario": "S3",
+      "scenario_title": "Multi-Agent Research System",
+      "type": "single",
+      "select_n": 1,
+      "stem": "In the Multi-Agent Research System scenario, A complex task is split into dozens of tiny subtasks, increasing overhead and losing the end goal. What is the best architectural response?",
+      "options": {
+        "A": "Avoid decomposition and keep all work in one unbounded context.",
+        "B": "Split work randomly so each agent receives an equal token budget.",
+        "C": "Decompose by meaningful deliverables with clear dependencies and acceptance criteria, keeping tightly coupled work together.",
+        "D": "Create one subtask for every sentence in the user request."
+      },
+      "correct": [
+        "C"
+      ],
+      "rationale": "Good decomposition reduces coupling while preserving coherent units of work.",
+      "why_others_fail": "The distractors rely on prompt-only enforcement, excessive scope, hidden failure semantics, or other mechanisms that do not directly address the stated architectural defect.",
+      "difficulty_target": "foundational",
+      "source_refs": [
+        "public-ccar-f-task-map",
+        "official-claude-docs"
+      ],
+      "last_verified": "2026-09-23"
+    }
+  ]
+}
