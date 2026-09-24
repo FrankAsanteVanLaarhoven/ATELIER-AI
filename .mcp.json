@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "atelier-harness": {
+      "command": "python3",
+      "args": ["/Users/favl/Downloads/claude_architect_digital_service/mcp/harness_mcp_server.py"]
+    }
+  }
+}

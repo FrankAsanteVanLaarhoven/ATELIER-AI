@@ -2191,4 +2191,535 @@ html, body {
   border-color: var(--accent-cyan);
 }
 
+/* ==========================================================================
+   PALANTIR FOUNDRY / GOTHAM TACTICAL CAD & HARNESS FOUNDRY DESIGN SYSTEM
+   ========================================================================== */
+
+/* Blueprint Grid Background */
+.palantir-grid-bg {
+  background-color: #06080d;
+  background-image: 
+    linear-gradient(rgba(56, 189, 248, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(56, 189, 248, 0.06) 1px, transparent 1px),
+    linear-gradient(rgba(56, 189, 248, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(56, 189, 248, 0.02) 1px, transparent 1px);
+  background-size: 80px 80px, 80px 80px, 16px 16px, 16px 16px;
+  background-position: -1px -1px;
+}
+
+/* Tactical Corner-Bracket Box */
+.tactical-box {
+  position: relative;
+  background: rgba(11, 15, 23, 0.88);
+  border: 1px solid rgba(56, 189, 248, 0.22);
+  border-radius: 4px;
+}
+
+.tactical-box::before, .tactical-box::after {
+  content: '';
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.tactical-box::before {
+  top: -1px;
+  left: -1px;
+  border-top: 2px solid var(--accent-cyan);
+  border-left: 2px solid var(--accent-cyan);
+}
+
+.tactical-box::after {
+  bottom: -1px;
+  right: -1px;
+  border-bottom: 2px solid var(--accent-cyan);
+  border-right: 2px solid var(--accent-cyan);
+}
+
+/* Tactical Top HUD Status Bar */
+.palantir-hud-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  background: #090c13;
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.hud-telemetry-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--line-dim);
+  border-radius: 2px;
+}
+
+.hud-pulse-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  animation: pulseGlow 1.8s infinite;
+}
+
+.hud-pulse-dot.cyan { background: var(--accent-cyan); box-shadow: 0 0 8px var(--accent-cyan); }
+.hud-pulse-dot.emerald { background: var(--accent-emerald); box-shadow: 0 0 8px var(--accent-emerald); }
+.hud-pulse-dot.amber { background: var(--accent-amber); box-shadow: 0 0 8px var(--accent-amber); }
+.hud-pulse-dot.rose { background: var(--accent-rose); box-shadow: 0 0 8px var(--accent-rose); }
+
+/* Tactical Mission Preset Pills */
+.tactical-presets-strip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.tactical-preset-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(15, 20, 30, 0.7);
+  border: 1px solid var(--line-dim);
+  border-radius: 4px;
+  padding: 8px 14px;
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-secondary);
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.tactical-preset-btn:hover, .tactical-preset-btn.active {
+  background: rgba(56, 189, 248, 0.12);
+  border-color: var(--accent-cyan);
+  color: #fff;
+  box-shadow: 0 0 15px rgba(56, 189, 248, 0.2);
+}
+
+/* CAD & Formboard Studio Layout */
+.cad-workspace-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr 320px;
+  gap: 16px;
+  min-height: 640px;
+  margin-bottom: 24px;
+}
+
+/* Side-by-Side Split Workspace when Claude CLI is Open */
+.cad-workspace-split {
+  display: grid;
+  grid-template-columns: 1fr 480px;
+  gap: 16px;
+  min-height: 700px;
+  margin-bottom: 24px;
+}
+
+@media (max-width: 1350px) {
+  .cad-workspace-split {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Drag Component Shelf (Left Column) */
+.cad-component-shelf {
+  background: #090c13;
+  border: 1px solid var(--line-bright);
+  border-radius: 4px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-height: 700px;
+  overflow-y: auto;
+}
+
+.comp-shelf-category {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.comp-shelf-title {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-tertiary);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--line-dim);
+  padding-bottom: 4px;
+}
+
+.draggable-comp-chip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 12px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--line-dim);
+  border-radius: 4px;
+  cursor: grab;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  user-select: none;
+}
+
+.draggable-comp-chip:hover {
+  background: rgba(56, 189, 248, 0.08);
+  border-color: var(--accent-cyan);
+  transform: translateX(4px);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+}
+
+.draggable-comp-chip:active {
+  cursor: grabbing;
+  transform: scale(0.98);
+}
+
+/* Center Interactive Formboard Canvas */
+.cad-canvas-container {
+  position: relative;
+  background: #05070b;
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  border-radius: 4px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 600px;
+}
+
+.cad-canvas-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  background: rgba(9, 12, 19, 0.95);
+  border-bottom: 1px solid var(--line-bright);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  z-index: 10;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.cad-canvas-board {
+  position: relative;
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  min-height: 540px;
+  overflow: hidden;
+}
+
+.cad-canvas-board.drag-over {
+  border: 2px dashed var(--accent-cyan);
+  background: rgba(56, 189, 248, 0.05);
+}
+
+/* Dropped Node on Formboard */
+.formboard-node {
+  position: absolute;
+  padding: 10px 14px;
+  background: rgba(13, 17, 26, 0.95);
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  cursor: move;
+  user-select: none;
+  z-index: 5;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.7);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+  min-width: 165px;
+}
+
+.formboard-node:hover {
+  border-color: var(--accent-cyan);
+  box-shadow: 0 0 25px rgba(56, 189, 248, 0.35);
+  z-index: 12;
+}
+
+.formboard-node.selected {
+  border-color: var(--accent-amber);
+  box-shadow: 0 0 30px rgba(251, 146, 60, 0.4);
+  z-index: 15;
+}
+
+.formboard-node.violation {
+  border-color: var(--accent-rose);
+  box-shadow: 0 0 25px rgba(244, 63, 94, 0.4);
+  animation: radarFlash 1.5s infinite;
+}
+
+/* Live Dynamic Signal Bus SVG Overlay */
+.cad-bus-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.signal-pulse-line {
+  stroke-dasharray: 8, 8;
+  animation: signalFlow 2s linear infinite;
+}
+
+/* Right Tactical DRC & Inspector Panel */
+.cad-sidebar-right {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.drc-radar-panel {
+  background: #090c13;
+  border: 1px solid var(--line-bright);
+  border-radius: 4px;
+  padding: 16px;
+}
+
+.drc-violation-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px;
+  background: rgba(244, 63, 94, 0.08);
+  border: 1px solid rgba(244, 63, 94, 0.3);
+  border-radius: 3px;
+  margin-bottom: 8px;
+  font-size: 11px;
+  font-family: var(--font-mono);
+  line-height: 1.4;
+}
+
+/* Oscilloscope & Waveform Box */
+.oscilloscope-box {
+  background: #05070b;
+  border: 1px solid rgba(52, 211, 153, 0.3);
+  border-radius: 4px;
+  padding: 12px;
+  position: relative;
+  overflow: hidden;
+}
+
+.oscilloscope-canvas {
+  width: 100%;
+  height: 95px;
+  display: block;
+}
+
+/* Side-by-Side Claude CLI Split Pane */
+.claude-split-cli-panel {
+  background: #05070b;
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  min-height: 600px;
+  max-height: 720px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8), 0 0 20px rgba(56, 189, 248, 0.15);
+}
+
+.claude-split-header {
+  padding: 10px 16px;
+  background: #090c13;
+  border-bottom: 1px solid var(--line-bright);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.claude-split-body {
+  flex: 1;
+  padding: 16px;
+  overflow-y: auto;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.6;
+  background: #040508;
+  color: #e2e8f0;
+}
+
+.claude-split-footer {
+  padding: 10px 14px;
+  background: #090c13;
+  border-top: 1px solid var(--line-bright);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Keyframe Animations */
+@keyframes pulseGlow {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.15); }
+}
+
+@keyframes signalFlow {
+  from { stroke-dashoffset: 64; }
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes radarFlash {
+  0%, 100% { border-color: rgba(244, 63, 94, 0.8); }
+  50% { border-color: rgba(244, 63, 94, 0.2); }
+}
+
+@keyframes radarSweep {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* ==========================================================================
+   CLAUDE CODE CLI SIDE-BY-SIDE & MCP BRIDGE ENHANCEMENTS
+   ========================================================================== */
+
+.claude-cli-topbar-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  color: #a7f3d0;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 6px 14px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.15);
+}
+
+.claude-cli-topbar-btn:hover {
+  background: rgba(16, 185, 129, 0.22);
+  border-color: #34d399;
+  color: #fff;
+  box-shadow: 0 0 25px rgba(16, 185, 129, 0.35);
+  transform: translateY(-1px);
+}
+
+.claude-cli-topbar-btn:active {
+  transform: translateY(0);
+}
+
+/* Claude Split Quick Action Chips */
+.claude-split-quick-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 8px 14px;
+  background: #06080e;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.claude-chip-action {
+  background: rgba(56, 189, 248, 0.08);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  border-radius: 3px;
+  color: #93c5fd;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  padding: 2px 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.claude-chip-action:hover {
+  background: rgba(56, 189, 248, 0.2);
+  border-color: var(--accent-cyan);
+  color: #fff;
+}
+
+.claude-chip-action.emerald {
+  background: rgba(52, 211, 153, 0.08);
+  border-color: rgba(52, 211, 153, 0.3);
+  color: #86efac;
+}
+
+.claude-chip-action.emerald:hover {
+  background: rgba(52, 211, 153, 0.2);
+  border-color: #34d399;
+  color: #fff;
+}
+
+.claude-chip-action.amber {
+  background: rgba(251, 146, 60, 0.08);
+  border-color: rgba(251, 146, 60, 0.3);
+  color: #fdba74;
+}
+
+.claude-chip-action.amber:hover {
+  background: rgba(251, 146, 60, 0.2);
+  border-color: #fb923c;
+  color: #fff;
+}
+
+/* MCP Tools Inspector Modal */
+.mcp-inspector-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(8px);
+  z-index: 150;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.mcp-inspector-modal.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.mcp-inspector-content {
+  width: 720px;
+  max-width: 95vw;
+  max-height: 85vh;
+  background: #090c13;
+  border: 1px solid var(--line-bright);
+  border-radius: var(--radius-md);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.9), 0 0 30px rgba(56, 189, 248, 0.2);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.mcp-tool-card {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--line-dim);
+  border-radius: 4px;
+  padding: 14px;
+  margin-bottom: 12px;
+  transition: border-color 0.2s ease;
+}
+
+.mcp-tool-card:hover {
+  border-color: var(--accent-cyan);
+}
 

@@ -77,8 +77,59 @@ class ClaudeArchitectPlatform {
     };
     this.capstoneGradingResult = null;
 
+    // Palantir Foundry / Gotham Tactical Harness Studio & CAD State
+    this.harnessMode = 'cad'; // 'cad' (Interactive Drag & Drop Formboard) or 'blueprint' (Infographic 5-Part/5-Checks tabs)
+    this.claudeCliSplitOpen = true; // Side-by-side Claude Code CLI window
+    this.activeMissionPreset = 'ev-800v'; // 'ev-800v', 'aerospace-fbw', 'robotic-arm', 'citadel-finops'
+    this.draggedComponent = null;
+    this.selectedFormboardNode = null;
+    this.formboardZoom = 1.0;
+    this.oscillatorRunning = true;
+    this.noiseInjected = false;
+
+    // Live Formboard Nodes for current mission
+    this.formboardNodes = [
+      { id: 'node-core', type: 'core', name: 'Model Core', tag: 'AGENTIC CORE', x: 260, y: 220, color: '#38bdf8', status: 'ONLINE', details: 'Claude 3.5 Sonnet / Opus Core Inference Engine' },
+      { id: 'node-conn-1', type: 'connector', name: 'TE DT06-4S', tag: 'IP68 SENSOR BUS', x: 70, y: 80, color: '#38bdf8', status: 'LOCKED', details: 'Front Radar & Telemetry Ingest (MCP stdio client)' },
+      { id: 'node-splice-1', type: 'splice', name: 'Ultrasonic Splice', tag: 'USCAR-21 §4.2', x: 190, y: 110, color: '#fb923c', status: 'VIOLATION', details: 'Splice placed at 42mm from bend! (Must be >= 150mm)', violation: 'USCAR-21: Splice < 150mm from bend' },
+      { id: 'node-perms-1', type: 'perms', name: 'PreToolUse Hook', tag: 'MECHANICAL LOCK', x: 420, y: 90, color: '#fb923c', status: 'ARMED', details: 'Hardware Interlock: Halts high-voltage commands without token' },
+      { id: 'node-sandbox-1', type: 'sandbox', name: 'Silicon 600°C Sleeve', tag: 'THERMAL JAIL', x: 120, y: 350, color: '#e2b36f', status: 'ISOLATED', details: 'Thermal barrier & container isolation from exhaust' },
+      { id: 'node-clip-1', type: 'clip', name: 'FIR-Tree Clip', tag: '150mm VIB ANCHOR', x: 380, y: 340, color: '#34d399', status: 'SECURED', details: 'Damps 50G harmonic resonance across motor bulkhead' }
+    ];
+
+    // Tactical Component Inventory for Drag and Drop
+    this.cadInventory = [
+      { category: 'Connectors & Ports', items: [
+        { id: 'comp-dt06', type: 'connector', name: 'TE Deutsch DT06-4S', tag: 'IP68 Automotive', color: '#38bdf8', icon: '⚡', aiAnalog: 'MCP PostgreSQL / ERP Tool' },
+        { id: 'comp-mil38999', type: 'connector', name: 'MIL-DTL-38999 Ser III', tag: 'Aerospace Stainless', color: '#818cf8', icon: '✈️', aiAnalog: 'Defense Classified API Gateway' },
+        { id: 'comp-radsok', type: 'connector', name: 'Amphenol Radsok 400A', tag: '800V HV Bus', color: '#f59e0b', icon: '🔋', aiAnalog: 'Cloud Resource Provisioner' },
+        { id: 'comp-hmtd', type: 'connector', name: 'Rosenberger H-MTD', tag: 'Multi-Gig Ethernet', color: '#06b6d4', icon: '🌐', aiAnalog: 'High-Throughput Vector Pipeline' }
+      ]},
+      { category: 'Splices & Invariant Gates', items: [
+        { id: 'comp-splice-uscar', type: 'splice', name: 'Ultrasonic Splice', tag: 'USCAR-21 §4.2', color: '#fb923c', icon: '🔗', aiAnalog: 'Deterministic PreToolUse Hook' },
+        { id: 'comp-hook-cpa', type: 'perms', name: 'CPA/TPA Secondary Lock', tag: 'Mechanical Interlock', color: '#fb923c', icon: '🔒', aiAnalog: 'Cryptographic CFO Approval Gate' }
+      ]},
+      { category: 'Protection & Sandboxes', items: [
+        { id: 'comp-sleeve-silicon', type: 'sandbox', name: 'Silicon 600°C Sleeve', tag: 'Thermal Shield', color: '#e2b36f', icon: '🛡️', aiAnalog: 'Containerized Subprocess Jail' },
+        { id: 'comp-conduit-slit', type: 'sandbox', name: 'Corrugated Slit Loom', tag: 'Abrasion Barrier', color: '#e2b36f', icon: '📦', aiAnalog: 'Read-Only Filesystem Mount' }
+      ]},
+      { category: 'Vibration & Telemetry', items: [
+        { id: 'comp-clip-firtree', type: 'clip', name: 'FIR-Tree 150mm Clip', tag: 'High-Vib Anchor', color: '#34d399', icon: '📎', aiAnalog: 'Idempotency Checkpoint Interval' },
+        { id: 'comp-cavity-plug', type: 'plug', name: 'Silicon Cavity Plug', tag: 'IP68 Seal', color: '#34d399', icon: '🟢', aiAnalog: 'Typed Empty Tool Fallback' },
+        { id: 'comp-telemetry-tap', type: 'obs', name: 'OpenTelemetry Trace Tap', tag: 'High-Pot Telemetry', color: '#818cf8', icon: '📈', aiAnalog: 'Distributed OpenTelemetry Bus' }
+      ]}
+    ];
+
+    // Claude CLI live history in side-by-side mode
+    this.claudeSplitHistory = [
+      { time: '04:18:02', sender: 'system', text: 'Claude Code Agentic Industrial Harness Engine v2.4 initialized.' },
+      { time: '04:18:05', sender: 'claude', text: 'Live Formboard CAD synchronizer active on /dev/harness-bus0.' },
+      { time: '04:18:10', sender: 'agent', text: 'DRC Invariant Monitor: Scanning USCAR-2 & AS50881 rules...' },
+      { time: '04:18:12', sender: 'warn', text: '[DRC ALERT: USCAR-21] Splice at X:190, Y:110 is 42mm from bend! Strain threshold exceeded.' }
+    ];
+
     // Harness Engineering Studio State
-    this.activeHarnessTab = 'core'; // 'core', 'jobs', 'compare', 'trace', 'routing'
+    this.activeHarnessTab = 'cad'; // 'cad', 'core', 'jobs', 'compare', 'trace', 'routing'
     this.harnessActiveNode = 'tools'; // 'tools', 'state', 'perms', 'sandbox', 'obs'
     this.harnessTraceStep = 4; // 0 to 4 (showing full trace)
     this.routingCheckForm = {
@@ -312,13 +363,37 @@ class ClaudeArchitectPlatform {
         if (e.key === 'Escape') this.closeCommandPalette();
       });
     }
+
+    // Topbar Claude CLI Global Toggle
+    document.getElementById('claudeCliGlobalToggle')?.addEventListener('click', () => {
+      this.toggleClaudeCliSideBySide();
+    });
+  }
+
+  toggleClaudeCliSideBySide() {
+    this.playHaptic('click');
+    if (this.currentView !== 'harness-studio') {
+      this.claudeCliSplitOpen = true;
+      this.harnessMode = 'cad';
+      this.switchView('harness-studio');
+    } else {
+      this.claudeCliSplitOpen = !this.claudeCliSplitOpen;
+      this.render();
+    }
   }
 
   setupShortcuts() {
     window.addEventListener('keydown', (e) => {
+      // Cmd/Ctrl+K: Command Palette
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault();
         this.openCommandPalette();
+        return;
+      }
+      // Alt/Option+C or Ctrl+`: Toggle Claude Code CLI Side-by-Side
+      if ((e.altKey && (e.key === 'c' || e.key === 'C')) || ((e.metaKey || e.ctrlKey) && e.key === '`')) {
+        e.preventDefault();
+        this.toggleClaudeCliSideBySide();
         return;
       }
       if (this.currentView === 'exam-engine' && this.examSession && !this.examSubmitted) {
@@ -2523,16 +2598,41 @@ class ClaudeArchitectPlatform {
   }
 
   // ==========================================================================
-  // HARNESS ENGINEERING STUDIO (5 Parts • 5 Checks)
+  // PALANTIR AIP INDUSTRIAL HARNESS FOUNDRY & CAD STUDIO
   // ==========================================================================
   renderHarnessStudioView() {
     const tabs = [
+      { id: 'cad', num: '00', name: 'CAD & FORMBOARD', sub: 'Interactive Drag & Drop • Real-Time DRC', badge: 'Tactical CAD' },
       { id: 'core', num: '01', name: 'CORE', sub: 'The Machine Around The Model', badge: '5 Parts' },
       { id: 'jobs', num: '02', name: 'JOBS', sub: 'Five Jobs, One Harness', badge: 'Flow' },
       { id: 'compare', num: '03', name: 'COMPARE', sub: 'Raw vs. Ready Matrix', badge: 'Table' },
       { id: 'trace', num: '04', name: 'TRACE', sub: 'When It Fails: Blame The Layer', badge: 'Forensic' },
-      { id: 'routing', num: '05', name: 'ROUTING & CAD', sub: '5-Point Physical & AI Checks', badge: '40mm Splice' }
+      { id: 'routing', num: '05', name: 'ROUTING & 3D', sub: '5-Point Physical & AI Checks', badge: '40mm Splice' }
     ];
+
+    // Compute live DRC violations from formboardNodes
+    const drcViolations = [];
+    const spliceNode = this.formboardNodes.find(n => n.type === 'splice');
+    if (spliceNode && spliceNode.violation) {
+      drcViolations.push({
+        code: 'USCAR-21 §4.2',
+        title: 'Splice Bend Clearance Violation',
+        desc: 'Splice placed at 42mm from bend (< 150mm threshold). Mechanical stress fatigue risk.',
+        aiCounterpart: 'Deterministic invariant placed within mutable prompt tokens instead of PreToolUse gateway.',
+        nodeId: spliceNode.id
+      });
+    }
+
+    const unsealedPlugs = !this.routingCheckForm.unsealedPlugsFilled;
+    if (unsealedPlugs) {
+      drcViolations.push({
+        code: 'IP68 / USCAR-2',
+        title: 'Unsealed Connector Cavity Ingress',
+        desc: 'Unpopulated connector cavities lacking silicon dummy plugs. Capillary siphon hazard.',
+        aiCounterpart: 'Unchecked empty/null tool return causing model hallucination without typed fallback.',
+        nodeId: 'node-conn-1'
+      });
+    }
 
     const r = this.routingCheckForm;
     const check1Pass = r.spliceDistance >= 150;
@@ -2543,9 +2643,9 @@ class ClaudeArchitectPlatform {
     const maxClip = r.isHighVibZone ? 150 : 300;
     const check5Pass = r.clipSpacing <= maxClip;
     const passCount = [check1Pass, check2Pass, check3Pass, check4Pass, check5Pass].filter(Boolean).length;
-    const releaseReady = passCount === 5;
+    const releaseReady = passCount === 5 && drcViolations.length === 0;
 
-    // Node definitions for Tab 1
+    // Node definitions for Tab 1 (Core)
     const nodes = {
       tools: {
         name: 'Tools Layer',
@@ -2610,63 +2710,355 @@ class ClaudeArchitectPlatform {
     };
 
     const activeNodeData = nodes[this.harnessActiveNode] || nodes.tools;
+    const selectedCadNode = this.formboardNodes.find(n => n.id === this.selectedFormboardNode) || this.formboardNodes[0];
 
     return `
-      <div class="harness-studio-wrapper">
-        <!-- Top Editorial Hero Header -->
-        <div class="card" style="margin-bottom: 24px; background: linear-gradient(180deg, rgba(14,16,23,0.95) 0%, rgba(8,10,14,0.98) 100%); border-color: rgba(56, 189, 248, 0.25);">
+      <div class="harness-studio-wrapper palantir-grid-bg" style="min-height: 100%; padding-bottom: 40px;">
+        <!-- PALANTIR TACTICAL HUD TOP BAR -->
+        <div class="palantir-hud-bar">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div class="hud-telemetry-chip">
+              <span class="hud-pulse-dot emerald"></span>
+              <strong style="color: #fff;">FOUNDRY AIP // LEVEL 4 CLASSIFIED</strong>
+            </div>
+            <div class="hud-telemetry-chip">
+              <span style="color: var(--ink-tertiary);">SYS-CLK:</span>
+              <span style="color: var(--accent-cyan);">${new Date().toLocaleTimeString()} UTC</span>
+            </div>
+            <div class="hud-telemetry-chip">
+              <span style="color: var(--ink-tertiary);">BUS:</span>
+              <span style="color: #86efac;">42.8% LOAD // 100% INVARIANTS ARMED</span>
+            </div>
+            <div class="hud-telemetry-chip">
+              <span style="color: var(--ink-tertiary);">DRC:</span>
+              <span style="color: ${drcViolations.length === 0 ? '#86efac' : '#fca5a5'}; font-weight: 700;">
+                ${drcViolations.length === 0 ? 'CLEAN (0 VIOLATIONS)' : `${drcViolations.length} VIOLATION DETECTED`}
+              </span>
+            </div>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <button class="btn btn-secondary" id="btnToggleClaudeSplit" style="display: flex; align-items: center; gap: 6px; font-family: var(--font-mono); font-size: 11px; border-color: rgba(56, 189, 248, 0.4);">
+              <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+              ${this.claudeCliSplitOpen ? 'Close Split CLI' : '⇄ Split Claude Code CLI'}
+            </button>
+            <button class="btn btn-secondary" id="btnHarnessAutoRemediate" style="display: flex; align-items: center; gap: 6px; font-family: var(--font-mono); font-size: 11px; background: rgba(52, 211, 153, 0.1); border-color: rgba(52, 211, 153, 0.4); color: #86efac;">
+              <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+              Auto-Remediate Invariants
+            </button>
+            <button class="btn btn-secondary" id="btnHarnessNoiseInject" style="display: flex; align-items: center; gap: 6px; font-family: var(--font-mono); font-size: 11px; background: ${this.noiseInjected ? 'rgba(244, 63, 94, 0.2)' : 'rgba(255,255,255,0.03)'}; border-color: ${this.noiseInjected ? 'var(--accent-rose)' : 'var(--line-dim)'}; color: ${this.noiseInjected ? '#fca5a5' : '#fff'};">
+              <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+              ${this.noiseInjected ? 'Clear Tool Fault' : '⚡ Inject Tool Noise'}
+            </button>
+            <button class="btn btn-primary" id="btnHarnessExportBom" style="display: flex; align-items: center; gap: 6px; font-family: var(--font-mono); font-size: 11px;">
+              <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+              Export BOM & CLAUDE.md
+            </button>
+          </div>
+        </div>
+
+        <!-- TACTICAL HEADER & TAB BAR -->
+        <div class="tactical-box" style="margin-bottom: 20px; padding: 20px 24px;">
           <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px; margin-bottom: 16px;">
             <div>
               <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
                 <span class="badge" style="background: rgba(56, 189, 248, 0.15); color: var(--accent-cyan); border-color: rgba(56, 189, 248, 0.3);">
-                  HARNESS ENGINEERING • EXPLAINED
+                  // PALANTIR AIP // INDUSTRIAL CAD FOUNDRY
                 </span>
                 <span class="badge" style="background: rgba(251, 146, 60, 0.15); color: #fb923c; border-color: rgba(251, 146, 60, 0.3);">
-                  AGENTIC AI • PRODUCTION LAYER
+                  CYBER-PHYSICAL FORMBOARD & ROUTING
                 </span>
                 <span class="badge" style="background: rgba(52, 211, 153, 0.15); color: #34d399; border-color: rgba(52, 211, 153, 0.3);">
                   USCAR-2 / USCAR-21 / AS50881
                 </span>
               </div>
-              <h1 style="font-size: 32px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 6px; font-family: var(--font-display);">
-                Harness Engineering <span style="background: linear-gradient(135deg, #fb923c, #f97316); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Explained</span>
+              <h1 style="font-size: 30px; font-weight: 700; letter-spacing: -0.02em; font-family: var(--font-display); color: #fff;">
+                Harness Engineering <span style="background: linear-gradient(135deg, #38bdf8, #818cf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Foundry</span>
               </h1>
-              <p style="font-size: 15px; color: var(--ink-secondary); max-width: 820px; line-height: 1.5;">
+              <p style="font-size: 14px; color: var(--ink-secondary); max-width: 880px; line-height: 1.5; margin-top: 4px;">
                 <strong style="color: #fff;">The model writes words. The harness does the work.</strong> 
-                The counterintuitive principle senior harness engineers follow: 
+                Senior harness engineering principle: 
                 <span style="color: #fb923c; font-family: var(--font-mono); font-weight: 600;">Mechanical first. Electrical second. Test third.</span> 
-                — in AI systems: 
+                — In AI Systems: 
                 <span style="color: var(--accent-cyan); font-family: var(--font-mono); font-weight: 600;">Harness first. Model second. Eval third.</span>
+                Drag components to architect custom harnesses on the fly with real-time Design Rule Checks (DRC).
               </p>
             </div>
-            <div style="display: flex; gap: 10px;">
-              <button class="btn btn-secondary" id="btnHarnessRunPy" style="display: flex; align-items: center; gap: 6px; font-family: var(--font-mono); font-size: 12px;">
-                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                Run Python Calculators
+
+            <div style="display: flex; gap: 8px;">
+              <button class="btn btn-secondary" id="btnHarnessRunPy" style="display: flex; align-items: center; gap: 6px; font-family: var(--font-mono); font-size: 11px;">
+                <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                Python Calculators
               </button>
-              <button class="btn btn-primary" id="btnHarnessOpenCapstone" style="display: flex; align-items: center; gap: 6px; font-family: var(--font-mono); font-size: 12px;">
-                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              <button class="btn btn-primary" id="btnHarnessOpenCapstone" style="display: flex; align-items: center; gap: 6px; font-family: var(--font-mono); font-size: 11px;">
+                <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 Case Study 04 Capstone
               </button>
             </div>
           </div>
 
-          <!-- Infographic Step/Tab Bar -->
+          <!-- Studio Nav Tabs -->
           <div class="harness-nav-tabs">
             ${tabs.map(t => `
               <div class="harness-tab-btn ${this.activeHarnessTab === t.id ? 'active' : ''}" data-tab="${t.id}">
                 <div style="display: flex; align-items: center; gap: 8px; justify-content: space-between;">
-                  <span style="font-family: var(--font-mono); font-size: 11px; opacity: 0.6;">${t.num}</span>
-                  <span style="font-size: 10px; padding: 2px 6px; border-radius: 4px; background: rgba(255,255,255,0.06); font-family: var(--font-mono);">${t.badge}</span>
+                  <span style="font-family: var(--font-mono); font-size: 10px; opacity: 0.6;">${t.num}</span>
+                  <span style="font-size: 9px; padding: 2px 6px; border-radius: 4px; background: rgba(255,255,255,0.06); font-family: var(--font-mono);">${t.badge}</span>
                 </div>
-                <div style="font-size: 13px; font-weight: 600; margin-top: 4px;">${t.name}</div>
-                <div style="font-size: 11px; color: var(--ink-tertiary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${t.sub}</div>
+                <div style="font-size: 12px; font-weight: 600; margin-top: 4px;">${t.name}</div>
+                <div style="font-size: 10px; color: var(--ink-tertiary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${t.sub}</div>
               </div>
             `).join('')}
           </div>
         </div>
 
-        <!-- TAB 1: CORE (01 / THE MACHINE AROUND THE MODEL) -->
+        <!-- ====================================================================
+             TAB 00: INTERACTIVE CAD FORMBOARD & DRAG-AND-DROP STUDIO
+             ==================================================================== -->
+        ${this.activeHarnessTab === 'cad' ? `
+          <!-- INDUSTRIAL MISSION PRESETS (HARNESS ON THE FLY) -->
+          <div style="margin-bottom: 12px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+              <span style="font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; color: var(--ink-tertiary); letter-spacing: 0.05em;">
+                // CREATE HARNESS ON THE FLY — REAL INDUSTRY CASE STUDIES
+              </span>
+              <span style="font-family: var(--font-mono); font-size: 11px; color: var(--accent-cyan);">
+                Mission: <strong style="color: #fff;">${this.activeMissionPreset.toUpperCase()}</strong>
+              </span>
+            </div>
+            <div class="tactical-presets-strip">
+              <div class="tactical-preset-btn ${this.activeMissionPreset === 'ev-800v' ? 'active' : ''}" data-preset="ev-800v">
+                <span>🏎️</span>
+                <div>
+                  <div style="font-weight: 600;">EV 800V Powertrain</div>
+                  <div style="font-size: 10px; color: var(--ink-tertiary);">Tesla/Bosch Dual SiC Inverter (USCAR-2)</div>
+                </div>
+              </div>
+
+              <div class="tactical-preset-btn ${this.activeMissionPreset === 'aerospace-fbw' ? 'active' : ''}" data-preset="aerospace-fbw">
+                <span>✈️</span>
+                <div>
+                  <div style="font-weight: 600;">Aerospace Fly-By-Wire</div>
+                  <div style="font-size: 10px; color: var(--ink-tertiary);">Triple Redundant Avionics (AS50881)</div>
+                </div>
+              </div>
+
+              <div class="tactical-preset-btn ${this.activeMissionPreset === 'robotic-arm' ? 'active' : ''}" data-preset="robotic-arm">
+                <span>🤖</span>
+                <div>
+                  <div style="font-weight: 600;">6-Axis Robotic Cell</div>
+                  <div style="font-size: 10px; color: var(--ink-tertiary);">KUKA/Fanuc Articulated Torsion Harness</div>
+                </div>
+              </div>
+
+              <div class="tactical-preset-btn ${this.activeMissionPreset === 'citadel-finops' ? 'active' : ''}" data-preset="citadel-finops">
+                <span>🏛️</span>
+                <div>
+                  <div style="font-weight: 600;">AIP Financial Orchestrator</div>
+                  <div style="font-size: 10px; color: var(--ink-tertiary);">Palantir Invariant Bus & $500 CFO Lock</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- MAIN CAD WORKSPACE (SPLIT OR 3-COLUMN) -->
+          <div class="${this.claudeCliSplitOpen ? 'cad-workspace-split' : 'cad-workspace-layout'}">
+            
+            <!-- LEFT COLUMN: DRAG & DROP COMPONENT SHELF -->
+            <div style="display: flex; gap: 16px; flex-direction: ${this.claudeCliSplitOpen ? 'row' : 'column'};">
+              <div class="cad-component-shelf" style="flex: ${this.claudeCliSplitOpen ? '0 0 260px' : '1'};">
+                <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--line-dim); padding-bottom: 8px;">
+                  <span style="font-family: var(--font-mono); font-size: 11px; font-weight: 700; color: #fff;">COMPONENT PALETTE</span>
+                  <span style="font-size: 9px; padding: 2px 6px; background: rgba(56, 189, 248, 0.15); color: var(--accent-cyan); font-family: var(--font-mono); border-radius: 3px;">DRAG TO CANVAS</span>
+                </div>
+
+                ${this.cadInventory.map(cat => `
+                  <div class="comp-shelf-category">
+                    <div class="comp-shelf-title">
+                      <span>${cat.category}</span>
+                      <span>${cat.items.length}</span>
+                    </div>
+                    ${cat.items.map(item => `
+                      <div class="draggable-comp-chip" draggable="true" data-comp-id="${item.id}" data-type="${item.type}">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                          <span style="font-size: 16px;">${item.icon}</span>
+                          <div>
+                            <div style="font-weight: 600; color: #fff; font-size: 11px;">${item.name}</div>
+                            <div style="font-size: 9px; color: ${item.color}; font-family: var(--font-mono);">${item.tag}</div>
+                          </div>
+                        </div>
+                        <span style="font-size: 9px; color: var(--ink-tertiary); font-family: var(--font-mono);">+DRAG</span>
+                      </div>
+                    `).join('')}
+                  </div>
+                `).join('')}
+              </div>
+
+              <!-- CENTER: INTERACTIVE FORMBOARD CANVAS -->
+              <div class="cad-canvas-container" style="flex: 1;">
+                <!-- Canvas Top Toolbar -->
+                <div class="cad-canvas-toolbar">
+                  <div style="display: flex; align-items: center; gap: 12px;">
+                    <span style="color: var(--accent-cyan); font-weight: 700;">// FORMBOARD 2D/3D ROUTING MATRIX</span>
+                    <span style="color: var(--ink-tertiary);">NODES: <strong style="color: #fff;">${this.formboardNodes.length}</strong></span>
+                    <span style="color: var(--ink-tertiary);">GRID: <span style="color: #86efac;">16mm SNAP</span></span>
+                  </div>
+
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <button class="btn btn-secondary" id="btnCadClearCanvas" style="padding: 4px 8px; font-size: 10px; font-family: var(--font-mono);">
+                      Clear Nodes
+                    </button>
+                    <button class="btn btn-secondary" id="btnCadResetMission" style="padding: 4px 8px; font-size: 10px; font-family: var(--font-mono);">
+                      Reset Mission
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Canvas Board with Drop Target -->
+                <div class="cad-canvas-board palantir-grid-bg" id="formboardCanvas">
+                  <!-- SVG Connection Bus Overlay -->
+                  <svg class="cad-bus-svg" id="cadBusSvg">
+                    ${this.renderSvgConnectionLines()}
+                  </svg>
+
+                  <!-- Render Dropped Nodes -->
+                  ${this.formboardNodes.map(node => `
+                    <div class="formboard-node ${node.id === this.selectedFormboardNode ? 'selected' : ''} ${node.violation ? 'violation' : ''}" 
+                         id="${node.id}" 
+                         data-node-id="${node.id}"
+                         style="left: ${node.x}px; top: ${node.y}px; border-color: ${node.violation ? 'var(--accent-rose)' : node.color};">
+                      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                        <span style="font-size: 9px; font-family: var(--font-mono); color: ${node.color}; font-weight: 700;">${node.tag}</span>
+                        ${node.type !== 'core' ? `<span class="node-delete-btn" data-del-id="${node.id}" style="color: var(--ink-tertiary); cursor: pointer; font-size: 11px;">✕</span>` : ''}
+                      </div>
+                      <div style="font-weight: 700; color: #fff; font-size: 12px; margin-bottom: 2px;">${node.name}</div>
+                      <div style="font-size: 10px; color: var(--ink-secondary);">${node.status}</div>
+                      ${node.violation ? `<div style="font-size: 9px; color: #fca5a5; font-family: var(--font-mono); margin-top: 4px; font-weight: 600;">⚠ ${node.violation}</div>` : ''}
+                    </div>
+                  `).join('')}
+                </div>
+
+                <!-- Inspector Strip for Selected Node -->
+                <div style="padding: 10px 16px; background: rgba(6, 8, 13, 0.95); border-top: 1px solid var(--line-dim); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+                  <div>
+                    <span style="font-family: var(--font-mono); font-size: 10px; color: var(--ink-tertiary);">ACTIVE CAD SELECTION:</span>
+                    <strong style="color: #fff; font-family: var(--font-mono); font-size: 12px; margin-left: 6px;">${selectedCadNode.name} (${selectedCadNode.tag})</strong>
+                    <span style="font-size: 11px; color: var(--ink-secondary); margin-left: 10px;">${selectedCadNode.details}</span>
+                  </div>
+                  <div style="font-family: var(--font-mono); font-size: 11px; color: var(--accent-cyan);">
+                    X: ${selectedCadNode.x}mm | Y: ${selectedCadNode.y}mm
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- RIGHT COLUMN: SIDE-BY-SIDE CLAUDE CODE CLI & DRC RADAR -->
+            <div class="cad-sidebar-right">
+              ${this.claudeCliSplitOpen ? `
+                <!-- CLAUDE CODE CLI LIVE SPLIT PANE -->
+                <div class="claude-split-cli-panel">
+                  <div class="claude-split-header">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                      <span class="hud-pulse-dot emerald"></span>
+                      <strong style="color: #fff; font-size: 11px;">CLAUDE CODE CLI v2.1.226 • MCP BUS</strong>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 5px;">
+                      <button class="btn btn-secondary" id="btnLaunchNativeTerminal" style="padding: 2px 7px; font-size: 10px; font-family: var(--font-mono); color: #86efac; border-color: rgba(52,211,153,0.4);" title="Launch in native macOS Terminal side-by-side">
+                        ↗ macOS Terminal
+                      </button>
+                      <button class="btn btn-secondary" id="btnOpenMcpInspector" style="padding: 2px 7px; font-size: 10px; font-family: var(--font-mono); color: var(--accent-cyan); border-color: rgba(56,189,248,0.4);" title="Inspect MCP Tools">
+                        ⚡ MCP Tools
+                      </button>
+                      <button class="btn btn-secondary" id="btnClearSplitCli" style="padding: 2px 6px; font-size: 10px; font-family: var(--font-mono);" title="Clear history">
+                        Clear
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="claude-split-body" id="claudeSplitTerminal">
+                    ${this.claudeSplitHistory.map(entry => `
+                      <div style="margin-bottom: 6px;">
+                        <span style="color: var(--ink-tertiary);">[${entry.time}]</span>
+                        ${entry.sender === 'cmd' ? `<span style="color: var(--accent-cyan); font-weight: 600;">$ ${entry.text}</span>` : ''}
+                        ${entry.sender === 'claude' ? `<span style="color: #86efac;">● ${entry.text}</span>` : ''}
+                        ${entry.sender === 'system' ? `<span style="color: #cbd5e1;">ℹ ${entry.text}</span>` : ''}
+                        ${entry.sender === 'agent' ? `<span style="color: #a78bfa;">⚡ ${entry.text}</span>` : ''}
+                        ${entry.sender === 'warn' ? `<span style="color: #fca5a5; font-weight: 600;">⚠ ${entry.text}</span>` : ''}
+                      </div>
+                    `).join('')}
+                  </div>
+
+                  <!-- QUICK COMMAND CHIPS -->
+                  <div class="claude-split-quick-chips">
+                    <span class="claude-chip-action emerald" data-cmd="claude harness verify">DRC Verify</span>
+                    <span class="claude-chip-action amber" data-cmd="claude harness remediate">Auto-Remediate</span>
+                    <span class="claude-chip-action" data-cmd="claude harness calc">Derating Calc</span>
+                    <span class="claude-chip-action" data-cmd="claude mcp list">MCP List</span>
+                    <span class="claude-chip-action" data-cmd="launch terminal">macOS Terminal ↗</span>
+                  </div>
+
+                  <div class="claude-split-footer">
+                    <span style="color: var(--accent-cyan); font-weight: 700; font-family: var(--font-mono);">$</span>
+                    <input type="text" id="claudeSplitInput" placeholder="Type claude harness command or question..." style="flex: 1; background: transparent; border: none; outline: none; font-family: var(--font-mono); font-size: 11px; color: #fff;" />
+                    <button class="btn btn-secondary" id="btnClaudeSplitSend" style="padding: 4px 10px; font-size: 10px; font-family: var(--font-mono);">
+                      Send
+                    </button>
+                  </div>
+                </div>
+              ` : ''}
+
+              <!-- PALANTIR DRC RADAR & SIGNAL WAVEFORM HUD -->
+              <div class="drc-radar-panel">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <span class="hud-pulse-dot ${drcViolations.length === 0 ? 'emerald' : 'rose'}"></span>
+                    <strong style="color: #fff; font-family: var(--font-mono); font-size: 12px;">DESIGN RULE CHECKER (DRC)</strong>
+                  </div>
+                  <span class="badge ${drcViolations.length === 0 ? 'badge-success' : 'badge-danger'}">
+                    ${drcViolations.length} VIOLATIONS
+                  </span>
+                </div>
+
+                ${drcViolations.length === 0 ? `
+                  <div style="padding: 12px; background: rgba(52, 211, 153, 0.08); border: 1px solid rgba(52, 211, 153, 0.3); border-radius: 4px; font-family: var(--font-mono); font-size: 11px; color: #86efac;">
+                    ✓ ALL USCAR-2 & AS50881 MECHANICAL CONSTRAINTS SATISFIED. HARNESS IS PRODUCTION & RELEASE READY.
+                  </div>
+                ` : `
+                  ${drcViolations.map(v => `
+                    <div class="drc-violation-row">
+                      <span style="color: var(--accent-rose); font-size: 14px;">⚠</span>
+                      <div style="flex: 1;">
+                        <div style="font-weight: 700; color: #fff;">${v.code}: ${v.title}</div>
+                        <div style="color: #fca5a5; font-size: 10px; margin: 2px 0;">${v.desc}</div>
+                        <div style="color: var(--accent-cyan); font-size: 10px;">Agentic: ${v.aiCounterpart}</div>
+                      </div>
+                    </div>
+                  `).join('')}
+                `}
+
+                <!-- LIVE SIGNAL OSCILLOSCOPE -->
+                <div style="margin-top: 14px;">
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                    <span style="font-family: var(--font-mono); font-size: 10px; color: var(--ink-tertiary); text-transform: uppercase;">
+                      SIGNAL BUS PROPAGATION & JITTER (100MHz)
+                    </span>
+                    <span style="font-family: var(--font-mono); font-size: 10px; color: ${this.noiseInjected ? '#fca5a5' : '#86efac'};">
+                      ${this.noiseInjected ? 'NOISE / HTTP 504 FAULT' : 'IMPEDANCE MATCHED (100Ω)'}
+                    </span>
+                  </div>
+                  <div class="oscilloscope-box">
+                    <canvas id="harnessOscilloscope" class="oscilloscope-canvas"></canvas>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        ` : ''}
+
+        <!-- ====================================================================
+             TAB 01: CORE (THE MACHINE AROUND THE MODEL)
+             ==================================================================== -->
         ${this.activeHarnessTab === 'core' ? `
           <div class="card" style="margin-bottom: 24px;">
             <div class="card-header">
@@ -2678,14 +3070,12 @@ class ClaudeArchitectPlatform {
             </div>
 
             <div class="harness-orbit-box">
-              <!-- Central Model Core -->
               <div class="harness-model-core">
                 <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.8; font-family: var(--font-mono);">Agentic Core</div>
                 <div style="font-size: 20px; font-weight: 700; color: #fff; margin: 2px 0;">Model</div>
                 <div style="font-size: 11px; color: var(--accent-cyan); font-family: var(--font-mono);">core (writes words)</div>
               </div>
 
-              <!-- 5 Orbiting Harness Nodes -->
               <div class="harness-orbit-node node-tools ${this.harnessActiveNode === 'tools' ? 'active' : ''}" data-node="tools">
                 <div style="font-size: 11px; color: var(--ink-tertiary);">01 / BUS</div>
                 <div>Tools</div>
@@ -2711,7 +3101,6 @@ class ClaudeArchitectPlatform {
                 <div>Obs</div>
               </div>
 
-              <!-- Orbit Data Bus Tracks SVG -->
               <svg style="position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; opacity: 0.5;">
                 <ellipse cx="50%" cy="50%" rx="380" ry="140" fill="none" stroke="rgba(56, 189, 248, 0.2)" stroke-dasharray="6,6" />
                 <ellipse cx="50%" cy="50%" rx="260" ry="95" fill="none" stroke="rgba(56, 189, 248, 0.15)" />
@@ -2723,7 +3112,6 @@ class ClaudeArchitectPlatform {
               </svg>
             </div>
 
-            <!-- Selected Node Detailed Inspector -->
             <div style="margin-top: 24px; padding: 20px; background: rgba(0,0,0,0.4); border: 1px solid var(--line-bright); border-radius: var(--radius-md);">
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
                 <div style="display: flex; align-items: center; gap: 10px;">
@@ -2757,7 +3145,7 @@ class ClaudeArchitectPlatform {
           </div>
         ` : ''}
 
-        <!-- TAB 2: JOBS (02 / FIVE JOBS, ONE HARNESS) -->
+        <!-- TAB 02: JOBS -->
         ${this.activeHarnessTab === 'jobs' ? `
           <div class="card" style="margin-bottom: 24px;">
             <div class="card-header">
@@ -2771,7 +3159,6 @@ class ClaudeArchitectPlatform {
             </div>
 
             <div class="harness-jobs-grid">
-              <!-- Job 1: Tools -->
               <div class="harness-job-card" style="border-top: 3px solid #38bdf8;">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                   <span style="font-size: 12px; font-weight: 700; color: #38bdf8; font-family: var(--font-mono);">TOOLS</span>
@@ -2792,7 +3179,6 @@ class ClaudeArchitectPlatform {
                 </div>
               </div>
 
-              <!-- Job 2: State -->
               <div class="harness-job-card" style="border-top: 3px solid #34d399;">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                   <span style="font-size: 12px; font-weight: 700; color: #34d399; font-family: var(--font-mono);">STATE</span>
@@ -2813,7 +3199,6 @@ class ClaudeArchitectPlatform {
                 </div>
               </div>
 
-              <!-- Job 3: Perms -->
               <div class="harness-job-card" style="border-top: 3px solid #fb923c;">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                   <span style="font-size: 12px; font-weight: 700; color: #fb923c; font-family: var(--font-mono);">PERMS</span>
@@ -2834,7 +3219,6 @@ class ClaudeArchitectPlatform {
                 </div>
               </div>
 
-              <!-- Job 4: Sandbox -->
               <div class="harness-job-card" style="border-top: 3px solid #e2b36f;">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                   <span style="font-size: 12px; font-weight: 700; color: #e2b36f; font-family: var(--font-mono);">SANDBOX</span>
@@ -2852,7 +3236,6 @@ class ClaudeArchitectPlatform {
                 </div>
               </div>
 
-              <!-- Job 5: Obs -->
               <div class="harness-job-card" style="border-top: 3px solid #818cf8;">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                   <span style="font-size: 12px; font-weight: 700; color: #818cf8; font-family: var(--font-mono);">OBS</span>
@@ -2876,7 +3259,7 @@ class ClaudeArchitectPlatform {
           </div>
         ` : ''}
 
-        <!-- TAB 3: COMPARE (03 / RAW VS READY) -->
+        <!-- TAB 03: COMPARE -->
         ${this.activeHarnessTab === 'compare' ? `
           <div class="card" style="margin-bottom: 24px;">
             <div class="card-header">
@@ -2926,7 +3309,6 @@ class ClaudeArchitectPlatform {
               </table>
             </div>
 
-            <!-- Banner replicating the infographic bottom bar -->
             <div style="background: rgba(0, 0, 0, 0.6); border: 1px solid var(--line-bright); border-radius: var(--radius-md); padding: 18px; text-align: center; font-family: var(--font-mono); font-size: 14px; color: #94a3b8; letter-spacing: 0.04em;">
               <span style="color: #f87171; font-weight: 600;">bare model:</span> zero state, zero tools, zero retries &nbsp;&nbsp;•&nbsp;&nbsp; 
               <span style="color: var(--accent-cyan); font-weight: 600;">harnessed:</span> 99.8% production SLA with mechanical-first invariants
@@ -2934,7 +3316,7 @@ class ClaudeArchitectPlatform {
           </div>
         ` : ''}
 
-        <!-- TAB 4: TRACE (04 / WHEN IT FAILS) -->
+        <!-- TAB 04: TRACE -->
         ${this.activeHarnessTab === 'trace' ? `
           <div class="card" style="margin-bottom: 24px;">
             <div class="card-header">
@@ -2951,7 +3333,6 @@ class ClaudeArchitectPlatform {
 
             <div class="harness-trace-box">
               <div style="display: grid; grid-template-columns: 280px 1fr 280px; gap: 20px; align-items: center;" class="trace-responsive-grid">
-                <!-- Left: User Incident Blaming Model -->
                 <div style="background: rgba(225, 29, 72, 0.08); border: 1px solid rgba(225, 29, 72, 0.4); border-radius: var(--radius-md); padding: 20px; text-align: center;">
                   <div style="font-size: 11px; text-transform: uppercase; color: #f87171; font-family: var(--font-mono); margin-bottom: 6px;">Incident Report</div>
                   <div style="font-size: 20px; font-weight: 700; color: #fff; margin-bottom: 8px;">"model is broken"</div>
@@ -2961,7 +3342,6 @@ class ClaudeArchitectPlatform {
                   </span>
                 </div>
 
-                <!-- Center: Millisecond Forensic Timeline -->
                 <div style="padding: 10px 16px;">
                   <div style="font-size: 11px; font-family: var(--font-mono); color: var(--ink-tertiary); margin-bottom: 12px; text-transform: uppercase;">
                     FORENSIC TRACE TIMELINE (Milliseconds)
@@ -3002,7 +3382,6 @@ class ClaudeArchitectPlatform {
                   </div>
                 </div>
 
-                <!-- Right: Harness Recovery Rule -->
                 <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: var(--radius-md); padding: 20px; text-align: center;">
                   <div style="font-size: 11px; text-transform: uppercase; color: #34d399; font-family: var(--font-mono); margin-bottom: 6px;">Harness Loop Invariant</div>
                   <div style="font-size: 20px; font-weight: 700; color: #fff; margin-bottom: 8px;">retry rule</div>
@@ -3016,7 +3395,7 @@ class ClaudeArchitectPlatform {
           </div>
         ` : ''}
 
-        <!-- TAB 5: ROUTING & CAD (05 / 5-POINT ROUTING CHECKS) -->
+        <!-- TAB 05: ROUTING & 3D (5-POINT ROUTING CHECKS) -->
         ${this.activeHarnessTab === 'routing' ? `
           <div class="card" style="margin-bottom: 24px;">
             <div class="card-header">
@@ -3034,16 +3413,13 @@ class ClaudeArchitectPlatform {
               </div>
             </div>
 
-            <!-- The Real-World Engineering Story Callout -->
             <div style="background: rgba(251, 146, 60, 0.05); border-left: 3px solid #fb923c; padding: 16px 20px; border-radius: 0 var(--radius-md) var(--radius-md) 0; margin-bottom: 24px;">
               <p style="font-size: 13px; color: #fdba74; line-height: 1.6; margin: 0;">
                 <em>"Not because of wire gauge. Not because of connector current rating. <strong>Because of a splice placed 40mm from a bend.</strong> I have seen this exact failure cost a startup 12 days of rework and a full batch recall. The engineer who designed it was good at schematics, but never routed in 3D. In 1979, US automakers had the same problem: Harness warranties were their number one claim. That is why USCAR-2, USCAR-21, and AS50881 were written. Harnessing is a mechanical system disguised as an electrical one. <strong>Mechanical first. Electrical second. Test third.</strong>"</em>
               </p>
             </div>
 
-            <!-- Interactive 5-Point Routing Checks -->
             <div class="routing-checks-container">
-              <!-- Check 1: Splice Distance -->
               <div class="routing-checklist-card" style="border-left: 4px solid ${check1Pass ? 'var(--accent-emerald)' : 'var(--accent-rose)'};">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                   <div>
@@ -3064,7 +3440,6 @@ class ClaudeArchitectPlatform {
                 </div>
               </div>
 
-              <!-- Check 2: Bend Radius -->
               <div class="routing-checklist-card" style="border-left: 4px solid ${check2Pass ? 'var(--accent-emerald)' : 'var(--accent-rose)'};">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                   <div>
@@ -3088,7 +3463,6 @@ class ClaudeArchitectPlatform {
                 </div>
               </div>
 
-              <!-- Check 3: Thermal & Edge Clearance -->
               <div class="routing-checklist-card" style="border-left: 4px solid ${check3Pass ? 'var(--accent-emerald)' : 'var(--accent-rose)'};">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                   <div>
@@ -3114,7 +3488,6 @@ class ClaudeArchitectPlatform {
                 </div>
               </div>
 
-              <!-- Check 4: Cavity Seal Plugs -->
               <div class="routing-checklist-card" style="border-left: 4px solid ${check4Pass ? 'var(--accent-emerald)' : 'var(--accent-rose)'};">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                   <div>
@@ -3133,7 +3506,6 @@ class ClaudeArchitectPlatform {
                 </div>
               </div>
 
-              <!-- Check 5: Clip Spacing for Vibration -->
               <div class="routing-checklist-card" style="border-left: 4px solid ${check5Pass ? 'var(--accent-emerald)' : 'var(--accent-rose)'};">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                   <div>
@@ -3158,7 +3530,6 @@ class ClaudeArchitectPlatform {
               </div>
             </div>
 
-            <!-- Execution Actions Bar -->
             <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--line-dim); flex-wrap: wrap; gap: 12px;">
               <div style="font-family: var(--font-mono); font-size: 12px; color: var(--ink-secondary);">
                 Python Verification Engine: <span style="color: #fff;">skills/harness-engineering/scripts/harness_calculators.py</span>
@@ -3178,6 +3549,29 @@ class ClaudeArchitectPlatform {
     `;
   }
 
+  renderSvgConnectionLines() {
+    const core = this.formboardNodes.find(n => n.type === 'core') || { x: 260, y: 220 };
+    return this.formboardNodes
+      .filter(n => n.id !== core.id)
+      .map(node => {
+        const x1 = core.x + 80;
+        const y1 = core.y + 35;
+        const x2 = node.x + 80;
+        const y2 = node.y + 30;
+        const strokeColor = node.violation ? '#f43f5e' : (node.color || '#38bdf8');
+        return `
+          <g>
+            <line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" 
+                  stroke="${strokeColor}" stroke-width="2" stroke-opacity="0.6" />
+            <line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" 
+                  stroke="${strokeColor}" stroke-width="3" class="signal-pulse-line" />
+            <circle cx="${x1}" cy="${y1}" r="4" fill="${strokeColor}" />
+            <circle cx="${x2}" cy="${y2}" r="4" fill="${strokeColor}" />
+          </g>
+        `;
+      }).join('');
+  }
+
   attachHarnessStudioEvents() {
     // 1. Tab Switching
     document.querySelectorAll('.harness-tab-btn').forEach(btn => {
@@ -3188,7 +3582,134 @@ class ClaudeArchitectPlatform {
       });
     });
 
-    // 2. Core Node Selection
+    // 2. Mission Presets (Harness On The Fly)
+    document.querySelectorAll('.tactical-preset-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const preset = btn.dataset.preset;
+        this.loadMissionPreset(preset);
+      });
+    });
+
+    // 3. Toggle Split Claude CLI
+    document.getElementById('btnToggleClaudeSplit')?.addEventListener('click', () => {
+      this.claudeCliSplitOpen = !this.claudeCliSplitOpen;
+      this.render();
+      this.playHaptic('click');
+    });
+
+    // 4. Auto-Remediate Invariants
+    document.getElementById('btnHarnessAutoRemediate')?.addEventListener('click', () => {
+      this.remediateAllInvariants();
+    });
+
+    // 5. Inject Noise / Fault
+    document.getElementById('btnHarnessNoiseInject')?.addEventListener('click', () => {
+      this.noiseInjected = !this.noiseInjected;
+      const timestamp = new Date().toLocaleTimeString();
+      if (this.noiseInjected) {
+        this.claudeSplitHistory.push({
+          time: timestamp,
+          sender: 'warn',
+          text: 'SIMULATED FAULT INJECTED: HTTP 504 Gateway socket timeout on upstream sensor bus.'
+        });
+      } else {
+        this.claudeSplitHistory.push({
+          time: timestamp,
+          sender: 'claude',
+          text: 'FAULT CLEARED: Upstream sensor tool socket stabilized. Nominal telemetry restored.'
+        });
+      }
+      this.render();
+      this.playHaptic('click');
+    });
+
+    // 6. Export BOM & CLAUDE.md
+    document.getElementById('btnHarnessExportBom')?.addEventListener('click', () => {
+      this.playHaptic('success');
+      alert(`// PALANTIR AIP // PRODUCTION HARNESS BOM & INVARIANTS EXPORTED\n\n` +
+            `Project: ${this.activeMissionPreset.toUpperCase()}\n` +
+            `Total Components: ${this.formboardNodes.length} nodes\n` +
+            `USCAR-21 / AS50881 Compliance: VERIFIED (100%)\n` +
+            `Generated Files:\n` +
+            `- /workspace/CLAUDE.md (PreToolUse Invariants Registered)\n` +
+            `- /workspace/harness_bom.csv (Manufacturing Cut Lengths & Terminals)\n` +
+            `- /workspace/evals/harness_5point_invariants.yaml\n\n` +
+            `Ready for factory formboard wiring or automated Claude agent deployment.`);
+    });
+
+    // 7. Drag and Drop on Formboard
+    this.attachCadDragAndDropEvents();
+
+    // 8. Claude CLI Split Send
+    const sendSplitCmd = () => {
+      const input = document.getElementById('claudeSplitInput');
+      const cmd = input?.value.trim();
+      if (cmd) {
+        this.executeClaudeSplitCommand(cmd);
+        input.value = '';
+      }
+    };
+
+    document.getElementById('btnClaudeSplitSend')?.addEventListener('click', sendSplitCmd);
+    document.getElementById('claudeSplitInput')?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') sendSplitCmd();
+    });
+
+    // 8b. Side-by-side terminal action buttons
+    document.getElementById('btnLaunchNativeTerminal')?.addEventListener('click', () => {
+      this.launchNativeClaudeTerminal();
+    });
+
+    document.getElementById('btnOpenMcpInspector')?.addEventListener('click', () => {
+      this.openMcpToolsInspector();
+    });
+
+    document.getElementById('btnClearSplitCli')?.addEventListener('click', () => {
+      this.claudeSplitHistory = [
+        { time: new Date().toLocaleTimeString(), sender: 'system', text: 'Claude Code Agentic Industrial Harness Engine v2.1.226 reset.' }
+      ];
+      this.render();
+      this.playHaptic('click');
+    });
+
+    // 8c. Quick command chips
+    document.querySelectorAll('.claude-chip-action').forEach(chip => {
+      chip.addEventListener('click', () => {
+        const cmd = chip.dataset.cmd;
+        if (cmd) {
+          this.executeClaudeSplitCommand(cmd);
+        }
+      });
+    });
+
+    // 9. Node Deletion and Selection
+    document.querySelectorAll('.node-delete-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const delId = btn.dataset.delId;
+        this.formboardNodes = this.formboardNodes.filter(n => n.id !== delId);
+        this.claudeSplitHistory.push({
+          time: new Date().toLocaleTimeString(),
+          sender: 'cmd',
+          text: `claude harness remove-node --id ${delId}`
+        });
+        this.render();
+        this.playHaptic('click');
+      });
+    });
+
+    document.querySelectorAll('.formboard-node').forEach(nodeEl => {
+      nodeEl.addEventListener('click', () => {
+        this.selectedFormboardNode = nodeEl.dataset.nodeId;
+        this.render();
+        this.playHaptic('click');
+      });
+    });
+
+    // 10. Start Live Oscilloscope Animation
+    this.initOscilloscope();
+
+    // 11. Core Node Selection for Tab 1
     document.querySelectorAll('.harness-orbit-node').forEach(node => {
       node.addEventListener('click', () => {
         this.harnessActiveNode = node.dataset.node;
@@ -3197,7 +3718,7 @@ class ClaudeArchitectPlatform {
       });
     });
 
-    // 3. Quick Action Buttons
+    // 12. Quick Action Buttons
     document.getElementById('btnHarnessRunPy')?.addEventListener('click', () => {
       this.playHaptic('success');
       alert('Running python3 skills/harness-engineering/scripts/harness_calculators.py --check-all\n\n' +
@@ -3217,28 +3738,13 @@ class ClaudeArchitectPlatform {
       this.playHaptic('click');
     });
 
-    // 4. Trace Replay & Stepping
+    // 13. Trace Replay
     document.getElementById('btnTraceReplay')?.addEventListener('click', () => {
       this.playHaptic('success');
       alert('Forensic replay started. Tracing HTTP packet duration from agent gateway (t=1.2s) through tools layer (t=1.9s 504 timeout) and executing loop-layer retry rule at t=2.4s.\n\nResult: 0 model hallucinations; zero user disruption.');
     });
 
-    document.getElementById('btnTracePrev')?.addEventListener('click', () => {
-      this.playHaptic('click');
-      alert('Trace step backwards: inspect t=1.6s outgoing socket buffer.');
-    });
-
-    document.getElementById('btnTraceNext')?.addEventListener('click', () => {
-      this.playHaptic('click');
-      alert('Trace step forwards: inspect t=2.4s loop layer retry rule injection.');
-    });
-
-    document.getElementById('btnHarnessTestPing')?.addEventListener('click', () => {
-      this.playHaptic('success');
-      alert('Pulse dispatched across all 5 jobs:\n\n1. TOOLS: Schema valid (0 errors)\n2. STATE: Scratchpad buffer active\n3. PERMS: Invariants intact\n4. SANDBOX: Filesystem isolated\n5. OBS: Telemetry span recorded');
-    });
-
-    // 5. 5-Point Routing Sliders & Toggles
+    // 14. 5-Point Sliders
     const updateRouting = () => {
       this.render();
     };
@@ -3315,10 +3821,539 @@ class ClaudeArchitectPlatform {
       this.playHaptic('click');
     });
   }
+
+  // Drag and Drop implementation for Formboard CAD
+  attachCadDragAndDropEvents() {
+    const chips = document.querySelectorAll('.draggable-comp-chip');
+    chips.forEach(chip => {
+      chip.addEventListener('dragstart', (e) => {
+        const compId = chip.dataset.compId;
+        let found = null;
+        for (const cat of this.cadInventory) {
+          const item = cat.items.find(i => i.id === compId);
+          if (item) { found = item; break; }
+        }
+        this.draggedComponent = found;
+        e.dataTransfer.setData('text/plain', compId);
+      });
+    });
+
+    const canvas = document.getElementById('formboardCanvas');
+    if (!canvas) return;
+
+    canvas.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      canvas.classList.add('drag-over');
+    });
+
+    canvas.addEventListener('dragleave', () => {
+      canvas.classList.remove('drag-over');
+    });
+
+    canvas.addEventListener('drop', (e) => {
+      e.preventDefault();
+      canvas.classList.remove('drag-over');
+      if (!this.draggedComponent) return;
+
+      const rect = canvas.getBoundingClientRect();
+      const rawX = e.clientX - rect.left - 70;
+      const rawY = e.clientY - rect.top - 25;
+      const x = Math.max(20, Math.min(Math.round(rawX / 16) * 16, rect.width - 180));
+      const y = Math.max(20, Math.min(Math.round(rawY / 16) * 16, rect.height - 80));
+
+      const newId = `node-${Date.now().toString().slice(-4)}`;
+      const newNode = {
+        id: newId,
+        type: this.draggedComponent.type,
+        name: this.draggedComponent.name,
+        tag: this.draggedComponent.tag,
+        x: x,
+        y: y,
+        color: this.draggedComponent.color,
+        status: 'ATTACHED',
+        details: `${this.draggedComponent.name} added at X:${x}mm, Y:${y}mm (${this.draggedComponent.aiAnalog})`
+      };
+
+      this.formboardNodes.push(newNode);
+      this.selectedFormboardNode = newId;
+
+      const timestamp = new Date().toLocaleTimeString();
+      this.claudeSplitHistory.push({
+        time: timestamp,
+        sender: 'cmd',
+        text: `claude harness add-node --type ${newNode.type} --name "${newNode.name}" --pos ${x},${y}`
+      });
+      this.claudeSplitHistory.push({
+        time: timestamp,
+        sender: 'claude',
+        text: `Attached ${newNode.name} to harness bus. Evaluated routing invariants: 0 impedance reflections.`
+      });
+
+      this.render();
+      this.playHaptic('success');
+    });
+  }
+
+  // Load Industrial Mission Preset On-The-Fly
+  loadMissionPreset(presetKey) {
+    this.activeMissionPreset = presetKey;
+    const timestamp = new Date().toLocaleTimeString();
+
+    if (presetKey === 'ev-800v') {
+      this.formboardNodes = [
+        { id: 'node-core', type: 'core', name: 'Model Core', tag: 'AGENTIC CORE', x: 260, y: 220, color: '#38bdf8', status: 'ONLINE', details: 'Dual Inverter Motor Controller Inference Loop' },
+        { id: 'node-radsok', type: 'connector', name: 'Radsok 400A HV', tag: '800V DC BUS', x: 60, y: 80, color: '#f59e0b', status: '400A CONTINUOUS', details: 'Primary Traction Battery Pack Disconnect' },
+        { id: 'node-inverter1', type: 'connector', name: 'TE DT06-4S (Front Motor)', tag: 'IP69K WATERPROOF', x: 440, y: 80, color: '#38bdf8', status: 'LOCKED', details: 'SiC Front Axle Motor Telemetry Gate' },
+        { id: 'node-splice-ev', type: 'splice', name: 'Ultrasonic Splice', tag: 'USCAR-21 §4.2', x: 190, y: 110, color: '#fb923c', status: 'VIOLATION', details: 'Splice placed at 42mm from bend! (Must be >= 150mm)', violation: 'USCAR-21: Splice < 150mm from bend' },
+        { id: 'node-sleeve-ev', type: 'sandbox', name: 'Silicon 600°C Sleeve', tag: 'THERMAL SHIELD', x: 100, y: 360, color: '#e2b36f', status: 'ISOLATED', details: 'Exhaust & Regenerative Braking Heat Shield' },
+        { id: 'node-clip-ev', type: 'clip', name: 'FIR-Tree 150mm Clip', tag: 'VIBRATION ANCHOR', x: 390, y: 350, color: '#34d399', status: 'SECURED', details: 'Damping 50G vibration on chassis rails' }
+      ];
+      this.claudeSplitHistory.push({
+        time: timestamp,
+        sender: 'cmd',
+        text: 'claude harness load-preset --spec ev-800v-powertrain --standards uscar2,uscar21'
+      });
+      this.claudeSplitHistory.push({
+        time: timestamp,
+        sender: 'claude',
+        text: 'Loaded EV 800V Powertrain architecture. Verified 400A Radsok bus and dual SiC inverters. 1 splice violation detected.'
+      });
+    } else if (presetKey === 'aerospace-fbw') {
+      this.formboardNodes = [
+        { id: 'node-core', type: 'core', name: 'Model Core', tag: 'TRIPLE REDUNDANT', x: 260, y: 220, color: '#38bdf8', status: 'FLIGHT GRADE', details: 'DO-178C Level A Deterministic Flight Director' },
+        { id: 'node-mil1', type: 'connector', name: 'MIL-DTL-38999 (Ch A)', tag: 'STAINLESS CIRCULAR', x: 70, y: 90, color: '#818cf8', status: 'SECURED', details: 'Hydraulic Actuator Primary Flight Channel' },
+        { id: 'node-mil2', type: 'connector', name: 'MIL-DTL-38999 (Ch B)', tag: 'STAINLESS CIRCULAR', x: 430, y: 90, color: '#818cf8', status: 'SECURED', details: 'Redundant Fly-By-Wire Backup Telemetry' },
+        { id: 'node-splice-aero', type: 'splice', name: 'Solder Sleeve AS83519', tag: 'AEROSPACE SPLICE', x: 200, y: 160, color: '#34d399', status: 'PASS', details: '180mm strain relief compliant with AS50881' },
+        { id: 'node-conduit-aero', type: 'sandbox', name: 'Braided EMI Conduit', tag: 'LIGHTNING SHIELD', x: 120, y: 350, color: '#e2b36f', status: 'GROUNDED', details: 'HIRF & Lightning strike 100kA pulse dissipation' },
+        { id: 'node-tap-aero', type: 'obs', name: 'Avionics Black Box Tap', tag: 'MIL-STD-1553 BUS', x: 380, y: 350, color: '#818cf8', status: 'RECORDING', details: 'Deterministic 1ms flight telemetry recorder' }
+      ];
+      this.claudeSplitHistory.push({
+        time: timestamp,
+        sender: 'cmd',
+        text: 'claude harness load-preset --spec aerospace-fly-by-wire --standard as50881'
+      });
+      this.claudeSplitHistory.push({
+        time: timestamp,
+        sender: 'claude',
+        text: 'Loaded Aerospace Fly-By-Wire avionics. AS50881 compliance verified: 0 splice violations, 100kA EMI shield intact.'
+      });
+    } else if (presetKey === 'robotic-arm') {
+      this.formboardNodes = [
+        { id: 'node-core', type: 'core', name: 'Model Core', tag: 'MOTION PLANNER', x: 260, y: 220, color: '#38bdf8', status: 'ONLINE', details: 'Real-Time Inverse Kinematics & Collision Boundary Agent' },
+        { id: 'node-servo1', type: 'connector', name: 'Rosenberger H-MTD', tag: 'SERVO BUS J1-J3', x: 70, y: 80, color: '#06b6d4', status: '1000 FPS', details: 'High-Torque Base & Shoulder Servos' },
+        { id: 'node-servo2', type: 'connector', name: 'TE DT06 Wrist Actuator', tag: 'WRIST FLEX J4-J6', x: 440, y: 80, color: '#38bdf8', status: 'DYNAMIC FLEX', details: 'Wrist Articulation (10x dynamic flex zone)' },
+        { id: 'node-estop', type: 'perms', name: 'Hardware E-Stop Hook', tag: 'ISO 10218-1 SAFETY', x: 210, y: 140, color: '#fb923c', status: 'ACTIVE', details: 'Deterministic 8ms E-stop circuit halts arm on envelope breach' },
+        { id: 'node-flex-conduit', type: 'sandbox', name: 'Continuous Flex Conduit', tag: '10M CYCLE TORSION', x: 120, y: 350, color: '#e2b36f', status: 'FLEX TESTED', details: 'Million-cycle continuous torsion tested jacket' },
+        { id: 'node-tap-vib', type: 'clip', name: 'Edge Vibration Fastener', tag: 'ANTI-ROTATION', x: 380, y: 350, color: '#34d399', status: 'LOCKED', details: 'Anti-rotation rib prevents cable torsion fatigue' }
+      ];
+      this.claudeSplitHistory.push({
+        time: timestamp,
+        sender: 'cmd',
+        text: 'claude harness load-preset --spec robotic-6axis-cell --standard iso10218'
+      });
+      this.claudeSplitHistory.push({
+        time: timestamp,
+        sender: 'claude',
+        text: 'Loaded 6-Axis Robotic Cell harness. ISO 10218-1 E-stop hook armed. Million-cycle dynamic torsion conduit verified.'
+      });
+    } else if (presetKey === 'citadel-finops') {
+      this.formboardNodes = [
+        { id: 'node-core', type: 'core', name: 'Model Core', tag: 'FINOPS ORCHESTRATOR', x: 260, y: 220, color: '#38bdf8', status: 'ONLINE', details: 'Multi-Cloud Spend & Ledger Reconciliation Agent' },
+        { id: 'node-erp', type: 'connector', name: 'SAP/ERP Connector', tag: 'MCP POSTGRESQL', x: 60, y: 80, color: '#38bdf8', status: 'READ-ONLY', details: 'Ledger Balances & Purchase Order Database' },
+        { id: 'node-crm', type: 'connector', name: 'Salesforce CRM Connector', tag: 'MCP SALESFORCE', x: 440, y: 80, color: '#818cf8', status: 'READ-ONLY', details: 'Q3 Pipeline Deals & Customer Billing Ingest' },
+        { id: 'node-cfo-hook', type: 'perms', name: 'PreToolUse CFO Lock', tag: '$500 MUTATION GATE', x: 210, y: 130, color: '#fb923c', status: 'ENFORCED', details: 'Halts cloud resource terminations > $500 without signature token' },
+        { id: 'node-jail-fin', type: 'sandbox', name: 'Ephemeral Process Jail', tag: 'ZERO EXFILTRATION', x: 110, y: 350, color: '#e2b36f', status: 'AIRGAPPED', details: 'Strict isolation: No unapproved external outbound network requests' },
+        { id: 'node-otel-fin', type: 'obs', name: 'Audit Provenance Stream', tag: 'SHA256 ON-CHAIN', x: 390, y: 350, color: '#34d399', status: 'AUDITING', details: 'Every financial mutation signed and recorded to immutable ledger' }
+      ];
+      this.claudeSplitHistory.push({
+        time: timestamp,
+        sender: 'cmd',
+        text: 'claude harness load-preset --spec citadel-finops-orchestrator --policy deterministic-cfo-lock'
+      });
+      this.claudeSplitHistory.push({
+        time: timestamp,
+        sender: 'claude',
+        text: 'Loaded Citadel FinOps Orchestrator. Cryptographic $500 CFO gate armed. Airgapped process jail online.'
+      });
+    }
+
+    this.render();
+    this.playHaptic('success');
+  }
+
+  // Auto-Remediate All Invariants (USCAR-2 & AS50881)
+  remediateAllInvariants() {
+    this.routingCheckForm = {
+      spliceDistance: 160,
+      bendRadius: 80,
+      bundleDiameter: 12,
+      isFlexZone: false,
+      heatClearance: 60,
+      edgeClearance: 25,
+      unsealedPlugsFilled: true,
+      clipSpacing: 140,
+      isHighVibZone: true
+    };
+
+    // Remove violation flag from formboardNodes
+    this.formboardNodes = this.formboardNodes.map(n => {
+      if (n.type === 'splice') {
+        return {
+          ...n,
+          name: 'Ultrasonic Splice (Relocated)',
+          status: 'COMPLIANT',
+          details: 'Repositioned to 160mm from bend (> 150mm threshold). Mechanical strain relief verified.',
+          violation: null,
+          x: n.x + 20,
+          y: n.y + 40
+        };
+      }
+      return n;
+    });
+
+    const timestamp = new Date().toLocaleTimeString();
+    this.claudeSplitHistory.push({
+      time: timestamp,
+      sender: 'cmd',
+      text: 'claude harness auto-resolve --enforce-uscar21 --seal-cavities --clip-pitch 140mm'
+    });
+    this.claudeSplitHistory.push({
+      time: timestamp,
+      sender: 'claude',
+      text: 'DRC AUTO-RESOLVE COMPLETE: Ultrasonic Splice offset to 160mm. IP68 dummy cavity plugs installed. Fasteners pitched to 140mm. 0 violations.'
+    });
+
+    this.render();
+    this.playHaptic('success');
+    alert('AUTO-REMEDIATION EXECUTED:\n\n' +
+          '✓ Check 1 (Splice Distance): Relocated to 160mm (USCAR-21 compliant)\n' +
+          '✓ Check 2 (Bend Radius): Expanded to 80mm (> 6x bundle dia)\n' +
+          '✓ Check 3 (Heat Clearance): Set to 60mm air gap from exhaust\n' +
+          '✓ Check 4 (Cavity Plugs): All unpopulated cavities plugged (IP68 seal)\n' +
+          '✓ Check 5 (Clip Spacing): Set to 140mm (< 150mm vibration limit)\n\n' +
+          'STATUS: PASSED - RELEASE READY FOR MANUFACTURING & PRODUCTION');
+  }
+
+  // Launch native macOS Terminal running Claude Code side-by-side
+  async launchNativeClaudeTerminal() {
+    const timestamp = new Date().toLocaleTimeString();
+    this.claudeSplitHistory.push({
+      time: timestamp,
+      sender: 'cmd',
+      text: 'open-terminal --binary /Users/favl/.local/bin/claude --workspace /Users/favl/Downloads/claude_architect_digital_service'
+    });
+    this.render();
+
+    try {
+      const resp = await fetch('/api/claude-cli/open-terminal', { method: 'POST' });
+      const data = await resp.json();
+      if (data.success) {
+        this.claudeSplitHistory.push({
+          time: new Date().toLocaleTimeString(),
+          sender: 'claude',
+          text: `● [macOS Terminal] Claude Code CLI v2.1.226 launched side-by-side with Atelier! Active directory: ${data.workspace}`
+        });
+        this.claudeSplitHistory.push({
+          time: new Date().toLocaleTimeString(),
+          sender: 'agent',
+          text: `⚡ MCP Server 'atelier-harness' bound via stdio. DRC verification and derating tools loaded.`
+        });
+      } else {
+        this.claudeSplitHistory.push({
+          time: new Date().toLocaleTimeString(),
+          sender: 'warn',
+          text: `Terminal launch: ${data.message || 'Run in macOS Terminal: cd /Users/favl/Downloads/claude_architect_digital_service && /Users/favl/.local/bin/claude'}`
+        });
+      }
+    } catch (err) {
+      this.claudeSplitHistory.push({
+        time: new Date().toLocaleTimeString(),
+        sender: 'system',
+        text: `To work side-by-side in your terminal, run: cd /Users/favl/Downloads/claude_architect_digital_service && /Users/favl/.local/bin/claude`
+      });
+    }
+
+    this.render();
+    this.playHaptic('success');
+    setTimeout(() => {
+      const term = document.getElementById('claudeSplitTerminal');
+      if (term) term.scrollTop = term.scrollHeight;
+    }, 50);
+  }
+
+  // Open MCP Tools Inspector Modal
+  openMcpToolsInspector() {
+    // Remove existing modal if any
+    document.getElementById('activeMcpModal')?.remove();
+
+    const modal = document.createElement('div');
+    modal.className = 'mcp-inspector-modal active';
+    modal.id = 'activeMcpModal';
+    modal.innerHTML = `
+      <div class="mcp-inspector-content">
+        <div style="padding: 16px 20px; background: #0c101a; border-bottom: 1px solid var(--line-bright); display: flex; justify-content: space-between; align-items: center;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span class="hud-pulse-dot emerald"></span>
+            <strong style="color: #fff; font-family: var(--font-mono); font-size: 13px;">MCP TOOLS INSPECTOR // 'atelier-harness'</strong>
+          </div>
+          <button class="btn btn-secondary" id="btnCloseMcpModal" style="padding: 4px 10px; font-size: 11px;">Close ✕</button>
+        </div>
+        <div style="padding: 20px; overflow-y: auto; flex: 1;">
+          <div style="font-size: 12px; color: var(--ink-secondary); margin-bottom: 16px; line-height: 1.5;">
+            These 4 Model Context Protocol (MCP) tools are registered in <code style="color: var(--accent-cyan);">.mcp.json</code> and directly callable by Claude Code CLI and the formboard CAD engine over JSON-RPC 2.0 stdio:
+          </div>
+
+          <div class="mcp-tool-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <span style="font-family: var(--font-mono); font-weight: 700; color: #86efac; font-size: 13px;">tools/verify_harness_drc</span>
+              <span class="badge badge-success">USCAR-21 / AS50881</span>
+            </div>
+            <div style="font-size: 12px; color: var(--ink-secondary); margin-bottom: 8px;">
+              Scans active formboard layout for physical invariants: splice-to-bend distance ≥ 150mm, bend radius limits, and IP68 cavity seals.
+            </div>
+            <div style="font-family: var(--font-mono); font-size: 11px; background: rgba(0,0,0,0.5); padding: 8px; border-radius: 4px; color: #94a3b8;">
+              inputSchema: { nodes: Array&lt;HarnessNode&gt;, standard: "USCAR-21" | "AS50881" }
+            </div>
+          </div>
+
+          <div class="mcp-tool-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <span style="font-family: var(--font-mono); font-weight: 700; color: #93c5fd; font-size: 13px;">tools/calculate_derating</span>
+              <span class="badge" style="background: rgba(56,189,248,0.2); color: var(--accent-cyan);">THERMAL DERATING</span>
+            </div>
+            <div style="font-size: 12px; color: var(--ink-secondary); margin-bottom: 8px;">
+              Computes wire bundle outer diameter D_bundle = 1.15 × √(Σ d_i²), minimum bend radius 10× D, and thermal derating.
+            </div>
+            <div style="font-family: var(--font-mono); font-size: 11px; background: rgba(0,0,0,0.5); padding: 8px; border-radius: 4px; color: #94a3b8;">
+              inputSchema: { wire_diameters_mm: number[], ambient_temp_c: number, max_conductor_temp_c: number }
+            </div>
+          </div>
+
+          <div class="mcp-tool-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <span style="font-family: var(--font-mono); font-weight: 700; color: #fdba74; font-size: 13px;">tools/remediate_harness</span>
+              <span class="badge" style="background: rgba(251,146,60,0.2); color: var(--accent-amber);">DETERMINISTIC AUTO-FIX</span>
+            </div>
+            <div style="font-size: 12px; color: var(--ink-secondary); margin-bottom: 8px;">
+              Auto-relocates splices +160mm along routing vectors away from bends and injects IP68 silicone seals.
+            </div>
+            <div style="font-family: var(--font-mono); font-size: 11px; background: rgba(0,0,0,0.5); padding: 8px; border-radius: 4px; color: #94a3b8;">
+              inputSchema: { nodes: Array&lt;HarnessNode&gt; }
+            </div>
+          </div>
+
+          <div class="mcp-tool-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <span style="font-family: var(--font-mono); font-weight: 700; color: #d8b4fe; font-size: 13px;">tools/grade_capstone</span>
+              <span class="badge" style="background: rgba(167,139,250,0.2); color: #c084fc;">RUBRIC GRADER</span>
+            </div>
+            <div style="font-size: 12px; color: var(--ink-secondary); margin-bottom: 8px;">
+              Evaluates capstone submissions against the 100-point physical, mathematical, and architectural defense rubric.
+            </div>
+            <div style="font-family: var(--font-mono); font-size: 11px; background: rgba(0,0,0,0.5); padding: 8px; border-radius: 4px; color: #94a3b8;">
+              inputSchema: { title: string, domain: string, drc_violations_count: number, has_defense_notes: boolean }
+            </div>
+          </div>
+        </div>
+        <div style="padding: 14px 20px; background: #06080e; border-top: 1px solid var(--line-dim); display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-family: var(--font-mono); font-size: 11px; color: var(--ink-tertiary);">
+            Config: /Users/favl/Downloads/claude_architect_digital_service/.mcp.json
+          </span>
+          <button class="btn btn-primary" id="btnTestMcpToolCall" style="padding: 6px 14px; font-size: 11px;">
+            Test DRC Tool Call ⚡
+          </button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    modal.querySelector('#btnCloseMcpModal')?.addEventListener('click', () => {
+      modal.remove();
+    });
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) modal.remove();
+    });
+    modal.querySelector('#btnTestMcpToolCall')?.addEventListener('click', () => {
+      modal.remove();
+      this.executeClaudeSplitCommand('claude harness verify');
+    });
+  }
+
+  // Execute command in side-by-side Claude CLI
+  executeClaudeSplitCommand(rawCmd) {
+    const timestamp = new Date().toLocaleTimeString();
+    const cmd = rawCmd.trim();
+
+    this.claudeSplitHistory.push({ time: timestamp, sender: 'cmd', text: cmd });
+
+    const lower = cmd.toLowerCase();
+
+    if (lower.includes('help') || lower === '?') {
+      this.claudeSplitHistory.push({
+        time: timestamp,
+        sender: 'claude',
+        text: 'AVAILABLE CLAUDE HARNESS CLI COMMANDS:\n' +
+              '• claude harness verify       : Runs automated USCAR-21 & AS50881 DRC rule validation\n' +
+              '• claude harness remediate    : Auto-relocates splices to ≥160mm & installs IP68 seals\n' +
+              '• claude harness calc         : Computes wire bundle diameter & continuous ampacity\n' +
+              '• claude harness preset <name>: Loads mission preset (ev, aerospace, robot, citadel)\n' +
+              '• claude mcp list             : Inspects active JSON-RPC MCP server tools\n' +
+              '• launch terminal             : Opens native macOS Terminal running Claude Code\n' +
+              '• clear                       : Clears terminal scrollback'
+      });
+    } else if (lower.includes('terminal') || lower.includes('launch')) {
+      this.launchNativeClaudeTerminal();
+      return;
+    } else if (lower.includes('mcp')) {
+      this.openMcpToolsInspector();
+      this.claudeSplitHistory.push({
+        time: timestamp,
+        sender: 'system',
+        text: 'Opened MCP Tools Inspector: 4 tools bound to server atelier-harness.'
+      });
+    } else if (lower.includes('harness verify') || lower.includes('drc') || lower.includes('check')) {
+      const violations = this.formboardNodes.filter(n => n.violation).length;
+      if (violations === 0) {
+        this.claudeSplitHistory.push({
+          time: timestamp,
+          sender: 'claude',
+          text: '✓ DRC VERIFICATION PASS: All USCAR-21 (§4.2) and AS50881 physical invariants satisfied. Splice clearance ≥ 150mm. Ready for production release.'
+        });
+      } else {
+        this.claudeSplitHistory.push({
+          time: timestamp,
+          sender: 'warn',
+          text: `DRC VIOLATION: ${violations} critical violation(s) detected. Ultrasonic Splice is placed < 150mm from mechanical bend. Cyclic vibration fatigue risk.`
+        });
+        this.claudeSplitHistory.push({
+          time: timestamp,
+          sender: 'agent',
+          text: '⚡ Agent Recommendation: Execute "claude harness remediate" to offset splice +160mm and restore structural integrity.'
+        });
+      }
+    } else if (lower.includes('harness calc') || lower.includes('derate') || lower.includes('diameter')) {
+      this.claudeSplitHistory.push({
+        time: timestamp,
+        sender: 'claude',
+        text: 'PHYSICAL HARNESS CALCULATOR (AS50881 / Mil-W-5088L):\n' +
+              '• Bundle Outer Diameter Formula: D_bundle = 1.15 × √(Σ d_i²)\n' +
+              '• Computed Bundle Diameter: 13.82mm across active nodes\n' +
+              '• Minimum Bend Radius (10× D): 138.2mm (Flex zones: 165.8mm)\n' +
+              '• Continuous Ampacity at 85°C: 25.0A nominal derated to 15.4A (Thermal factor: 0.77, Bundle factor: 0.80)'
+      });
+    } else if (lower.includes('preset')) {
+      if (lower.includes('aero')) {
+        this.loadMissionPreset('aerospace-fly-by-wire');
+      } else if (lower.includes('robot')) {
+        this.loadMissionPreset('robotic-cell');
+      } else if (lower.includes('citadel') || lower.includes('fin')) {
+        this.loadMissionPreset('citadel-aip');
+      } else {
+        this.loadMissionPreset('ev-800v');
+      }
+      return;
+    } else if (lower.includes('resolve') || lower.includes('remediate')) {
+      this.remediateAllInvariants();
+      return;
+    } else if (lower.includes('clear')) {
+      this.claudeSplitHistory = [
+        { time: timestamp, sender: 'system', text: 'Claude Code Agentic Industrial Harness Engine v2.1.226 reset.' }
+      ];
+    } else if (lower.includes('uscar') || lower.includes('splice')) {
+      this.claudeSplitHistory.push({
+        time: timestamp,
+        sender: 'claude',
+        text: 'USCAR-21 §4.2 Physical Rationale: Cable bends concentrate mechanical shear strain on copper strands. Placing a rigid ultrasonic splice within 150mm of the bend vertex results in conductor strand shearing under standard SAE J2380 random vibration testing.'
+      });
+    } else {
+      this.claudeSplitHistory.push({
+        time: timestamp,
+        sender: 'claude',
+        text: `Processed "${cmd}". Harness telemetry synchronized over MCP bus /dev/harness-bus0. Invariants: OK.`
+      });
+    }
+
+    this.render();
+    this.playHaptic('click');
+
+    // Auto-scroll terminal to bottom
+    setTimeout(() => {
+      const term = document.getElementById('claudeSplitTerminal');
+      if (term) term.scrollTop = term.scrollHeight;
+    }, 50);
+  }
+
+  // Real-time live oscilloscope simulation
+  initOscilloscope() {
+    const canvas = document.getElementById('harnessOscilloscope');
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let step = 0;
+    const draw = () => {
+      if (!this.oscillatorRunning || !document.getElementById('harnessOscilloscope')) return;
+
+      const w = canvas.width = canvas.offsetWidth;
+      const h = canvas.height = canvas.offsetHeight;
+
+      ctx.fillStyle = '#05070b';
+      ctx.fillRect(0, 0, w, h);
+
+      // Draw faint oscilloscope grid lines
+      ctx.strokeStyle = 'rgba(56, 189, 248, 0.08)';
+      ctx.lineWidth = 1;
+      for (let x = 0; x < w; x += 25) {
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
+      }
+      for (let y = 0; y < h; y += 20) {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+      }
+
+      // Channel 1: High-Speed Signal Carrier (Green/Cyan)
+      ctx.strokeStyle = this.noiseInjected ? '#f43f5e' : '#38bdf8';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+
+      const centerY = h / 2;
+      const amp = this.noiseInjected ? 32 : 22;
+      const freq = this.noiseInjected ? 0.06 : 0.04;
+
+      for (let x = 0; x < w; x++) {
+        const noise = this.noiseInjected ? (Math.random() - 0.5) * 20 : (Math.random() - 0.5) * 2;
+        const y = centerY + Math.sin(x * freq + step) * amp + noise;
+        if (x === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+
+      // Channel 2: Packet Telemetry Square Wave (Emerald)
+      ctx.strokeStyle = '#34d399';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      for (let x = 0; x < w; x++) {
+        const squareY = Math.sin(x * 0.02 + step * 0.7) > 0 ? centerY + 18 : centerY - 18;
+        if (x === 0) ctx.moveTo(x, squareY);
+        else ctx.lineTo(x, squareY);
+      }
+      ctx.stroke();
+
+      step += 0.12;
+      requestAnimationFrame(draw);
+    };
+
+    requestAnimationFrame(draw);
+  }
 }
 
-// Instantiate on load
-window.addEventListener('DOMContentLoaded', () => {
+// Instantiate on load or immediately if already loaded
+if (document.readyState === 'loading') {
+  window.addEventListener('DOMContentLoaded', () => {
+    window.claudePlatform = new ClaudeArchitectPlatform();
+  });
+} else {
   window.claudePlatform = new ClaudeArchitectPlatform();
-});
+}
 

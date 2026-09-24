@@ -65,25 +65,31 @@ Real-world enterprise case studies with interactive fault injection:
 - **Case 2 (Enterprise Code Delivery Harness)**: Inject monorepo context blowouts to test path-exclusion rules and subagent context bounds.
 - **Case 3 (Executive Cowork & Slides)**: Inject conflicting revenue values between CRM and accounting to verify date cutoff disagreement surfacing.
 
-### 5. Harness Engineering Studio (5 Parts • 5 Checks)
+### 5. Palantir Foundry Tactical CAD Formboard & Side-by-Side Claude Code CLI
 Grounding AI agent architecture in mission-critical physical harness engineering standards (**USCAR-2, USCAR-21, AS50881, IPC/WHMA-A-620**):
 - **Core Principle**: *"Mechanical first. Electrical second. Test third."* $\leftrightarrow$ In AI: *"Harness first. Model second. Eval third."*
-- **The Machine Around the Model (5 Parts)**: Central `Model (core)` surrounded by `Tools`, `State`, `Perms`, `Sandbox`, and `Obs`.
-- **Five Jobs, One Harness**:
-  1. `TOOLS`: `prompt -> api -> result` (Strict MCP schema contracts)
-  2. `STATE`: `write -> store -> recall` (Scratchpad memory & entity compaction)
-  3. `PERMS`: `request -> ? -> allow` (Deterministic PreToolUse code hooks)
-  4. `SANDBOX`: `limits: network • files` (Jailed container execution)
-  5. `OBS`: `step -> trace -> metric` (OpenTelemetry millisecond telemetry)
-- **Raw vs. Ready Matrix**: Side-by-side comparison of bare naked LLMs vs production-harnessed agents (*"bare model: zero state, zero tools, zero retries"*).
-- **Forensic Trace Debugger**: Interactive replay proving *"When it fails: blame the layer, not the model"* (isolating a 504 tool timeout at `t=1.9s` where the model was never invoked, resolved via loop-layer retry rule).
-- **Interactive 5-Point Routing Checks**:
-  1. **Splice Distance**: $\ge 150\text{ mm}$ from any bend or clip (solving the startup 40mm splice catastrophe that caused a 12-day rework and batch recall).
-  2. **Bend Radius**: $\ge 6\times$ static bundle diameter ($10\times$ in dynamic flex zones).
-  3. **Thermal & Edge Clearance**: $\ge 50\text{ mm}$ from exhaust manifolds, $\ge 20\text{ mm}$ from sharp sheet metal.
-  4. **Sealed Cavities**: All empty connector cavities plugged with dummy silicon seals to prevent capillary siphon.
-  5. **Clip Spacing**: $\le 150\text{ mm}$ in high-vibration zones, $\le 300\text{ mm}$ in interior cabin.
-- **Claude Code Plugin Skill**: Packaged as [`skills/harness-engineering/SKILL.md`](skills/harness-engineering/SKILL.md) with executable Python calculators [`skills/harness-engineering/scripts/harness_calculators.py`](skills/harness-engineering/scripts/harness_calculators.py).
+- **Palantir Foundry / Gotham Tactical HUD**: Carbon-fiber military/aerospace cockpit theme (`#06080d` blueprint grid background, tactical crosshairs, real-time bus load indicators, and signal pulse animations).
+- **Interactive Drag-and-Drop Formboard & CAD Foundry ("Harness On The Fly")**:
+  - Drag-and-drop component palette with Connectors (TE Deutsch DT06-4S, MIL-DTL-38999, Amphenol Radsok 400A), Splices, Thermal Conduit Sleeves, Vibration Clips, and Telemetry Taps.
+  - Interactive SVG bus wiring with dynamic pulsing signal flow lines.
+  - Real-time Design Rule Check (DRC) verifying USCAR-21 §4.2 ($150\text{mm}$ splice-to-bend clearance), AS50881 ($10\times$ bend radius), and IP68 sealed cavity plugs.
+  - 1-Click **"Auto-Remediate Invariants"**: Automatically relocates splices along routing vectors and injects dummy cavity seals.
+- **Side-by-Side Dual-Pane Claude Code CLI**:
+  - Global topbar button **`[● CLAUDE CLI SIDE-BY-SIDE ⌥C]`** accessible across the entire application.
+  - Real-time bidirectional telemetry synchronization between the formboard CAD board and the Claude Code CLI pane.
+  - **`↗ Open in macOS Terminal`**: Launches the native macOS Terminal side-by-side with Claude Code running directly in the workspace directory via AppleScript IPC.
+  - **`⚡ MCP Tools Inspector`**: Interactive schema modal inspecting the registered `atelier-harness` tools (`verify_harness_drc`, `calculate_derating`, `remediate_harness`, `grade_capstone`).
+  - Quick action chips for instant command dispatch (`DRC Verify`, `Auto-Remediate`, `Derating Calc`, `MCP List`, `macOS Terminal ↗`).
+- **One-Click Industrial Mission Presets**:
+  - **EV 800V Powertrain**: Tesla/Bosch Dual SiC Inverter (USCAR-21 splice invariants, high-voltage interlock loop).
+  - **Aerospace Fly-By-Wire**: Boeing/Airbus AS50881 Triple-Redundant Avionics EWIS.
+  - **6-Axis Robotic Cell**: KUKA/Fanuc Articulated Continuous-Flex Torsion Harness (ISO 10218-1).
+  - **AIP Financial Orchestrator**: Palantir Invariant Bus with $500 CFO Lock and dual-signature approval.
+- **Live 100MHz Signal Oscilloscope**: Hardware canvas visualization simulating nominal impedance matching vs. simulated fault / HTTP 504 packet jitter.
+- **Claude Code Configuration & Skills**:
+  - Canonical [`CLAUDE.md`](CLAUDE.md) project guidelines and physical invariants.
+  - Pre-registered [`mcp/harness_mcp_server.py`](mcp/harness_mcp_server.py) with standard stdio JSON-RPC 2.0 in [`.mcp.json`](.mcp.json).
+  - Packaged skill in [`skills/harness-engineering/SKILL.md`](skills/harness-engineering/SKILL.md) with Python mathematical calculators [`skills/harness-engineering/scripts/harness_calculators.py`](skills/harness-engineering/scripts/harness_calculators.py).
 
 ### 6. 100-Point Capstone Studio & Direct Claude Code MCP Connector
 - **4 Real Enterprise Case Study Tracks**:
