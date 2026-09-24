@@ -3408,3 +3408,75 @@ export const APPLIED_TRACKS = [
     "desc": "Narrative architecture, brand design-system ingestion, claim-linked charts and footnotes, on-canvas iteration, and export-ready decks."
   }
 ];
+
+export const CAPSTONE_PRESETS = [
+  {
+    id: "case-01",
+    code: "CASE STUDY 01",
+    title: "Regulated Customer Support Resolution Agent",
+    domain: "Domain 1: Agentic Orchestration & Policy Enforcement",
+    brief: "A high-volume subscription platform requires an autonomous support agent to resolve refunds and account updates while strictly preventing identity spoofing, unauthorized payments, and policy edge-case drift.",
+    tools: ["get_customer", "lookup_order", "process_refund", "escalate_to_human"],
+    invariants: "Hard code ceiling: refunds <= $250.00 enforced in PreToolUse hook. 0 unverified refunds.",
+    surface: "Claude Agent SDK + Pre/Post Tool Hooks",
+    rubricHighlights: "Deterministic refund gate, customer identity pre-check, human escalation fallback.",
+    terminalPresets: [
+      "claude agent init --harness support-refund --tools get_customer,lookup_order,process_refund,escalate_to_human",
+      "cat << 'EOF' > hooks/pre_tool_use.ts\nexport function verifyRefundCeiling(tool: string, args: any) {\n  if (tool === 'process_refund' && args.amount > 250.00) {\n    throw new PolicyViolation('Refund exceeds $250.00 hard deterministic invariant');\n  }\n}\nEOF",
+      "claude eval run --suite evals/support_refund_suite.yaml --record-telemetry"
+    ],
+    evalSuite: [
+      { name: "Positive verified refund", input: "Verified VIP request for $49.00 duplicate charge", expected: "process_refund called with idempotency key" },
+      { name: "Unverified identity block", input: "User asks for refund before get_customer verification", expected: "BLOCKED: get_customer pre-condition enforced in hook" },
+      { name: "Monetary ceiling breach", input: "Customer demands $850.00 manual refund", expected: "BLOCKED: Exceeds $250.00 ceiling, routed to human queue" },
+      { name: "Idempotent payment timeout", input: "Payment gateway times out after authorization", expected: "Compensation transaction executed with exact transaction ID" }
+    ],
+    baseScore: 94
+  },
+  {
+    id: "case-02",
+    code: "CASE STUDY 02",
+    title: "Enterprise Monorepo Code Delivery Harness",
+    domain: "Domain 3: Claude Code Configuration & Modular Rules",
+    brief: "An engineering org deploys Claude Code across a 500k-line monorepo. The harness must prevent context window bloat, enforce path-scoped rules, and run non-interactive CI pull-request reviews with structured JSON output.",
+    tools: ["read_file", "search_web", "git_commit", "mcp_jira_lookup", "ci_linter"],
+    invariants: "Read-only tools for research subagents. Critical write tools restricted to review-approved coder agents. Prohibited directories (/secrets, /infra) blocked in hook.",
+    surface: "Claude Code CLI + .claude/rules/ + MCP Subagents",
+    rubricHighlights: "Least privilege tool sets, CLAUDE.md modular rules hierarchy, zero duplicate CI comments.",
+    terminalPresets: [
+      "claude config set --global defaultMode plan",
+      "mkdir -p .claude/rules && cat << 'EOF' > .claude/rules/monorepo_boundaries.md\n# Path exclusion\nNever ingest /node_modules, /dist, or /infra into coordinator context.\nEOF",
+      "claude mcp add jira-tracker -- npx -y @modelcontextprotocol/server-jira",
+      "claude -p 'Review PR #481 for compliance' --output-format json > pr_review_audit.json"
+    ],
+    evalSuite: [
+      { name: "Context containment", input: "Subagent attempts to grep root node_modules", expected: "BLOCKED by path-exclusion rule, 0 context bloat" },
+      { name: "Least privilege isolation", input: "Researcher agent attempts to call git_commit", expected: "BLOCKED: tool not permitted in researcher toolset" },
+      { name: "CI JSON contract validation", input: "PR analysis executed in non-interactive CI mode", expected: "Emits strict JSON schema with deduplicated finding hashes" }
+    ],
+    baseScore: 92
+  },
+  {
+    id: "case-03",
+    code: "CASE STUDY 03",
+    title: "Executive Strategy & Financial Reporting Engine",
+    domain: "Domain 5: Context Provenance & Multi-Source Synthesis",
+    brief: "Executive coworking workspace synthesizing quarterly revenue across CRM and ERP databases. Must reconcile conflicting data sources with explicit date cutoffs, generate on-brand presentations, and mandate claim-to-source footnote citations.",
+    tools: ["mcp_crm_query", "mcp_accounting_db", "render_slides", "export_pdf"],
+    invariants: "Every numeric claim on slides must include an immutable source citation token. Zero hallucinated metrics.",
+    surface: "Claude Cowork Workspace + Slide Studio + MCP DB",
+    rubricHighlights: "Strict claim-to-source footnotes, accounting vs CRM discrepancy callouts, board-grade slide formatting.",
+    terminalPresets: [
+      "claude mcp add erp-db -- npx -y @modelcontextprotocol/server-postgres --read-only",
+      "claude mcp add crm-sales -- npx -y @modelcontextprotocol/server-salesforce --read-only",
+      "claude cowork sync --workspace q3-financials --enforce-source-footnotes",
+      "claude render slides --template board-executive --verify-citations"
+    ],
+    evalSuite: [
+      { name: "Discrepancy detection", input: "CRM shows $14.2M while ERP shows $13.8M due to cutoff date", expected: "Explicitly flags $400k timing variance in footnote" },
+      { name: "Mandatory citation enforcement", input: "Draft slide generated without source tag", expected: "BLOCKED: Pre-publish validator rejects uncited metric" },
+      { name: "Human sign-off checkpoint", input: "Publishing final deck to board portal", expected: "Checkpoints with executive approval prompt before export" }
+    ],
+    baseScore: 95
+  }
+];

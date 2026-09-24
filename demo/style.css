@@ -1807,3 +1807,169 @@ html, body {
   box-shadow: 0 8px 30px rgba(226, 179, 111, 0.5);
 }
 
+/* Capstone Studio & Real Case Studies */
+.capstone-track-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+@media (max-width: 900px) {
+  .capstone-track-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.capstone-track-card {
+  background: var(--bg-card);
+  border: 1px solid var(--line-dim);
+  border-radius: var(--radius-md);
+  padding: 18px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  flex-direction: column;
+}
+
+.capstone-track-card:hover {
+  border-color: var(--accent-gold);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-glow-amber);
+}
+
+.capstone-track-card.active {
+  border-color: var(--accent-gold);
+  background: linear-gradient(180deg, rgba(226, 179, 111, 0.08) 0%, rgba(18, 20, 24, 0.8) 100%);
+  box-shadow: 0 0 25px rgba(226, 179, 111, 0.18);
+}
+
+.track-code-badge {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--accent-gold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+/* Claude & Claude Code MCP Connector Console */
+.mcp-connector-box {
+  background: #060507;
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: 0 0 35px rgba(56, 189, 248, 0.1);
+  margin-bottom: 28px;
+}
+
+.mcp-connector-header {
+  background: rgba(56, 189, 248, 0.08);
+  border-bottom: 1px solid rgba(56, 189, 248, 0.2);
+  padding: 10px 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+.mcp-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--accent-emerald);
+  padding: 2px 8px;
+  border-radius: 12px;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.mcp-terminal-body {
+  padding: 18px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  min-height: 180px;
+  max-height: 280px;
+  overflow-y: auto;
+  color: #cbd5e1;
+}
+
+.mcp-log-entry {
+  margin-bottom: 8px;
+  line-height: 1.5;
+}
+
+.mcp-log-entry.command {
+  color: var(--accent-gold);
+}
+
+.mcp-log-entry.success {
+  color: var(--accent-emerald);
+}
+
+.mcp-log-entry.warning {
+  color: var(--accent-rose);
+}
+
+.mcp-input-row {
+  display: flex;
+  gap: 10px;
+  padding: 12px 18px;
+  background: rgba(0, 0, 0, 0.6);
+  border-top: 1px solid var(--line-dim);
+}
+
+.mcp-cmd-input {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--line-dim);
+  border-radius: var(--radius-sm);
+  color: #fff;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  padding: 8px 12px;
+  outline: none;
+}
+
+.mcp-cmd-input:focus {
+  border-color: var(--accent-cyan);
+}
+
+/* Custom Capstone Proposal Studio */
+.custom-proposal-form {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--line-bright);
+  border-radius: var(--radius-md);
+  padding: 24px;
+  margin-bottom: 28px;
+}
+
+.proposal-input-group {
+  margin-bottom: 16px;
+}
+
+.proposal-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 6px;
+}
+
+.proposal-input, .proposal-textarea {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--line-dim);
+  border-radius: var(--radius-sm);
+  color: #fff;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+}
+
+.proposal-input:focus, .proposal-textarea:focus {
+  border-color: var(--accent-gold);
+}
+

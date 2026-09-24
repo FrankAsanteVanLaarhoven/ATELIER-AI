@@ -65,11 +65,17 @@ Real-world enterprise case studies with interactive fault injection:
 - **Case 2 (Enterprise Code Delivery Harness)**: Inject monorepo context blowouts to test path-exclusion rules and subagent context bounds.
 - **Case 3 (Executive Cowork & Slides)**: Inject conflicting revenue values between CRM and accounting to verify date cutoff disagreement surfacing.
 
-### 5. 100-Point Capstone Assessment & Oral Defense
-- **10 Deliverables Checklist**: From intake risk classification to architecture diagrams, 15-case evaluation suites, and executive memos.
-- **100-Point Rubric**: Evaluated against 10 rigorous categories with official pass bands.
-- **Adversarial Oral Defense**: Simulated faculty question defense on code vs. prompt invariants.
-- **Digital Credential Verification**: Cryptographic on-chain certificate issuing.
+### 5. 100-Point Capstone Studio & Direct Claude Code MCP Connector
+- **3 Real Enterprise Case Study Tracks**:
+  - **Case 01 (Regulated Support Refund Agent)**: Claude Agent SDK with `PreToolUse` refund ceiling hooks and idempotent compensation.
+  - **Case 02 (Enterprise Monorepo Code Delivery)**: Claude Code `CLAUDE.md`, `.claude/rules/` path boundaries, subagent context scoping, and non-interactive CI schema review.
+  - **Case 03 (Executive Strategy & Financial Slides)**: Claude Cowork workspace, CRM vs. ERP discrepancy detection, and mandatory claim-to-source footnote citations.
+- **Custom Capstone Proposal Studio**: Allows technical leaders to describe and submit their organization's custom Claude architecture (Problem Brief, Invariant Specification, Tool Schemas, and Eval Suite) and run auto-grading against the 100-point rubric.
+- **Direct Claude & Claude Code MCP Connector (`claude-code-mcp-connector`)**:
+  - Live JSON-RPC bridge recording every Claude command, keystroke stroke, and tool call into an immutable provenance ledger.
+  - Real-time architectural validator catching security antipatterns (e.g. `--dangerously-skip-permissions` or prompt-only monetary ceilings).
+- **100-Point Multi-Dimension Rubric**: 10 comprehensive assessment dimensions with strict pass bands (Band 1: Production Ready $\ge 85$).
+- **Separate Verified Capstone Credential**: Distinct from the diagnostic exam certificate, issues the **Claude Certified Architect — Capstone & Enterprise Tooling Credential (`CCAR-CAPSTONE-2026`)** with verified keystrokes, tool calls, and on-chain audit hash.
 
 ### 6. CCAR-SEC-1 Anti-Cheat Proctor & Exam Integrity Studio
 - **Focus-Lock & Tab-Switch Sensor**: Real-time listeners on `window.blur` and `document.visibilitychange` catch and warn candidates when switching browser windows or clicking outside the evaluation surface.

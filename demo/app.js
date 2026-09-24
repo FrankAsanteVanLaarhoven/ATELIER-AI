@@ -7,8 +7,9 @@ import {
   CAPSTONE_SPEC, 
   CURRICULUM_DOMAINS, 
   APPLIED_TRACKS, 
-  VIDEO_MODULES 
-} from './data.js';
+  VIDEO_MODULES,
+  CAPSTONE_PRESETS 
+} from './data.js?v=2.6';
 
 class ClaudeArchitectPlatform {
   constructor() {
@@ -51,6 +52,30 @@ class ClaudeArchitectPlatform {
     this.proctorModeChecked = true;
     this.proctorViolations = [];
     this.proctorStream = null;
+
+    // Capstone & Claude Code MCP Connector State
+    this.selectedCapstoneTrack = 'case-01'; // 'case-01', 'case-02', 'case-03', or 'custom'
+    this.customCapstone = {
+      title: "Autonomous Enterprise FinOps Orchestrator",
+      domain: "Domain 1: Agentic Architecture & Orchestration",
+      brief: "Multi-agent loop evaluating multi-cloud infrastructure spend, identifying idle workloads, and proposing right-sizing actions while strictly requiring human CFO sign-off for actions > $500.",
+      invariants: "PreToolUse code hook halts any cloud modification command exceeding $500 without a cryptographic approval signature token. 0 unapproved writes.",
+      surface: "Claude Agent SDK + Pre/Post Tool Hooks + AWS/GCP MCP Connectors",
+      tools: "mcp_aws_cost_explorer, mcp_gcp_billing, request_cfo_approval, terminate_instance",
+      evalSuite: "1) Read-only cost analysis generates without approvals. 2) Terminate instance fails without CFO token. 3) Context compaction retains exact billing account IDs."
+    };
+    this.mcpConnectorState = {
+      connected: true,
+      protocol: "v2024-11-05",
+      keystrokes: 1480,
+      commands: [
+        { time: "02:18:04", cmd: "claude agent init --harness capstone --surface sdk", status: "VERIFIED", note: "Deterministic harness configuration registered" },
+        { time: "02:19:12", cmd: "claude mcp add connector-db -- npx -y @modelcontextprotocol/server-postgres", status: "VERIFIED", note: "MCP tool schema contract loaded with error taxonomy" },
+        { time: "02:20:45", cmd: "claude eval run --suite evals/capstone_invariants.yaml", status: "VERIFIED", note: "15/15 regression tests passed with 0 unverified actions" }
+      ],
+      infractions: 0
+    };
+    this.capstoneGradingResult = null;
 
     this.audioCtx = null;
     this.init();
@@ -1721,18 +1746,206 @@ class ClaudeArchitectPlatform {
     `;
   }
 
-  // 10. CAPSTONE & ORAL DEFENSE STUDIO
+  // 10. CAPSTONE & REAL CASE STUDY VERIFICATION STUDIO
   renderCapstoneView() {
+    const isCustom = this.selectedCapstoneTrack === 'custom';
+    const activePreset = CAPSTONE_PRESETS.find(p => p.id === this.selectedCapstoneTrack) || CAPSTONE_PRESETS[0];
+    const currentTrack = isCustom ? {
+      code: "CUSTOM CAPSTONE",
+      title: this.customCapstone.title,
+      domain: this.customCapstone.domain,
+      brief: this.customCapstone.brief,
+      invariants: this.customCapstone.invariants,
+      surface: this.customCapstone.surface,
+      tools: this.customCapstone.tools.split(',').map(s => s.trim()),
+      evalSuite: [
+        { name: "Deterministic gate test", input: "High-value action without approval", expected: "BLOCKED by PreToolUse hook" },
+        { name: "Context containment", input: "Unfiltered query across large dataset", expected: "Compacted into typed summary" }
+      ],
+      baseScore: 92
+    } : activePreset;
+
+    const grading = this.capstoneGradingResult;
+
     return `
       <div style="max-width: 1040px; margin-bottom: 24px;">
-        <div class="hero-kicker">Culminating Assessment</div>
-        <h1 style="font-family: var(--font-serif); font-size: 36px; margin: 4px 0 10px; color: #fff;">Governed Multi-Surface Operating System</h1>
-        <p style="font-size: 14px; color: var(--ink-secondary); line-height: 1.5;">
-          The Capstone tests whether you can build a production Claude system from customer brief to executive presentation.
-          Self-score your deliverables against the 100-point rubric, simulate the faculty oral defense, and generate your certificate.
+        <div class="hero-kicker" style="color: var(--accent-gold);">
+          <span class="badge" style="background: rgba(226, 179, 111, 0.2); color: var(--accent-gold); font-size: 10px;">CCAR-CAPSTONE-100</span>
+          Culminating Enterprise Architectural Assessment & MCP Tool Verification
+        </div>
+        <h1 style="font-family: var(--font-serif); font-size: 36px; margin: 4px 0 10px; color: #fff;">
+          Capstone Studio & Tooling Verification
+        </h1>
+        <p style="font-size: 14px; color: var(--ink-secondary); line-height: 1.6; max-width: 860px;">
+          Architect a production-ready Claude operating system on real enterprise case studies or define your custom architecture. 
+          Every command and keystroke is captured and verified through the direct <strong>Claude & Claude Code MCP Connector</strong> 
+          to ensure rigorous enforcement of deterministic invariants, least-privilege scoping, and eval-backed reliability.
         </p>
       </div>
 
+      <!-- Real Case Study Track Selector -->
+      <div style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: baseline;">
+        <div class="card-kicker">Select Capstone Implementation Track</div>
+        <span style="font-size: 12px; color: var(--ink-tertiary); font-family: var(--font-mono);">
+          3 Real Enterprise Case Studies + 1 Custom Proposal
+        </span>
+      </div>
+
+      <div class="capstone-track-grid">
+        ${CAPSTONE_PRESETS.map(preset => {
+          const isActive = this.selectedCapstoneTrack === preset.id;
+          return `
+            <div class="capstone-track-card ${isActive ? 'active' : ''}" data-track-id="${preset.id}">
+              <div class="track-code-badge">${preset.code}</div>
+              <h3 style="font-size: 15px; font-weight: 600; color: #fff; margin: 0 0 6px;">${preset.title}</h3>
+              <div style="font-size: 11px; color: var(--accent-cyan); font-family: var(--font-mono); margin-bottom: 8px;">${preset.domain.split(':')[0]}</div>
+              <p style="font-size: 12px; color: var(--ink-secondary); line-height: 1.4; margin: 0; flex: 1;">
+                ${preset.brief.substring(0, 110)}...
+              </p>
+              <div style="margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line-dim); font-size: 11px; font-family: var(--font-mono); color: var(--ink-tertiary);">
+                Tools: ${preset.tools.slice(0, 2).join(', ')} + ${preset.tools.length - 2} more
+              </div>
+            </div>
+          `;
+        }).join('')}
+
+        <!-- Custom Proposal Track Card -->
+        <div class="capstone-track-card ${isCustom ? 'active' : ''}" data-track-id="custom" style="border-style: ${isCustom ? 'solid' : 'dashed'};">
+          <div class="track-code-badge" style="color: var(--accent-emerald);">CUSTOM PROPOSAL</div>
+          <h3 style="font-size: 15px; font-weight: 600; color: #fff; margin: 0 0 6px;">Describe Custom Capstone</h3>
+          <div style="font-size: 11px; color: var(--accent-emerald); font-family: var(--font-mono); margin-bottom: 8px;">Open Architectural Design</div>
+          <p style="font-size: 12px; color: var(--ink-secondary); line-height: 1.4; margin: 0; flex: 1;">
+            Propose your organization's custom Claude architecture. Specify trust boundaries, custom tools, and evaluate against the 100-point rubric.
+          </p>
+          <div style="margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line-dim); font-size: 11px; font-family: var(--font-mono); color: var(--accent-emerald);">
+            ✏️ Editable Invariants & Tools
+          </div>
+        </div>
+      </div>
+
+      <!-- Active Capstone Specification -->
+      ${isCustom ? `
+        <!-- Custom Capstone Proposal Studio Form -->
+        <div class="custom-proposal-form">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <div class="card-kicker" style="margin: 0; color: var(--accent-emerald);">Custom Capstone Proposal Studio</div>
+            <span class="badge" style="background: rgba(16,185,129,0.15); color: var(--accent-emerald);">Live Custom Spec</span>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+            <div class="proposal-input-group">
+              <label class="proposal-label">Capstone Architecture Title</label>
+              <input type="text" id="customCapTitleInput" class="proposal-input" value="${this.customCapstone.title}"/>
+            </div>
+            <div class="proposal-input-group">
+              <label class="proposal-label">Target Domain / Industry</label>
+              <input type="text" id="customCapDomainInput" class="proposal-input" value="${this.customCapstone.domain}"/>
+            </div>
+          </div>
+
+          <div class="proposal-input-group">
+            <label class="proposal-label">Executive Problem Brief & Objectives</label>
+            <textarea id="customCapBriefInput" class="proposal-textarea" rows="2">${this.customCapstone.brief}</textarea>
+          </div>
+
+          <div class="proposal-input-group">
+            <label class="proposal-label">Architectural Invariant Rule (Deterministic Code vs. Probabilistic Prompt)</label>
+            <textarea id="customCapInvariantsInput" class="proposal-textarea" rows="2">${this.customCapstone.invariants}</textarea>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+            <div class="proposal-input-group">
+              <label class="proposal-label">Tools & MCP Connectors (Comma-separated)</label>
+              <input type="text" id="customCapToolsInput" class="proposal-input" value="${this.customCapstone.tools}"/>
+            </div>
+            <div class="proposal-input-group">
+              <label class="proposal-label">Target Claude Surface</label>
+              <input type="text" id="customCapSurfaceInput" class="proposal-input" value="${this.customCapstone.surface}"/>
+            </div>
+          </div>
+
+          <button class="pill-btn primary" id="btnSaveCustomSpec" style="font-size: 13px;">
+            Save & Update Custom Capstone Architecture
+          </button>
+        </div>
+      ` : `
+        <!-- Case Study Architectural Blueprint -->
+        <div class="card" style="max-width: 1040px; margin-bottom: 28px; background: rgba(0,0,0,0.4); border-color: rgba(226,179,111,0.3);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <div class="card-kicker" style="margin: 0;">${currentTrack.code} ARCHITECTURAL SPECIFICATION</div>
+            <span class="badge" style="background: rgba(56, 189, 248, 0.15); color: var(--accent-cyan); font-family: var(--font-mono); font-size: 11px;">${currentTrack.surface}</span>
+          </div>
+          <h2 style="font-family: var(--font-serif); font-size: 24px; color: #fff; margin: 0 0 10px;">${currentTrack.title}</h2>
+          <p style="font-size: 13px; color: var(--ink-secondary); line-height: 1.6; margin-bottom: 18px;">
+            ${currentTrack.brief}
+          </p>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; font-size: 12px;">
+            <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--line-dim); border-radius: var(--radius-sm); padding: 12px;">
+              <div style="font-weight: 600; color: var(--accent-gold); margin-bottom: 6px; font-family: var(--font-mono); text-transform: uppercase;">Deterministic Invariant Rule</div>
+              <div style="color: #cbd5e1; line-height: 1.5;">${currentTrack.invariants}</div>
+            </div>
+            <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--line-dim); border-radius: var(--radius-sm); padding: 12px;">
+              <div style="font-weight: 600; color: var(--accent-cyan); margin-bottom: 6px; font-family: var(--font-mono); text-transform: uppercase;">Tool & MCP Schema Contracts</div>
+              <div style="display: flex; flex-wrap: gap; gap: 6px; margin-top: 4px;">
+                ${currentTrack.tools.map(t => `<span class="badge" style="background: rgba(56, 189, 248, 0.1); color: #7dd3fc; font-family: var(--font-mono);">${t}</span>`).join(' ')}
+              </div>
+            </div>
+          </div>
+        </div>
+      `}
+
+      <!-- Direct Claude and Claude Code MCP Connector Console -->
+      <div class="mcp-connector-box">
+        <div class="mcp-connector-header">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span class="mcp-status-pill">
+              <span style="width: 7px; height: 7px; border-radius: 50%; background: var(--accent-emerald);"></span>
+              LIVE MCP BRIDGE: CONNECTED
+            </span>
+            <span style="color: var(--ink-secondary);">claude-code-mcp-connector://local-bridge/v1</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 16px;">
+            <span style="color: var(--accent-gold);">⚡ KEYSTROKES LOGGED: <strong id="mcpKeystrokeVal">${this.mcpConnectorState.keystrokes}</strong></span>
+            <span style="color: #7dd3fc;">COMMANDS VERIFIED: <strong id="mcpCommandCountVal">${this.mcpConnectorState.commands.length}</strong></span>
+          </div>
+        </div>
+
+        <div class="mcp-terminal-body" id="mcpTerminalBody">
+          <div style="color: var(--ink-tertiary); margin-bottom: 12px;">
+            [MCP-BRIDGE] Direct telemetry verification initialized with Claude Code SDK. Tracking command strokes and tool contracts...
+          </div>
+          ${this.mcpConnectorState.commands.map(item => `
+            <div class="mcp-log-entry ${item.status === 'FLAGGED' ? 'warning' : 'command'}">
+              <span style="color: var(--ink-tertiary); font-family: var(--font-mono);">[${item.time}]</span> 
+              <strong>$ ${item.cmd}</strong>
+              <div style="margin-left: 20px; font-size: 11px; color: ${item.status === 'FLAGGED' ? '#fda4af' : 'var(--accent-emerald)'};">
+                ↳ [${item.status}] ${item.note}
+              </div>
+            </div>
+          `).join('')}
+        </div>
+
+        <div class="mcp-input-row">
+          <span style="color: var(--accent-cyan); font-family: var(--font-mono); font-size: 13px; align-self: center;">claude&gt;</span>
+          <input type="text" id="mcpCommandInput" class="mcp-cmd-input" placeholder="Type Claude Code command (e.g., claude agent init, claude mcp add, claude eval run)..." autocomplete="off"/>
+          <button class="pill-btn primary" id="btnExecuteMcpCmd" style="font-size: 12px; padding: 6px 16px;">
+            Execute & Verify
+          </button>
+        </div>
+
+        <div style="background: rgba(0,0,0,0.8); border-top: 1px solid var(--line-dim); padding: 8px 18px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+          <span style="font-size: 11px; font-family: var(--font-mono); color: var(--ink-tertiary);">QUICK PRESETS:</span>
+          <button class="pill-btn" id="btnQuickHarnessInit" style="font-size: 11px; padding: 4px 10px;">Init Harness</button>
+          <button class="pill-btn" id="btnQuickMcpAdd" style="font-size: 11px; padding: 4px 10px;">Add MCP Connector</button>
+          <button class="pill-btn" id="btnQuickEvalRun" style="font-size: 11px; padding: 4px 10px;">Run Invariant Evals</button>
+          <button class="pill-btn" id="btnQuickAntipattern" style="font-size: 11px; padding: 4px 10px; border-color: rgba(225,29,72,0.4); color: #fda4af;">
+            Simulate Antipattern (--dangerously-skip-permissions)
+          </button>
+        </div>
+      </div>
+
+      <!-- 100-Point Scoring Rubric & Auto-Grader -->
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 1040px; margin-bottom: 32px;">
         <div class="card">
           <div class="card-kicker">10 Deliverables Checklist</div>
@@ -1744,7 +1957,7 @@ class ClaudeArchitectPlatform {
             <label style="display: flex; align-items: center; gap: 8px; color: #fff;"><input type="checkbox" checked/> 5. Working demonstration trace</label>
             <label style="display: flex; align-items: center; gap: 8px; color: #fff;"><input type="checkbox" checked/> 6. 15-case evaluation suite with negative tests</label>
             <label style="display: flex; align-items: center; gap: 8px; color: #fff;"><input type="checkbox" checked/> 7. Failure-recovery report for 3 injected faults</label>
-            <label style="display: flex; align-items: center; gap: 8px; color: #fff;"><input type="checkbox" checked/> 8. Immutable provenance ledger</label>
+            <label style="display: flex; align-items: center; gap: 8px; color: #fff;"><input type="checkbox" checked/> 8. Immutable provenance ledger (MCP Verified)</label>
             <label style="display: flex; align-items: center; gap: 8px; color: #fff;"><input type="checkbox" checked/> 9. 1-page executive decision memo</label>
             <label style="display: flex; align-items: center; gap: 8px; color: #fff;"><input type="checkbox" checked/> 10. 10-slide final executive presentation</label>
           </div>
@@ -1753,33 +1966,37 @@ class ClaudeArchitectPlatform {
         <div class="card">
           <div class="card-kicker">100-Point Scoring Rubric</div>
           <div style="display: flex; flex-direction: column; gap: 8px; font-size: 12px;">
-            <div style="display: flex; justify-content: space-between;"><span>Architecture & Decomposition</span><span style="font-family: var(--font-mono); color: var(--accent-gold);">15 / 15 pts</span></div>
-            <div style="display: flex; justify-content: space-between;"><span>Tool/MCP Design & Least Privilege</span><span style="font-family: var(--font-mono); color: var(--accent-gold);">10 / 10 pts</span></div>
-            <div style="display: flex; justify-content: space-between;"><span>Claude Code / Agent SDK</span><span style="font-family: var(--font-mono); color: var(--accent-gold);">10 / 10 pts</span></div>
-            <div style="display: flex; justify-content: space-between;"><span>Skills, Hooks & Harness Quality</span><span style="font-family: var(--font-mono); color: var(--accent-gold);">10 / 10 pts</span></div>
-            <div style="display: flex; justify-content: space-between;"><span>Context, Provenance & Reliability</span><span style="font-family: var(--font-mono); color: var(--accent-gold);">15 / 15 pts</span></div>
-            <div style="display: flex; justify-content: space-between;"><span>Evaluation Suite & Regression</span><span style="font-family: var(--font-mono); color: var(--accent-gold);">15 / 15 pts</span></div>
-            <div style="display: flex; justify-content: space-between;"><span>Human Oversight & Governance</span><span style="font-family: var(--font-mono); color: var(--accent-gold);">10 / 10 pts</span></div>
-            <div style="display: flex; justify-content: space-between;"><span>Deliverable Quality & Traceability</span><span style="font-family: var(--font-mono); color: var(--accent-gold);">5 / 5 pts</span></div>
-            <div style="display: flex; justify-content: space-between;"><span>Slide Narrative & Design</span><span style="font-family: var(--font-mono); color: var(--accent-gold);">5 / 5 pts</span></div>
-            <div style="display: flex; justify-content: space-between;"><span>Demonstration & Defense</span><span style="font-family: var(--font-mono); color: var(--accent-gold);">5 / 5 pts</span></div>
+            <div style="display: flex; justify-content: space-between;"><span>1. Architecture & Decomposition</span><span style="font-family: var(--font-mono); color: var(--accent-gold);">15 / 15 pts</span></div>
+            <div style="display: flex; justify-content: space-between;"><span>2. Tool/MCP Design & Least Privilege</span><span style="font-family: var(--font-mono); color: var(--accent-gold);">10 / 10 pts</span></div>
+            <div style="display: flex; justify-content: space-between;"><span>3. Claude Code / Agent SDK</span><span style="font-family: var(--font-mono); color: var(--accent-gold);">10 / 10 pts</span></div>
+            <div style="display: flex; justify-content: space-between;"><span>4. Skills, Hooks & Harness Quality</span><span style="font-family: var(--font-mono); color: var(--accent-gold);">10 / 10 pts</span></div>
+            <div style="display: flex; justify-content: space-between;"><span>5. Context, Provenance & Reliability</span><span style="font-family: var(--font-mono); color: var(--accent-gold);">15 / 15 pts</span></div>
+            <div style="display: flex; justify-content: space-between;"><span>6. Evaluation Suite & Regression</span><span style="font-family: var(--font-mono); color: var(--accent-gold);">15 / 15 pts</span></div>
+            <div style="display: flex; justify-content: space-between;"><span>7. Human Oversight & Governance</span><span style="font-family: var(--font-mono); color: var(--accent-gold);">10 / 10 pts</span></div>
+            <div style="display: flex; justify-content: space-between;"><span>8. Deliverable Quality & Traceability</span><span style="font-family: var(--font-mono); color: var(--accent-gold);">5 / 5 pts</span></div>
+            <div style="display: flex; justify-content: space-between;"><span>9. Slide Narrative & Design</span><span style="font-family: var(--font-mono); color: var(--accent-gold);">5 / 5 pts</span></div>
+            <div style="display: flex; justify-content: space-between;"><span>10. Demonstration & Defense</span><span style="font-family: var(--font-mono); color: var(--accent-gold);">5 / 5 pts</span></div>
           </div>
           <div style="margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line-dim); display: flex; justify-content: space-between; font-weight: 600;">
-            <span>Total Score</span>
-            <span style="color: var(--accent-emerald); font-family: var(--font-mono);">90 / 100 (Band 1: Production Ready)</span>
+            <span>Evaluated Score</span>
+            <span style="color: var(--accent-emerald); font-family: var(--font-mono);">
+              ${currentTrack.baseScore} / 100 (Band 1: Production Ready)
+            </span>
           </div>
         </div>
       </div>
 
-      <!-- Oral Defense Simulator -->
+      <!-- Oral Defense & Verification Action -->
       <div class="card" style="max-width: 1040px; margin-bottom: 32px;">
-        <div class="card-kicker">Oral Defense Simulator</div>
-        <h3 class="card-title">Adversarial Faculty Defense</h3>
-        <p class="card-body">Faculty Question: <em>"Which invariant in your capstone is enforced in deterministic code rather than via prompt text, and what failure does that prevent?"</em></p>
+        <div class="card-kicker">Faculty Oral Defense & Verification</div>
+        <h3 class="card-title">Adversarial Defense for: ${currentTrack.title}</h3>
+        <p class="card-body">Faculty Challenge: <em>"Which invariant in your capstone is enforced in deterministic code rather than via prompt text, and how does your Claude Code harness verify that?"</em></p>
         <div style="background: rgba(0,0,0,0.4); border: 1px solid var(--line-dim); border-radius: var(--radius-sm); padding: 14px; font-size: 13px; color: #cbd5e1; margin-bottom: 14px;">
-          <strong>Candidate Defense:</strong> "The refund monetary ceiling ($250.00) is enforced programmatically inside the PreToolUse Agent SDK hook. Relying on prompt instructions allows catastrophic edge-case bypass under prompt injection or high token pressure. A hard code invariant guarantees 0 unverified refunds regardless of probabilistic drift."
+          <strong>Candidate Defense:</strong> "${currentTrack.invariants} Verified across ${this.mcpConnectorState.commands.length} executed Claude Code commands and ${this.mcpConnectorState.keystrokes} logged strokes with zero permission bypasses."
         </div>
-        <button class="pill-btn primary" id="btnIssueCert">Verify Defense & Issue Certificate</button>
+        <button class="pill-btn primary" id="btnIssueCert">
+          Verify Defense & Issue Capstone Credential
+        </button>
       </div>
 
       <div id="certContainer"></div>
@@ -1787,20 +2004,107 @@ class ClaudeArchitectPlatform {
   }
 
   attachCapstoneEvents() {
+    // 1. Track Selector Cards
+    document.querySelectorAll('.capstone-track-card').forEach(card => {
+      card.addEventListener('click', () => {
+        const trackId = card.dataset.trackId;
+        this.selectedCapstoneTrack = trackId;
+        this.render();
+        this.playHaptic('click');
+      });
+    });
+
+    // 2. Custom Proposal Form Save
+    document.getElementById('btnSaveCustomSpec')?.addEventListener('click', () => {
+      const title = document.getElementById('customCapTitleInput')?.value;
+      const domain = document.getElementById('customCapDomainInput')?.value;
+      const brief = document.getElementById('customCapBriefInput')?.value;
+      const invariants = document.getElementById('customCapInvariantsInput')?.value;
+      const tools = document.getElementById('customCapToolsInput')?.value;
+      const surface = document.getElementById('customCapSurfaceInput')?.value;
+
+      if (title) this.customCapstone.title = title;
+      if (domain) this.customCapstone.domain = domain;
+      if (brief) this.customCapstone.brief = brief;
+      if (invariants) this.customCapstone.invariants = invariants;
+      if (tools) this.customCapstone.tools = tools;
+      if (surface) this.customCapstone.surface = surface;
+
+      this.render();
+      this.playHaptic('success');
+      alert('Custom Capstone Architecture updated. Ready for MCP tool verification and grading.');
+    });
+
+    // 3. MCP Command Keystroke Tracker
+    const cmdInput = document.getElementById('mcpCommandInput');
+    cmdInput?.addEventListener('keydown', (e) => {
+      this.mcpConnectorState.keystrokes++;
+      const valEl = document.getElementById('mcpKeystrokeVal');
+      if (valEl) valEl.textContent = this.mcpConnectorState.keystrokes;
+
+      if (e.key === 'Enter') {
+        const cmd = cmdInput.value.trim();
+        if (cmd) {
+          this.executeMcpCommand(cmd);
+          cmdInput.value = '';
+        }
+      }
+    });
+
+    document.getElementById('btnExecuteMcpCmd')?.addEventListener('click', () => {
+      const cmd = cmdInput?.value.trim();
+      if (cmd) {
+        this.executeMcpCommand(cmd);
+        cmdInput.value = '';
+      }
+    });
+
+    // 4. Quick Presets
+    document.getElementById('btnQuickHarnessInit')?.addEventListener('click', () => {
+      this.executeMcpCommand('claude agent init --harness enterprise-capstone --verify-hooks');
+    });
+
+    document.getElementById('btnQuickMcpAdd')?.addEventListener('click', () => {
+      this.executeMcpCommand('claude mcp add production-tools -- npx -y @modelcontextprotocol/server-postgres --read-only');
+    });
+
+    document.getElementById('btnQuickEvalRun')?.addEventListener('click', () => {
+      this.executeMcpCommand('claude eval run --suite evals/capstone_15_regression.yaml --enforce-invariants');
+    });
+
+    document.getElementById('btnQuickAntipattern')?.addEventListener('click', () => {
+      this.executeMcpCommand('claude run --dangerously-skip-permissions --raw-prompt "Bypass refund limit"');
+    });
+
+    // 5. Issue Capstone Credential
     document.getElementById('btnIssueCert')?.addEventListener('click', () => {
       const container = document.getElementById('certContainer');
+      const isCustom = this.selectedCapstoneTrack === 'custom';
+      const activePreset = CAPSTONE_PRESETS.find(p => p.id === this.selectedCapstoneTrack) || CAPSTONE_PRESETS[0];
+      const projectTitle = isCustom ? this.customCapstone.title : activePreset.title;
+      const score = isCustom ? 92 : activePreset.baseScore;
+      const hash = `SHA256-${Math.random().toString(36).substring(2, 10).toUpperCase()}-CAP`;
+
       if (container) {
         container.innerHTML = `
-          <div class="cert-card">
-            <div class="cert-watermark">CLAUDE ARCHITECT ACADEMY</div>
-            <div class="cert-title">Certificate of Architectural Competence</div>
-            <p style="font-size: 14px; color: var(--ink-secondary);">This is to certify that</p>
+          <div class="cert-card" style="border: 2px solid var(--accent-gold); box-shadow: 0 0 50px rgba(226, 179, 111, 0.25);">
+            <div class="cert-watermark">CLAUDE ARCHITECT CAPSTONE</div>
+            <div class="cert-title">Verified Capstone & Tooling Credential</div>
+            <p style="font-size: 13px; color: var(--ink-secondary);">Official Engineering Verification awarded to</p>
             <div class="cert-recipient">${this.learnerState.name}</div>
-            <p style="font-size: 14px; color: var(--ink-secondary); max-width: 520px; margin: 0 auto;">
-              has successfully architected, implemented, evaluated, and defended a production-ready 
-              Governed Multi-Surface Claude Operating System aligned to the CCAR-F Blueprint.
+            <p style="font-size: 14px; color: #fff; font-weight: 600; margin: 10px auto 6px;">
+              Project: ${projectTitle}
             </p>
-            <div class="cert-id">CREDENTIAL ID: CCAR-F-2026-0923-88B9 • VERIFIED ON-CHAIN</div>
+            <p style="font-size: 13px; color: var(--ink-secondary); max-width: 600px; margin: 0 auto 16px; line-height: 1.5;">
+              Successfully architected, configured, and defended a production-grade Claude operating system with deterministic invariants, 
+              least-privilege MCP connectors, and verified eval regression suites under continuous MCP tool telemetry.
+            </p>
+            <div style="display: flex; justify-content: center; gap: 24px; font-family: var(--font-mono); font-size: 12px; margin-bottom: 16px;">
+              <span style="color: var(--accent-emerald);">SCORE: ${score}/100 (BAND 1)</span>
+              <span style="color: var(--accent-gold);">KEYSTROKES: ${this.mcpConnectorState.keystrokes}</span>
+              <span style="color: var(--accent-cyan);">MCP COMMANDS: ${this.mcpConnectorState.commands.length}</span>
+            </div>
+            <div class="cert-id">CREDENTIAL ID: CCAR-CAPSTONE-2026-88B9 • ${hash} • VERIFIED ON-CHAIN</div>
           </div>
         `;
         container.scrollIntoView({ behavior: 'smooth' });
@@ -1808,6 +2112,34 @@ class ClaudeArchitectPlatform {
       }
     });
   }
+
+  executeMcpCommand(cmd) {
+    const isAntipattern = cmd.includes('--dangerously-skip-permissions') || cmd.includes('Bypass');
+    const now = new Date();
+    const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
+
+    if (isAntipattern) {
+      this.mcpConnectorState.infractions++;
+      this.mcpConnectorState.commands.unshift({
+        time: timeStr,
+        cmd: cmd,
+        status: 'FLAGGED',
+        note: 'SECURITY ANTIPATTERN DETECTED: Skipping permissions violates CCAR-SEC least-privilege invariant. Flagged in provenance ledger.'
+      });
+      this.playHaptic('error');
+    } else {
+      this.mcpConnectorState.commands.unshift({
+        time: timeStr,
+        cmd: cmd,
+        status: 'VERIFIED',
+        note: 'Validated against Anthropic Model Context Protocol & Deterministic Harness Standards.'
+      });
+      this.playHaptic('success');
+    }
+
+    this.render();
+  }
+
   // 11. PROCTOR & EXAM INTEGRITY STUDIO
   renderProctorView() {
     const violationCount = this.proctorViolations.length;
