@@ -9,7 +9,7 @@ import {
   APPLIED_TRACKS, 
   VIDEO_MODULES,
   CAPSTONE_PRESETS 
-} from './data.js?v=2.6';
+} from './data.js?v=2.7';
 
 class ClaudeArchitectPlatform {
   constructor() {
@@ -76,6 +76,22 @@ class ClaudeArchitectPlatform {
       infractions: 0
     };
     this.capstoneGradingResult = null;
+
+    // Harness Engineering Studio State
+    this.activeHarnessTab = 'core'; // 'core', 'jobs', 'compare', 'trace', 'routing'
+    this.harnessActiveNode = 'tools'; // 'tools', 'state', 'perms', 'sandbox', 'obs'
+    this.harnessTraceStep = 4; // 0 to 4 (showing full trace)
+    this.routingCheckForm = {
+      spliceDistance: 40, // mm (starts at the famous 40mm failure)
+      bendRadius: 50, // mm
+      bundleDiameter: 12, // mm
+      isFlexZone: false,
+      heatClearance: 25, // mm from exhaust
+      edgeClearance: 12, // mm from sharp edges
+      unsealedPlugsFilled: false,
+      clipSpacing: 350, // mm
+      isHighVibZone: true
+    };
 
     this.audioCtx = null;
     this.init();
@@ -340,6 +356,7 @@ class ClaudeArchitectPlatform {
         'mcp-lab': 'MCP Inspector & Tool Playground',
         'agent-graph': 'Multi-Agent Topology Visualizer',
         'slides-studio': 'Executive Slide & Design Studio',
+        'harness-studio': 'Harness Engineering Studio (5 Parts • 5 Checks)',
         'case-studies': 'Case Studies & Failure Injection',
         'exam-engine': 'Timed Mock Exam & Drills',
         'capstone': 'Capstone & Defense Studio',
@@ -375,6 +392,7 @@ class ClaudeArchitectPlatform {
     if (!list) return;
 
     const commands = [
+      { title: 'Open Harness Engineering Studio', sub: 'The model writes words. The harness does the work (5 Parts • 5 Checks)', action: () => { this.switchView('harness-studio'); } },
       { title: 'Start 60-Item Timed Mock Exam', sub: 'Domain quotas: D1(16), D2(11), D3(12), D4(12), D5(9)', action: () => { this.switchView('exam-engine'); this.startMockExam(); } },
       { title: 'Open Proctor & Exam Integrity Studio', sub: 'Screen recording, focus-lock guard & anti-cheat telemetry', action: () => { this.switchView('proctor'); } },
       { title: 'Open Veo 3 Pro Masterclass (Domain 1)', sub: 'Agentic loops & subagent orchestration', action: () => { this.switchView('video-masterclass'); this.selectVideoModule('mod-1'); } },
@@ -445,6 +463,10 @@ class ClaudeArchitectPlatform {
       case 'slides-studio':
         container.innerHTML = this.renderSlidesStudioView();
         this.attachSlidesEvents();
+        break;
+      case 'harness-studio':
+        container.innerHTML = this.renderHarnessStudioView();
+        this.attachHarnessStudioEvents();
         break;
       case 'case-studies':
         container.innerHTML = this.renderCaseStudiesView();
@@ -2496,6 +2518,800 @@ class ClaudeArchitectPlatform {
     document.getElementById('btnGoToProctoredExam')?.addEventListener('click', () => {
       this.proctorModeChecked = true;
       this.switchView('exam-engine');
+      this.playHaptic('click');
+    });
+  }
+
+  // ==========================================================================
+  // HARNESS ENGINEERING STUDIO (5 Parts • 5 Checks)
+  // ==========================================================================
+  renderHarnessStudioView() {
+    const tabs = [
+      { id: 'core', num: '01', name: 'CORE', sub: 'The Machine Around The Model', badge: '5 Parts' },
+      { id: 'jobs', num: '02', name: 'JOBS', sub: 'Five Jobs, One Harness', badge: 'Flow' },
+      { id: 'compare', num: '03', name: 'COMPARE', sub: 'Raw vs. Ready Matrix', badge: 'Table' },
+      { id: 'trace', num: '04', name: 'TRACE', sub: 'When It Fails: Blame The Layer', badge: 'Forensic' },
+      { id: 'routing', num: '05', name: 'ROUTING & CAD', sub: '5-Point Physical & AI Checks', badge: '40mm Splice' }
+    ];
+
+    const r = this.routingCheckForm;
+    const check1Pass = r.spliceDistance >= 150;
+    const minBend = (r.isFlexZone ? 10 : 6) * r.bundleDiameter;
+    const check2Pass = r.bendRadius >= minBend;
+    const check3Pass = r.heatClearance >= 50 && r.edgeClearance >= 20;
+    const check4Pass = !!r.unsealedPlugsFilled;
+    const maxClip = r.isHighVibZone ? 150 : 300;
+    const check5Pass = r.clipSpacing <= maxClip;
+    const passCount = [check1Pass, check2Pass, check3Pass, check4Pass, check5Pass].filter(Boolean).length;
+    const releaseReady = passCount === 5;
+
+    // Node definitions for Tab 1
+    const nodes = {
+      tools: {
+        name: 'Tools Layer',
+        tag: '01 / EXECUTION BUS',
+        role: 'Prompt -> API -> Result',
+        status: 'ONLINE • STRICT MCP SCHEMA',
+        color: '#38bdf8',
+        physicalAnalog: 'Terminals, Connectors & Copper AWG Sizing',
+        physicalDesc: 'Delivers real current and actuation signals to sensors, solenoids, and actuators with low contact resistance.',
+        aiHarness: 'MCP JSON-RPC Client + Typed Error Taxonomy',
+        aiDesc: 'Translates high-level LLM intent into typed, sandboxed API requests. Enforces strict schema validation and 3000ms timeouts.',
+        codeHook: `// Deterministic Tool Invocation Guard\nclaude.on('PreToolUse', async (toolCall) => {\n  const validated = validateMcpSchema(toolCall.name, toolCall.params);\n  if (!validated.ok) throw new SchemaError(validated.reason);\n  return executeWithTimeout(toolCall, 3000);\n});`
+      },
+      state: {
+        name: 'State Engine',
+        tag: '02 / CONTINUITY HARNESS',
+        role: 'Write -> Store -> Recall',
+        status: 'ONLINE • HIERARCHICAL COMPACTION',
+        color: '#34d399',
+        physicalAnalog: 'Continuous Wire Run & Splice Integrity',
+        physicalDesc: 'Maintains signal continuity end-to-end without high-resistance dry solder joints or vibration dropouts.',
+        aiHarness: 'Scratchpad Markdown + Context Compaction Hooks',
+        aiDesc: 'Persists active mission state, tool results, and plan steps across multi-turn loops while pruning token bloat.',
+        codeHook: `// Context Compaction with Entity Preservation\nclaude.on('PreCompact', (context) => {\n  return compactPreservingEntities(context, {\n    mandatoryKeys: ['account_id', 'cfo_approval_token', 'transaction_id']\n  });\n});`
+      },
+      perms: {
+        name: 'Permissions & Gates',
+        tag: '03 / MECHANICAL LOCK',
+        role: 'Request -> ? -> Allow',
+        status: 'ENFORCED • DETERMINISTIC PRE-TOOL GATES',
+        color: '#fb923c',
+        physicalAnalog: 'CPA (Connector Position Assurance) & TPA (Terminal Position Assurance)',
+        physicalDesc: 'Secondary mechanical locks that physically prevent connector disconnects or terminal pin push-out under 50G shock.',
+        aiHarness: 'Hard-Coded Invariant Code Hooks',
+        aiDesc: 'Intercepts non-read-only tool calls in native code before the model can execute them. Halts unauthorized write operations.',
+        codeHook: `// Invariant Policy Gate (Never delegates authorization to LLM)\nclaude.on('PreToolUse', (call) => {\n  if (call.isMutating && !call.hasApprovalToken) {\n    return { halt: true, reason: 'POLICY_VIOLATION: Missing cryptographic approval signature' };\n  }\n});`
+      },
+      sandbox: {
+        name: 'Sandbox Perimeter',
+        tag: '04 / THERMAL CONDUIT',
+        role: 'Limits: Network • Filesystem',
+        status: 'ISOLATED • JAILED SUBPROCESS',
+        color: '#e2b36f',
+        physicalAnalog: 'Corrugated Conduit, Silicon Sleeving & Firewalls',
+        physicalDesc: 'Heat shields and abrasion-resistant sleeving that insulate delicate wires from 600°C turbochargers and sharp chassis edges.',
+        aiHarness: 'Container Subprocess + Ephemeral Workspace Mount',
+        aiDesc: 'Isolates execution to read-only paths and approved scratch folders, preventing arbitrary outbound network exfiltration.',
+        codeHook: `// Subprocess Isolation Container\nconst sandbox = new ProcessJail({\n  cwd: '/workspace/scratch',\n  network: 'isolated-intranet-only',\n  readOnlyPaths: ['/system', '/etc', '/lib'],\n  timeoutMs: 5000\n});`
+      },
+      obs: {
+        name: 'Observability & Telemetry',
+        tag: '05 / FACTORY FORMBOARD',
+        role: 'Step -> Trace -> Metric',
+        status: 'MONITORING • OPENTELEMETRY TRACE BUS',
+        color: '#818cf8',
+        physicalAnalog: 'Continuity Buzzer & High-Pot Insulation Tester',
+        physicalDesc: 'Automated 1000V insulation resistance and pin-to-pin continuity fixtures that certify the harness before vehicle installation.',
+        aiHarness: 'OpenTelemetry Trace Bus & Failure Attribution',
+        aiDesc: 'Captures step latency, token count, tool timeouts, and error traces. Disproves "model is broken" by isolating layer faults.',
+        codeHook: `// Distributed OpenTelemetry Span Annotation\nclaude.telemetry.recordSpan({\n  layer: 'tools',\n  tool: 'fetch_order',\n  latencyMs: 1900,\n  error: 'UPSTREAM_HTTP_504_GATEWAY_TIMEOUT',\n  attributedTo: 'network_layer' // NOT model\n});`
+      }
+    };
+
+    const activeNodeData = nodes[this.harnessActiveNode] || nodes.tools;
+
+    return `
+      <div class="harness-studio-wrapper">
+        <!-- Top Editorial Hero Header -->
+        <div class="card" style="margin-bottom: 24px; background: linear-gradient(180deg, rgba(14,16,23,0.95) 0%, rgba(8,10,14,0.98) 100%); border-color: rgba(56, 189, 248, 0.25);">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px; margin-bottom: 16px;">
+            <div>
+              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                <span class="badge" style="background: rgba(56, 189, 248, 0.15); color: var(--accent-cyan); border-color: rgba(56, 189, 248, 0.3);">
+                  HARNESS ENGINEERING • EXPLAINED
+                </span>
+                <span class="badge" style="background: rgba(251, 146, 60, 0.15); color: #fb923c; border-color: rgba(251, 146, 60, 0.3);">
+                  AGENTIC AI • PRODUCTION LAYER
+                </span>
+                <span class="badge" style="background: rgba(52, 211, 153, 0.15); color: #34d399; border-color: rgba(52, 211, 153, 0.3);">
+                  USCAR-2 / USCAR-21 / AS50881
+                </span>
+              </div>
+              <h1 style="font-size: 32px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 6px; font-family: var(--font-display);">
+                Harness Engineering <span style="background: linear-gradient(135deg, #fb923c, #f97316); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Explained</span>
+              </h1>
+              <p style="font-size: 15px; color: var(--ink-secondary); max-width: 820px; line-height: 1.5;">
+                <strong style="color: #fff;">The model writes words. The harness does the work.</strong> 
+                The counterintuitive principle senior harness engineers follow: 
+                <span style="color: #fb923c; font-family: var(--font-mono); font-weight: 600;">Mechanical first. Electrical second. Test third.</span> 
+                — in AI systems: 
+                <span style="color: var(--accent-cyan); font-family: var(--font-mono); font-weight: 600;">Harness first. Model second. Eval third.</span>
+              </p>
+            </div>
+            <div style="display: flex; gap: 10px;">
+              <button class="btn btn-secondary" id="btnHarnessRunPy" style="display: flex; align-items: center; gap: 6px; font-family: var(--font-mono); font-size: 12px;">
+                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                Run Python Calculators
+              </button>
+              <button class="btn btn-primary" id="btnHarnessOpenCapstone" style="display: flex; align-items: center; gap: 6px; font-family: var(--font-mono); font-size: 12px;">
+                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                Case Study 04 Capstone
+              </button>
+            </div>
+          </div>
+
+          <!-- Infographic Step/Tab Bar -->
+          <div class="harness-nav-tabs">
+            ${tabs.map(t => `
+              <div class="harness-tab-btn ${this.activeHarnessTab === t.id ? 'active' : ''}" data-tab="${t.id}">
+                <div style="display: flex; align-items: center; gap: 8px; justify-content: space-between;">
+                  <span style="font-family: var(--font-mono); font-size: 11px; opacity: 0.6;">${t.num}</span>
+                  <span style="font-size: 10px; padding: 2px 6px; border-radius: 4px; background: rgba(255,255,255,0.06); font-family: var(--font-mono);">${t.badge}</span>
+                </div>
+                <div style="font-size: 13px; font-weight: 600; margin-top: 4px;">${t.name}</div>
+                <div style="font-size: 11px; color: var(--ink-tertiary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${t.sub}</div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
+        <!-- TAB 1: CORE (01 / THE MACHINE AROUND THE MODEL) -->
+        ${this.activeHarnessTab === 'core' ? `
+          <div class="card" style="margin-bottom: 24px;">
+            <div class="card-header">
+              <div>
+                <span class="badge" style="background: rgba(56, 189, 248, 0.15); color: var(--accent-cyan); font-family: var(--font-mono);">01 / THE MACHINE AROUND THE MODEL</span>
+                <h2 class="card-title" style="margin-top: 4px;">Five Parts, One Core</h2>
+              </div>
+              <span style="font-size: 12px; color: var(--ink-tertiary); font-family: var(--font-mono);">Click any node to inspect layer mechanics</span>
+            </div>
+
+            <div class="harness-orbit-box">
+              <!-- Central Model Core -->
+              <div class="harness-model-core">
+                <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.8; font-family: var(--font-mono);">Agentic Core</div>
+                <div style="font-size: 20px; font-weight: 700; color: #fff; margin: 2px 0;">Model</div>
+                <div style="font-size: 11px; color: var(--accent-cyan); font-family: var(--font-mono);">core (writes words)</div>
+              </div>
+
+              <!-- 5 Orbiting Harness Nodes -->
+              <div class="harness-orbit-node node-tools ${this.harnessActiveNode === 'tools' ? 'active' : ''}" data-node="tools">
+                <div style="font-size: 11px; color: var(--ink-tertiary);">01 / BUS</div>
+                <div>Tools</div>
+              </div>
+
+              <div class="harness-orbit-node node-state ${this.harnessActiveNode === 'state' ? 'active' : ''}" data-node="state">
+                <div style="font-size: 11px; color: var(--ink-tertiary);">02 / MEMORY</div>
+                <div>State</div>
+              </div>
+
+              <div class="harness-orbit-node node-perms ${this.harnessActiveNode === 'perms' ? 'active' : ''}" data-node="perms">
+                <div style="font-size: 11px; color: var(--ink-tertiary);">03 / GATES</div>
+                <div>Perms</div>
+              </div>
+
+              <div class="harness-orbit-node node-sandbox ${this.harnessActiveNode === 'sandbox' ? 'active' : ''}" data-node="sandbox">
+                <div style="font-size: 11px; color: var(--ink-tertiary);">04 / JAIL</div>
+                <div>Sandbox</div>
+              </div>
+
+              <div class="harness-orbit-node node-obs ${this.harnessActiveNode === 'obs' ? 'active' : ''}" data-node="obs">
+                <div style="font-size: 11px; color: var(--ink-tertiary);">05 / TELEMETRY</div>
+                <div>Obs</div>
+              </div>
+
+              <!-- Orbit Data Bus Tracks SVG -->
+              <svg style="position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; opacity: 0.5;">
+                <ellipse cx="50%" cy="50%" rx="380" ry="140" fill="none" stroke="rgba(56, 189, 248, 0.2)" stroke-dasharray="6,6" />
+                <ellipse cx="50%" cy="50%" rx="260" ry="95" fill="none" stroke="rgba(56, 189, 248, 0.15)" />
+                <line x1="50%" y1="50%" x2="50%" y2="50" stroke="rgba(56, 189, 248, 0.4)" stroke-width="1.5" />
+                <line x1="50%" y1="50%" x2="88%" y2="50%" stroke="rgba(52, 211, 153, 0.4)" stroke-width="1.5" />
+                <line x1="50%" y1="50%" x2="72%" y2="82%" stroke="rgba(251, 146, 60, 0.4)" stroke-width="1.5" />
+                <line x1="50%" y1="50%" x2="28%" y2="82%" stroke="rgba(226, 179, 111, 0.4)" stroke-width="1.5" />
+                <line x1="50%" y1="50%" x2="12%" y2="50%" stroke="rgba(129, 140, 248, 0.4)" stroke-width="1.5" />
+              </svg>
+            </div>
+
+            <!-- Selected Node Detailed Inspector -->
+            <div style="margin-top: 24px; padding: 20px; background: rgba(0,0,0,0.4); border: 1px solid var(--line-bright); border-radius: var(--radius-md);">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                  <span style="font-family: var(--font-mono); font-size: 12px; color: ${activeNodeData.color}; font-weight: 600;">${activeNodeData.tag}</span>
+                  <h3 style="font-size: 18px; font-weight: 600; color: #fff;">${activeNodeData.name}</h3>
+                </div>
+                <span class="badge" style="background: rgba(56,189,248,0.1); color: ${activeNodeData.color}; font-family: var(--font-mono); font-size: 11px;">
+                  ${activeNodeData.status}
+                </span>
+              </div>
+
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 16px;">
+                <div style="padding: 14px; background: rgba(255,255,255,0.02); border: 1px solid var(--line-dim); border-radius: var(--radius-sm);">
+                  <div style="font-size: 11px; text-transform: uppercase; color: var(--ink-tertiary); font-family: var(--font-mono); margin-bottom: 4px;">Physical Harness Counterpart</div>
+                  <div style="font-size: 14px; font-weight: 600; color: #fff; margin-bottom: 4px;">${activeNodeData.physicalAnalog}</div>
+                  <div style="font-size: 12px; color: var(--ink-secondary); line-height: 1.4;">${activeNodeData.physicalDesc}</div>
+                </div>
+
+                <div style="padding: 14px; background: rgba(255,255,255,0.02); border: 1px solid var(--line-dim); border-radius: var(--radius-sm);">
+                  <div style="font-size: 11px; text-transform: uppercase; color: var(--ink-tertiary); font-family: var(--font-mono); margin-bottom: 4px;">Claude Code Agentic Implementation</div>
+                  <div style="font-size: 14px; font-weight: 600; color: var(--accent-cyan); margin-bottom: 4px;">${activeNodeData.aiHarness}</div>
+                  <div style="font-size: 12px; color: var(--ink-secondary); line-height: 1.4;">${activeNodeData.aiDesc}</div>
+                </div>
+              </div>
+
+              <div>
+                <div style="font-size: 11px; text-transform: uppercase; color: var(--ink-tertiary); font-family: var(--font-mono); margin-bottom: 6px;">Production Invariant Code Hook</div>
+                <pre style="background: #06070a; border: 1px solid var(--line-dim); border-radius: var(--radius-sm); padding: 12px; font-family: var(--font-mono); font-size: 12px; color: #93c5fd; overflow-x: auto;"><code>${activeNodeData.codeHook}</code></pre>
+              </div>
+            </div>
+          </div>
+        ` : ''}
+
+        <!-- TAB 2: JOBS (02 / FIVE JOBS, ONE HARNESS) -->
+        ${this.activeHarnessTab === 'jobs' ? `
+          <div class="card" style="margin-bottom: 24px;">
+            <div class="card-header">
+              <div>
+                <span class="badge" style="background: rgba(52, 211, 153, 0.15); color: #34d399; font-family: var(--font-mono);">02 / FIVE JOBS, ONE HARNESS</span>
+                <h2 class="card-title" style="margin-top: 4px;">Each Part Does One Thing</h2>
+              </div>
+              <button class="btn btn-secondary" id="btnHarnessTestPing" style="font-size: 12px; font-family: var(--font-mono);">
+                Dispatch Test Telemetry Pulse
+              </button>
+            </div>
+
+            <div class="harness-jobs-grid">
+              <!-- Job 1: Tools -->
+              <div class="harness-job-card" style="border-top: 3px solid #38bdf8;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <span style="font-size: 12px; font-weight: 700; color: #38bdf8; font-family: var(--font-mono);">TOOLS</span>
+                  <span class="badge" style="background: rgba(56,189,248,0.1); color: #38bdf8;">Job 01</span>
+                </div>
+                <div class="job-step-flow">
+                  <span style="color: #fff;">prompt</span>
+                  <span style="color: var(--accent-cyan);">→</span>
+                  <span style="color: #38bdf8; font-weight: 600;">api</span>
+                  <span style="color: var(--accent-cyan);">→</span>
+                  <span style="color: #34d399;">result ✓</span>
+                </div>
+                <p style="font-size: 12px; color: var(--ink-secondary); line-height: 1.4; margin-bottom: 12px;">
+                  Converts high-level reasoning tokens into typed MCP tool invocations. Validates argument schemas before sending over stdio/SSE channels.
+                </p>
+                <div style="font-size: 11px; font-family: var(--font-mono); color: var(--ink-tertiary); border-top: 1px solid var(--line-dim); padding-top: 8px;">
+                  Invariant: Never emit malformed JSON; reject unannounced tool parameters.
+                </div>
+              </div>
+
+              <!-- Job 2: State -->
+              <div class="harness-job-card" style="border-top: 3px solid #34d399;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <span style="font-size: 12px; font-weight: 700; color: #34d399; font-family: var(--font-mono);">STATE</span>
+                  <span class="badge" style="background: rgba(52,211,153,0.1); color: #34d399;">Job 02</span>
+                </div>
+                <div class="job-step-flow">
+                  <span style="color: #fff;">write</span>
+                  <span style="color: #34d399;">→</span>
+                  <span style="color: #34d399; font-weight: 600;">store</span>
+                  <span style="color: #34d399;">→</span>
+                  <span style="color: #86efac;">recall ⟲</span>
+                </div>
+                <p style="font-size: 12px; color: var(--ink-secondary); line-height: 1.4; margin-bottom: 12px;">
+                  Scratchpad markdown persistence and selective memory compaction. Preserves critical IDs and decision justifications across long multi-turn sessions.
+                </p>
+                <div style="font-size: 11px; font-family: var(--font-mono); color: var(--ink-tertiary); border-top: 1px solid var(--line-dim); padding-top: 8px;">
+                  Invariant: Compaction retains all primary transaction keys and hashes.
+                </div>
+              </div>
+
+              <!-- Job 3: Perms -->
+              <div class="harness-job-card" style="border-top: 3px solid #fb923c;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <span style="font-size: 12px; font-weight: 700; color: #fb923c; font-family: var(--font-mono);">PERMS</span>
+                  <span class="badge" style="background: rgba(251,146,60,0.1); color: #fb923c;">Job 03</span>
+                </div>
+                <div class="job-step-flow">
+                  <span style="color: #fff;">request</span>
+                  <span style="color: #fb923c;">→</span>
+                  <span style="color: #fb923c; font-weight: 700;">? (hook)</span>
+                  <span style="color: #fb923c;">→</span>
+                  <span style="color: #fdba74;">allow ✓</span>
+                </div>
+                <p style="font-size: 12px; color: var(--ink-secondary); line-height: 1.4; margin-bottom: 12px;">
+                  Deterministic gatekeeper layer. Evaluates command signatures and mutation thresholds before letting any execution touch production infrastructure.
+                </p>
+                <div style="font-size: 11px; font-family: var(--font-mono); color: var(--ink-tertiary); border-top: 1px solid var(--line-dim); padding-top: 8px;">
+                  Invariant: Mechanical lock. Code hook decision is final; LLM cannot override.
+                </div>
+              </div>
+
+              <!-- Job 4: Sandbox -->
+              <div class="harness-job-card" style="border-top: 3px solid #e2b36f;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <span style="font-size: 12px; font-weight: 700; color: #e2b36f; font-family: var(--font-mono);">SANDBOX</span>
+                  <span class="badge" style="background: rgba(226,179,111,0.1); color: #e2b36f;">Job 04</span>
+                </div>
+                <div class="job-step-flow" style="border: 1px dashed rgba(226,179,111,0.4);">
+                  <span style="color: #e2b36f;">limits:</span>
+                  <span style="color: #fff; font-weight: 600;">network • files</span>
+                </div>
+                <p style="font-size: 12px; color: var(--ink-secondary); line-height: 1.4; margin-bottom: 12px;">
+                  Jailed container execution. Restricts filesystem access to the current project directory and forbids unauthorized lateral network connections.
+                </p>
+                <div style="font-size: 11px; font-family: var(--font-mono); color: var(--ink-tertiary); border-top: 1px solid var(--line-dim); padding-top: 8px;">
+                  Invariant: No write access to parent OS directories or production cloud envs.
+                </div>
+              </div>
+
+              <!-- Job 5: Obs -->
+              <div class="harness-job-card" style="border-top: 3px solid #818cf8;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <span style="font-size: 12px; font-weight: 700; color: #818cf8; font-family: var(--font-mono);">OBS</span>
+                  <span class="badge" style="background: rgba(129,140,248,0.1); color: #818cf8;">Job 05</span>
+                </div>
+                <div class="job-step-flow">
+                  <span style="color: #fff;">step</span>
+                  <span style="color: #818cf8;">→</span>
+                  <span style="color: #818cf8; font-weight: 600;">trace</span>
+                  <span style="color: #818cf8;">→</span>
+                  <span style="color: #c7d2fe;">metric 📈</span>
+                </div>
+                <p style="font-size: 12px; color: var(--ink-secondary); line-height: 1.4; margin-bottom: 12px;">
+                  Full-fidelity telemetry and forensics. Emits structured OpenTelemetry spans for every subagent dispatch, tool duration, token cost, and HTTP status.
+                </p>
+                <div style="font-size: 11px; font-family: var(--font-mono); color: var(--ink-tertiary); border-top: 1px solid var(--line-dim); padding-top: 8px;">
+                  Invariant: Continuous observability guarantees pinpoint failure attribution.
+                </div>
+              </div>
+            </div>
+          </div>
+        ` : ''}
+
+        <!-- TAB 3: COMPARE (03 / RAW VS READY) -->
+        ${this.activeHarnessTab === 'compare' ? `
+          <div class="card" style="margin-bottom: 24px;">
+            <div class="card-header">
+              <div>
+                <span class="badge" style="background: rgba(251, 146, 60, 0.15); color: #fb923c; font-family: var(--font-mono);">03 / RAW VS READY</span>
+                <h2 class="card-title" style="margin-top: 4px;">Same Model, Different Machine</h2>
+              </div>
+              <span class="badge" style="background: rgba(255,255,255,0.05); color: var(--ink-secondary); font-family: var(--font-mono);">Production Architectural Audit</span>
+            </div>
+
+            <div style="overflow-x: auto;">
+              <table class="harness-compare-table">
+                <thead>
+                  <tr>
+                    <th style="width: 25%;">Capability Dimension</th>
+                    <th style="width: 35%; color: #f87171;">Bare Model (Naked Prompt)</th>
+                    <th style="width: 40%; color: var(--accent-cyan);">Harnessed Agent (Production Architecture)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><strong>State & Memory</strong></td>
+                    <td style="color: #fca5a5;"><span style="font-family: var(--font-mono);">none ▲</span> (context evaporates on turn end)</td>
+                    <td style="color: #86efac;"><span style="font-family: var(--font-mono);">store + recall ✓</span> (scratchpad markdown + hierarchical entity-preserving compaction)</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Permissions & Policy</strong></td>
+                    <td style="color: #fca5a5;"><span style="font-family: var(--font-mono);">none ▲</span> (relies on model prompt compliance; easily jailbroken)</td>
+                    <td style="color: #86efac;"><span style="font-family: var(--font-mono);">request → allow ✓</span> (deterministic PreToolUse code hooks halt illegal commands before execution)</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Tools & APIs</strong></td>
+                    <td style="color: #fca5a5;"><span style="font-family: var(--font-mono);">none ▲</span> (generates hallucinated code or hypothetical text)</td>
+                    <td style="color: #86efac;"><span style="font-family: var(--font-mono);">call APIs ✓</span> (strict typed JSON-RPC schema contracts via Model Context Protocol)</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Logs & Telemetry</strong></td>
+                    <td style="color: #fca5a5;"><span style="font-family: var(--font-mono);">none ▲</span> (black box failure; user receives generic timeout)</td>
+                    <td style="color: #86efac;"><span style="font-family: var(--font-mono);">step → trace → metric ✓</span> (structured OpenTelemetry spans with millisecond latency isolation)</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Retries & Resilience</strong></td>
+                    <td style="color: #fca5a5;"><span style="font-family: var(--font-mono);">none ▲</span> (fails immediately on first 504 Gateway error)</td>
+                    <td style="color: #86efac;"><span style="font-family: var(--font-mono);">retry rule ✓</span> (layer-level exponential backoff in the loop; model never faulted)</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Banner replicating the infographic bottom bar -->
+            <div style="background: rgba(0, 0, 0, 0.6); border: 1px solid var(--line-bright); border-radius: var(--radius-md); padding: 18px; text-align: center; font-family: var(--font-mono); font-size: 14px; color: #94a3b8; letter-spacing: 0.04em;">
+              <span style="color: #f87171; font-weight: 600;">bare model:</span> zero state, zero tools, zero retries &nbsp;&nbsp;•&nbsp;&nbsp; 
+              <span style="color: var(--accent-cyan); font-weight: 600;">harnessed:</span> 99.8% production SLA with mechanical-first invariants
+            </div>
+          </div>
+        ` : ''}
+
+        <!-- TAB 4: TRACE (04 / WHEN IT FAILS) -->
+        ${this.activeHarnessTab === 'trace' ? `
+          <div class="card" style="margin-bottom: 24px;">
+            <div class="card-header">
+              <div>
+                <span class="badge" style="background: rgba(244, 63, 94, 0.15); color: #f43f5e; font-family: var(--font-mono);">04 / WHEN IT FAILS</span>
+                <h2 class="card-title" style="margin-top: 4px;">Blame the Layer, Not the Model</h2>
+              </div>
+              <div style="display: flex; gap: 8px;">
+                <button class="btn btn-secondary" id="btnTracePrev" style="font-family: var(--font-mono); font-size: 12px;">Step Back</button>
+                <button class="btn btn-secondary" id="btnTraceNext" style="font-family: var(--font-mono); font-size: 12px;">Step Forward</button>
+                <button class="btn btn-primary" id="btnTraceReplay" style="font-family: var(--font-mono); font-size: 12px;">Replay Forensic Trace</button>
+              </div>
+            </div>
+
+            <div class="harness-trace-box">
+              <div style="display: grid; grid-template-columns: 280px 1fr 280px; gap: 20px; align-items: center;" class="trace-responsive-grid">
+                <!-- Left: User Incident Blaming Model -->
+                <div style="background: rgba(225, 29, 72, 0.08); border: 1px solid rgba(225, 29, 72, 0.4); border-radius: var(--radius-md); padding: 20px; text-align: center;">
+                  <div style="font-size: 11px; text-transform: uppercase; color: #f87171; font-family: var(--font-mono); margin-bottom: 6px;">Incident Report</div>
+                  <div style="font-size: 20px; font-weight: 700; color: #fff; margin-bottom: 8px;">"model is broken"</div>
+                  <div style="font-size: 12px; color: var(--ink-secondary); margin-bottom: 14px;">User report: Agent timed out during inventory fetch and refused to complete order.</div>
+                  <span class="badge" style="background: rgba(225, 29, 72, 0.2); color: #fca5a5; font-family: var(--font-mono); font-size: 11px;">
+                    BLAMED ON MODEL
+                  </span>
+                </div>
+
+                <!-- Center: Millisecond Forensic Timeline -->
+                <div style="padding: 10px 16px;">
+                  <div style="font-size: 11px; font-family: var(--font-mono); color: var(--ink-tertiary); margin-bottom: 12px; text-transform: uppercase;">
+                    FORENSIC TRACE TIMELINE (Milliseconds)
+                  </div>
+
+                  <div class="trace-timeline-item">
+                    <span style="color: var(--ink-tertiary);">t=1.2s</span>
+                    <span style="color: #fff;">prompt received by agent gateway</span>
+                  </div>
+
+                  <div class="trace-timeline-item">
+                    <span style="color: var(--ink-tertiary);">t=1.4s</span>
+                    <span style="color: #38bdf8;">perms allowed: PreToolUse policy verified</span>
+                  </div>
+
+                  <div class="trace-timeline-item">
+                    <span style="color: var(--ink-tertiary);">t=1.6s</span>
+                    <span style="color: #38bdf8;">tools.search: HTTP GET /api/v1/inventory dispatched</span>
+                  </div>
+
+                  <div class="trace-timeline-item failed">
+                    <span style="font-weight: 700;">t=1.9s</span>
+                    <span style="font-weight: 700;">tools.timeout: upstream ERP database socket closed (HTTP 504)</span>
+                  </div>
+
+                  <div class="trace-timeline-item">
+                    <span style="color: var(--ink-tertiary);">t=2.0s</span>
+                    <span style="color: #fb923c; font-weight: 600;">model never called — prompt buffer remained idle</span>
+                  </div>
+
+                  <div class="trace-timeline-item recovered" style="margin-top: 10px;">
+                    <span style="font-weight: 700;">t=2.4s</span>
+                    <span style="font-weight: 600;">harness loop activates retry rule: jittered backoff (500ms)</span>
+                  </div>
+
+                  <div style="margin-top: 14px; font-family: var(--font-mono); font-size: 12px; color: var(--accent-cyan); display: flex; align-items: center; gap: 8px;">
+                    <span style="font-weight: 700;">Verdict:</span> Traced to tools layer. The model was never invoked!
+                  </div>
+                </div>
+
+                <!-- Right: Harness Recovery Rule -->
+                <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: var(--radius-md); padding: 20px; text-align: center;">
+                  <div style="font-size: 11px; text-transform: uppercase; color: #34d399; font-family: var(--font-mono); margin-bottom: 6px;">Harness Loop Invariant</div>
+                  <div style="font-size: 20px; font-weight: 700; color: #fff; margin-bottom: 8px;">retry rule</div>
+                  <div style="font-size: 12px; color: var(--ink-secondary); margin-bottom: 14px;">In the loop layer: Catches network jitter, retries idempotent GET, succeeds silently at t=2.6s.</div>
+                  <span class="badge" style="background: rgba(16, 185, 129, 0.2); color: #86efac; font-family: var(--font-mono); font-size: 11px;">
+                    HARNESS FIXED IT ✓
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        ` : ''}
+
+        <!-- TAB 5: ROUTING & CAD (05 / 5-POINT ROUTING CHECKS) -->
+        ${this.activeHarnessTab === 'routing' ? `
+          <div class="card" style="margin-bottom: 24px;">
+            <div class="card-header">
+              <div>
+                <span class="badge" style="background: rgba(56, 189, 248, 0.15); color: var(--accent-cyan); font-family: var(--font-mono);">05 / 5-POINT ROUTING CHECKS</span>
+                <h2 class="card-title" style="margin-top: 4px;">The 40mm Splice Catastrophe & Formboard Discipline</h2>
+              </div>
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <span class="badge ${releaseReady ? 'badge-success' : 'badge-danger'}" style="font-family: var(--font-mono); font-size: 12px; padding: 6px 12px;">
+                  ${passCount} / 5 Checks Passed ${releaseReady ? '• RELEASE READY' : '• RECALL RISK'}
+                </span>
+                <button class="btn btn-secondary" id="btnHarnessResetDefaults" style="font-size: 12px; font-family: var(--font-mono);">
+                  Reset to 40mm Failure
+                </button>
+              </div>
+            </div>
+
+            <!-- The Real-World Engineering Story Callout -->
+            <div style="background: rgba(251, 146, 60, 0.05); border-left: 3px solid #fb923c; padding: 16px 20px; border-radius: 0 var(--radius-md) var(--radius-md) 0; margin-bottom: 24px;">
+              <p style="font-size: 13px; color: #fdba74; line-height: 1.6; margin: 0;">
+                <em>"Not because of wire gauge. Not because of connector current rating. <strong>Because of a splice placed 40mm from a bend.</strong> I have seen this exact failure cost a startup 12 days of rework and a full batch recall. The engineer who designed it was good at schematics, but never routed in 3D. In 1979, US automakers had the same problem: Harness warranties were their number one claim. That is why USCAR-2, USCAR-21, and AS50881 were written. Harnessing is a mechanical system disguised as an electrical one. <strong>Mechanical first. Electrical second. Test third.</strong>"</em>
+              </p>
+            </div>
+
+            <!-- Interactive 5-Point Routing Checks -->
+            <div class="routing-checks-container">
+              <!-- Check 1: Splice Distance -->
+              <div class="routing-checklist-card" style="border-left: 4px solid ${check1Pass ? 'var(--accent-emerald)' : 'var(--accent-rose)'};">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                  <div>
+                    <span style="font-family: var(--font-mono); font-size: 11px; color: var(--ink-tertiary);">CHECK 01 • USCAR-21 / AS50881</span>
+                    <h4 style="font-size: 15px; font-weight: 600; color: #fff;">Splice Distance from Bend or Clip: <span style="color: ${check1Pass ? '#86efac' : '#fca5a5'}; font-family: var(--font-mono);">${r.spliceDistance} mm</span> (Req: ≥ 150mm)</h4>
+                  </div>
+                  <span class="badge ${check1Pass ? 'badge-success' : 'badge-danger'}">${check1Pass ? 'PASS' : 'VIOLATION'}</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 16px; margin: 12px 0;">
+                  <span style="font-family: var(--font-mono); font-size: 11px; color: var(--ink-tertiary);">10mm</span>
+                  <input type="range" class="calc-slider" id="sliderSplice" min="10" max="250" value="${r.spliceDistance}" style="flex: 1;" />
+                  <span style="font-family: var(--font-mono); font-size: 11px; color: var(--ink-tertiary);">250mm</span>
+                </div>
+                <div style="font-size: 12px; color: var(--ink-secondary); line-height: 1.4;">
+                  ${check1Pass ? 
+                    '<strong style="color: #86efac;">Compliant:</strong> Solder/ultrasonic splice has sufficient strain relief distance (≥ 150mm) from physical bending stress.' : 
+                    '<strong style="color: #fca5a5;">Failure Mode:</strong> A splice placed < 150mm creates a rigid 30mm zone. Placing it 40mm from a bend creates a localized stress concentration point that shears conductor strands under vibration.<br><span style="color: var(--accent-cyan); font-family: var(--font-mono);">AI Counterpart:</span> Mutable policy hook placed inside prompt tokens instead of an external deterministic PreToolUse boundary.'}
+                </div>
+              </div>
+
+              <!-- Check 2: Bend Radius -->
+              <div class="routing-checklist-card" style="border-left: 4px solid ${check2Pass ? 'var(--accent-emerald)' : 'var(--accent-rose)'};">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                  <div>
+                    <span style="font-family: var(--font-mono); font-size: 11px; color: var(--ink-tertiary);">CHECK 02 • BEND RADIUS SPEC</span>
+                    <h4 style="font-size: 15px; font-weight: 600; color: #fff;">Bend Radius: <span style="color: ${check2Pass ? '#86efac' : '#fca5a5'}; font-family: var(--font-mono);">${r.bendRadius} mm</span> (Req: ≥ ${minBend}mm [${r.isFlexZone ? '10x Dynamic Flex' : '6x Static Routing'} × ${r.bundleDiameter}mm bundle])</h4>
+                  </div>
+                  <span class="badge ${check2Pass ? 'badge-success' : 'badge-danger'}">${check2Pass ? 'PASS' : 'VIOLATION'}</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 16px; margin: 12px 0;">
+                  <span style="font-family: var(--font-mono); font-size: 11px; color: var(--ink-tertiary);">20mm</span>
+                  <input type="range" class="calc-slider" id="sliderBend" min="20" max="180" value="${r.bendRadius}" style="flex: 1;" />
+                  <span style="font-family: var(--font-mono); font-size: 11px; color: var(--ink-tertiary);">180mm</span>
+                  <label style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: #fff; cursor: pointer; white-space: nowrap;">
+                    <input type="checkbox" id="chkFlexZone" ${r.isFlexZone ? 'checked' : ''} /> Dynamic Flex Zone (Door / Hinge)
+                  </label>
+                </div>
+                <div style="font-size: 12px; color: var(--ink-secondary); line-height: 1.4;">
+                  ${check2Pass ? 
+                    '<strong style="color: #86efac;">Compliant:</strong> Bend radius satisfies multiplier. Copper strands will not suffer mechanical pinching.' : 
+                    '<strong style="color: #fca5a5;">Failure Mode:</strong> Tight bends pinch bundle insulation and cause conductor work hardening, leading to open circuits.<br><span style="color: var(--accent-cyan); font-family: var(--font-mono);">AI Counterpart:</span> Abrupt context truncation without gradual summarization creates hallucinated token boundaries.'}
+                </div>
+              </div>
+
+              <!-- Check 3: Thermal & Edge Clearance -->
+              <div class="routing-checklist-card" style="border-left: 4px solid ${check3Pass ? 'var(--accent-emerald)' : 'var(--accent-rose)'};">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                  <div>
+                    <span style="font-family: var(--font-mono); font-size: 11px; color: var(--ink-tertiary);">CHECK 03 • THERMAL & ABRASION CLEARANCE</span>
+                    <h4 style="font-size: 15px; font-weight: 600; color: #fff;">Exhaust: <span style="font-family: var(--font-mono);">${r.heatClearance}mm</span> (Req: ≥50mm) • Edge: <span style="font-family: var(--font-mono);">${r.edgeClearance}mm</span> (Req: ≥20mm)</h4>
+                  </div>
+                  <span class="badge ${check3Pass ? 'badge-success' : 'badge-danger'}">${check3Pass ? 'PASS' : 'VIOLATION'}</span>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 12px 0;">
+                  <div>
+                    <div style="display: flex; justify-content: space-between; font-size: 11px; color: var(--ink-tertiary); margin-bottom: 4px;">Exhaust Clearance: ${r.heatClearance}mm</div>
+                    <input type="range" class="calc-slider" id="sliderExhaust" min="5" max="80" value="${r.heatClearance}" style="width: 100%;" />
+                  </div>
+                  <div>
+                    <div style="display: flex; justify-content: space-between; font-size: 11px; color: var(--ink-tertiary); margin-bottom: 4px;">Sharp Sheetmetal Edge: ${r.edgeClearance}mm</div>
+                    <input type="range" class="calc-slider" id="sliderEdge" min="5" max="40" value="${r.edgeClearance}" style="width: 100%;" />
+                  </div>
+                </div>
+                <div style="font-size: 12px; color: var(--ink-secondary); line-height: 1.4;">
+                  ${check3Pass ? 
+                    '<strong style="color: #86efac;">Compliant:</strong> Adequate air gap prevents melted PVC insulation and prevents chassis vibration chaffing.' : 
+                    '<strong style="color: #fca5a5;">Failure Mode:</strong> Harness at 10mm from turbo exhaust burns within 48 hours; routing on raw sheet metal cuts through jacket in 3,000 miles.<br><span style="color: var(--accent-cyan); font-family: var(--font-mono);">AI Counterpart:</span> Unprotected secrets and API keys leaking into unauthenticated user-facing prompt logs.'}
+                </div>
+              </div>
+
+              <!-- Check 4: Cavity Seal Plugs -->
+              <div class="routing-checklist-card" style="border-left: 4px solid ${check4Pass ? 'var(--accent-emerald)' : 'var(--accent-rose)'};">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <div>
+                    <span style="font-family: var(--font-mono); font-size: 11px; color: var(--ink-tertiary);">CHECK 04 • IP67 / IP68 WATER INGRESS</span>
+                    <h4 style="font-size: 15px; font-weight: 600; color: #fff;">Are All Empty Sealed Connector Cavities Filled with Plugs?</h4>
+                  </div>
+                  <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: #fff; cursor: pointer;">
+                    <input type="checkbox" id="chkCavityPlugs" ${r.unsealedPlugsFilled ? 'checked' : ''} />
+                    ${r.unsealedPlugsFilled ? '<span style="color: #86efac;">Plugs Installed ✓</span>' : '<span style="color: #fca5a5;">Unsealed Open Cavity ✗</span>'}
+                  </label>
+                </div>
+                <div style="font-size: 12px; color: var(--ink-secondary); line-height: 1.4; margin-top: 8px;">
+                  ${check4Pass ? 
+                    '<strong style="color: #86efac;">Compliant:</strong> Silicon dummy cavity plugs installed. Complete IP68 immersion seal verified.' : 
+                    '<strong style="color: #fca5a5;">Failure Mode:</strong> Missing cavity plug siphons water through rear grommet via capillary action, corroding gold contacts.<br><span style="color: var(--accent-cyan); font-family: var(--font-mono);">AI Counterpart:</span> Empty tool response or unhandled null return causes LLM to hallucinate synthetic facts.'}
+                </div>
+              </div>
+
+              <!-- Check 5: Clip Spacing for Vibration -->
+              <div class="routing-checklist-card" style="border-left: 4px solid ${check5Pass ? 'var(--accent-emerald)' : 'var(--accent-rose)'};">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                  <div>
+                    <span style="font-family: var(--font-mono); font-size: 11px; color: var(--ink-tertiary);">CHECK 05 • HARMONIC RESONANCE & VIBRATION</span>
+                    <h4 style="font-size: 15px; font-weight: 600; color: #fff;">Fastener Clip Spacing: <span style="font-family: var(--font-mono); color: ${check5Pass ? '#86efac' : '#fca5a5'};">${r.clipSpacing} mm</span> (Max: ${maxClip}mm [${r.isHighVibZone ? 'Engine/Chassis High-Vib' : 'Interior Cabin'}])</h4>
+                  </div>
+                  <span class="badge ${check5Pass ? 'badge-success' : 'badge-danger'}">${check5Pass ? 'PASS' : 'VIOLATION'}</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 16px; margin: 12px 0;">
+                  <span style="font-family: var(--font-mono); font-size: 11px; color: var(--ink-tertiary);">50mm</span>
+                  <input type="range" class="calc-slider" id="sliderClip" min="50" max="500" value="${r.clipSpacing}" style="flex: 1;" />
+                  <span style="font-family: var(--font-mono); font-size: 11px; color: var(--ink-tertiary);">500mm</span>
+                  <label style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: #fff; cursor: pointer; white-space: nowrap;">
+                    <input type="checkbox" id="chkHighVib" ${r.isHighVibZone ? 'checked' : ''} /> High Vibration Engine Zone
+                  </label>
+                </div>
+                <div style="font-size: 12px; color: var(--ink-secondary); line-height: 1.4;">
+                  ${check5Pass ? 
+                    '<strong style="color: #86efac;">Compliant:</strong> Fastener pitch suppresses standing wave harmonics under vibration.' : 
+                    '<strong style="color: #fca5a5;">Failure Mode:</strong> Exceeding 150mm clip pitch in high-vib zone causes whipping harmonics that pull wire pins out of crimps.<br><span style="color: var(--accent-cyan); font-family: var(--font-mono);">AI Counterpart:</span> Lack of intermediate checkpointing/idempotency keys allows cascading loop failures.'}
+                </div>
+              </div>
+            </div>
+
+            <!-- Execution Actions Bar -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--line-dim); flex-wrap: wrap; gap: 12px;">
+              <div style="font-family: var(--font-mono); font-size: 12px; color: var(--ink-secondary);">
+                Python Verification Engine: <span style="color: #fff;">skills/harness-engineering/scripts/harness_calculators.py</span>
+              </div>
+              <div style="display: flex; gap: 10px;">
+                <button class="btn btn-secondary" id="btnHarnessCopyCode" style="font-size: 12px; font-family: var(--font-mono);">
+                  Copy PreToolUse Code Invariant
+                </button>
+                <button class="btn btn-primary" id="btnHarnessRunEval" style="font-size: 12px; font-family: var(--font-mono);">
+                  Validate Harness Invariants in Capstone
+                </button>
+              </div>
+            </div>
+          </div>
+        ` : ''}
+      </div>
+    `;
+  }
+
+  attachHarnessStudioEvents() {
+    // 1. Tab Switching
+    document.querySelectorAll('.harness-tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        this.activeHarnessTab = btn.dataset.tab;
+        this.render();
+        this.playHaptic('click');
+      });
+    });
+
+    // 2. Core Node Selection
+    document.querySelectorAll('.harness-orbit-node').forEach(node => {
+      node.addEventListener('click', () => {
+        this.harnessActiveNode = node.dataset.node;
+        this.render();
+        this.playHaptic('click');
+      });
+    });
+
+    // 3. Quick Action Buttons
+    document.getElementById('btnHarnessRunPy')?.addEventListener('click', () => {
+      this.playHaptic('success');
+      alert('Running python3 skills/harness-engineering/scripts/harness_calculators.py --check-all\n\n' +
+            '5-POINT ROUTING CHECKS:\n' +
+            '----------------------------------------\n' +
+            '✓ Check 1 (Splice Clearance): PASS (160.0mm >= 150.0mm)\n' +
+            '✓ Check 2 (Bend Radius): PASS (75.0mm >= 72.0mm)\n' +
+            '✓ Check 3 (Heat Clearance): PASS (60.0mm >= 50.0mm)\n' +
+            '✓ Check 4 (Cavity Plugs): PASS (All cavities plugged)\n' +
+            '✓ Check 5 (Clip Spacing): PASS (140.0mm <= 150.0mm)\n\n' +
+            'OVERALL STATUS: PASSED - PRODUCTION READY (USCAR-2 / AS50881 compliant)');
+    });
+
+    document.getElementById('btnHarnessOpenCapstone')?.addEventListener('click', () => {
+      this.selectedCapstoneTrack = 'case-04';
+      this.switchView('capstone');
+      this.playHaptic('click');
+    });
+
+    // 4. Trace Replay & Stepping
+    document.getElementById('btnTraceReplay')?.addEventListener('click', () => {
+      this.playHaptic('success');
+      alert('Forensic replay started. Tracing HTTP packet duration from agent gateway (t=1.2s) through tools layer (t=1.9s 504 timeout) and executing loop-layer retry rule at t=2.4s.\n\nResult: 0 model hallucinations; zero user disruption.');
+    });
+
+    document.getElementById('btnTracePrev')?.addEventListener('click', () => {
+      this.playHaptic('click');
+      alert('Trace step backwards: inspect t=1.6s outgoing socket buffer.');
+    });
+
+    document.getElementById('btnTraceNext')?.addEventListener('click', () => {
+      this.playHaptic('click');
+      alert('Trace step forwards: inspect t=2.4s loop layer retry rule injection.');
+    });
+
+    document.getElementById('btnHarnessTestPing')?.addEventListener('click', () => {
+      this.playHaptic('success');
+      alert('Pulse dispatched across all 5 jobs:\n\n1. TOOLS: Schema valid (0 errors)\n2. STATE: Scratchpad buffer active\n3. PERMS: Invariants intact\n4. SANDBOX: Filesystem isolated\n5. OBS: Telemetry span recorded');
+    });
+
+    // 5. 5-Point Routing Sliders & Toggles
+    const updateRouting = () => {
+      this.render();
+    };
+
+    document.getElementById('sliderSplice')?.addEventListener('input', (e) => {
+      this.routingCheckForm.spliceDistance = parseInt(e.target.value, 10);
+      updateRouting();
+    });
+
+    document.getElementById('sliderBend')?.addEventListener('input', (e) => {
+      this.routingCheckForm.bendRadius = parseInt(e.target.value, 10);
+      updateRouting();
+    });
+
+    document.getElementById('chkFlexZone')?.addEventListener('change', (e) => {
+      this.routingCheckForm.isFlexZone = e.target.checked;
+      updateRouting();
+      this.playHaptic('click');
+    });
+
+    document.getElementById('sliderExhaust')?.addEventListener('input', (e) => {
+      this.routingCheckForm.heatClearance = parseInt(e.target.value, 10);
+      updateRouting();
+    });
+
+    document.getElementById('sliderEdge')?.addEventListener('input', (e) => {
+      this.routingCheckForm.edgeClearance = parseInt(e.target.value, 10);
+      updateRouting();
+    });
+
+    document.getElementById('chkCavityPlugs')?.addEventListener('change', (e) => {
+      this.routingCheckForm.unsealedPlugsFilled = e.target.checked;
+      updateRouting();
+      this.playHaptic('click');
+    });
+
+    document.getElementById('sliderClip')?.addEventListener('input', (e) => {
+      this.routingCheckForm.clipSpacing = parseInt(e.target.value, 10);
+      updateRouting();
+    });
+
+    document.getElementById('chkHighVib')?.addEventListener('change', (e) => {
+      this.routingCheckForm.isHighVibZone = e.target.checked;
+      updateRouting();
+      this.playHaptic('click');
+    });
+
+    document.getElementById('btnHarnessResetDefaults')?.addEventListener('click', () => {
+      this.routingCheckForm = {
+        spliceDistance: 40,
+        bendRadius: 50,
+        bundleDiameter: 12,
+        isFlexZone: false,
+        heatClearance: 25,
+        edgeClearance: 12,
+        unsealedPlugsFilled: false,
+        clipSpacing: 350,
+        isHighVibZone: true
+      };
+      this.render();
+      this.playHaptic('click');
+    });
+
+    document.getElementById('btnHarnessCopyCode')?.addEventListener('click', () => {
+      const code = `// PreToolUse Code Invariant: 5-Point Routing Enforcement\nclaude.on('PreToolUse', (call) => {\n  if (call.name === 'route_harness_segment') {\n    if (call.params.splice_distance < 150) {\n      throw new Error('USCAR-21 VIOLATION: Splice must be >= 150mm from bend/clip');\n    }\n    if (!call.params.cavity_plugs_installed) {\n      throw new Error('IP68 VIOLATION: Unsealed cavities require dummy plugs');\n    }\n  }\n});`;
+      navigator.clipboard?.writeText(code);
+      this.playHaptic('success');
+      alert('Deterministic PreToolUse invariant hook copied to clipboard.');
+    });
+
+    document.getElementById('btnHarnessRunEval')?.addEventListener('click', () => {
+      this.selectedCapstoneTrack = 'case-04';
+      this.switchView('capstone');
       this.playHaptic('click');
     });
   }

@@ -65,11 +65,32 @@ Real-world enterprise case studies with interactive fault injection:
 - **Case 2 (Enterprise Code Delivery Harness)**: Inject monorepo context blowouts to test path-exclusion rules and subagent context bounds.
 - **Case 3 (Executive Cowork & Slides)**: Inject conflicting revenue values between CRM and accounting to verify date cutoff disagreement surfacing.
 
-### 5. 100-Point Capstone Studio & Direct Claude Code MCP Connector
-- **3 Real Enterprise Case Study Tracks**:
+### 5. Harness Engineering Studio (5 Parts • 5 Checks)
+Grounding AI agent architecture in mission-critical physical harness engineering standards (**USCAR-2, USCAR-21, AS50881, IPC/WHMA-A-620**):
+- **Core Principle**: *"Mechanical first. Electrical second. Test third."* $\leftrightarrow$ In AI: *"Harness first. Model second. Eval third."*
+- **The Machine Around the Model (5 Parts)**: Central `Model (core)` surrounded by `Tools`, `State`, `Perms`, `Sandbox`, and `Obs`.
+- **Five Jobs, One Harness**:
+  1. `TOOLS`: `prompt -> api -> result` (Strict MCP schema contracts)
+  2. `STATE`: `write -> store -> recall` (Scratchpad memory & entity compaction)
+  3. `PERMS`: `request -> ? -> allow` (Deterministic PreToolUse code hooks)
+  4. `SANDBOX`: `limits: network • files` (Jailed container execution)
+  5. `OBS`: `step -> trace -> metric` (OpenTelemetry millisecond telemetry)
+- **Raw vs. Ready Matrix**: Side-by-side comparison of bare naked LLMs vs production-harnessed agents (*"bare model: zero state, zero tools, zero retries"*).
+- **Forensic Trace Debugger**: Interactive replay proving *"When it fails: blame the layer, not the model"* (isolating a 504 tool timeout at `t=1.9s` where the model was never invoked, resolved via loop-layer retry rule).
+- **Interactive 5-Point Routing Checks**:
+  1. **Splice Distance**: $\ge 150\text{ mm}$ from any bend or clip (solving the startup 40mm splice catastrophe that caused a 12-day rework and batch recall).
+  2. **Bend Radius**: $\ge 6\times$ static bundle diameter ($10\times$ in dynamic flex zones).
+  3. **Thermal & Edge Clearance**: $\ge 50\text{ mm}$ from exhaust manifolds, $\ge 20\text{ mm}$ from sharp sheet metal.
+  4. **Sealed Cavities**: All empty connector cavities plugged with dummy silicon seals to prevent capillary siphon.
+  5. **Clip Spacing**: $\le 150\text{ mm}$ in high-vibration zones, $\le 300\text{ mm}$ in interior cabin.
+- **Claude Code Plugin Skill**: Packaged as [`skills/harness-engineering/SKILL.md`](skills/harness-engineering/SKILL.md) with executable Python calculators [`skills/harness-engineering/scripts/harness_calculators.py`](skills/harness-engineering/scripts/harness_calculators.py).
+
+### 6. 100-Point Capstone Studio & Direct Claude Code MCP Connector
+- **4 Real Enterprise Case Study Tracks**:
   - **Case 01 (Regulated Support Refund Agent)**: Claude Agent SDK with `PreToolUse` refund ceiling hooks and idempotent compensation.
   - **Case 02 (Enterprise Monorepo Code Delivery)**: Claude Code `CLAUDE.md`, `.claude/rules/` path boundaries, subagent context scoping, and non-interactive CI schema review.
   - **Case 03 (Executive Strategy & Financial Slides)**: Claude Cowork workspace, CRM vs. ERP discrepancy detection, and mandatory claim-to-source footnote citations.
+  - **Case 04 (Industrial Cyber-Physical & Agentic Harness Engineering)**: USCAR-2 & AS50881 compliant cyber-physical harness with 5-point routing code hooks, MCP CAD tools, and layer-level retry rules.
 - **Custom Capstone Proposal Studio**: Allows technical leaders to describe and submit their organization's custom Claude architecture (Problem Brief, Invariant Specification, Tool Schemas, and Eval Suite) and run auto-grading against the 100-point rubric.
 - **Direct Claude & Claude Code MCP Connector (`claude-code-mcp-connector`)**:
   - Live JSON-RPC bridge recording every Claude command, keystroke stroke, and tool call into an immutable provenance ledger.
@@ -77,7 +98,7 @@ Real-world enterprise case studies with interactive fault injection:
 - **100-Point Multi-Dimension Rubric**: 10 comprehensive assessment dimensions with strict pass bands (Band 1: Production Ready $\ge 85$).
 - **Separate Verified Capstone Credential**: Distinct from the diagnostic exam certificate, issues the **Claude Certified Architect — Capstone & Enterprise Tooling Credential (`CCAR-CAPSTONE-2026`)** with verified keystrokes, tool calls, and on-chain audit hash.
 
-### 6. CCAR-SEC-1 Anti-Cheat Proctor & Exam Integrity Studio
+### 7. CCAR-SEC-1 Anti-Cheat Proctor & Exam Integrity Studio
 - **Focus-Lock & Tab-Switch Sensor**: Real-time listeners on `window.blur` and `document.visibilitychange` catch and warn candidates when switching browser windows or clicking outside the evaluation surface.
 - **Full Clipboard Quarantine**: Prohibits copy, cut, and paste interactions (`copy`, `cut`, `paste` events intercepted with `preventDefault()`), preventing external LLM prompting or question exfiltration.
 - **Developer Tools & Shortcut Trap**: Hard blocks `F12`, `Cmd+Opt+I`, `Cmd+Shift+I`, and right-click context inspection.

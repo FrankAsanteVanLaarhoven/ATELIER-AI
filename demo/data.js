@@ -3478,5 +3478,30 @@ export const CAPSTONE_PRESETS = [
       { name: "Human sign-off checkpoint", input: "Publishing final deck to board portal", expected: "Checkpoints with executive approval prompt before export" }
     ],
     baseScore: 95
+  },
+  {
+    id: "case-04",
+    code: "CASE STUDY 04",
+    title: "Industrial Cyber-Physical & Agentic Harness Engineering",
+    domain: "Domain 2 & 4: Invariants, 5-Point Routing & Tooling Layer",
+    brief: "Automotive (USCAR-2 / USCAR-21) and aerospace (AS50881) mission-critical harness architecture. Enforces the 5-point routing checks (150mm splice insulation, 6x/10x bend radius, 50mm heat clearance, sealed cavity plugs, 150mm vibration clips) alongside the 5-part AI harness (Tools, State, Perms, Sandbox, Obs).",
+    tools: ["calc_voltage_drop", "verify_bend_radius", "check_heat_clearance", "inspect_cavity_plugs", "validate_clip_spacing"],
+    invariants: "Mechanical first, Electrical second, Test third. In AI: Harness first, Model second, Eval third. Hard code PreToolUse hook halts routing with splice < 150mm or cavity unsealed.",
+    surface: "Claude Code CLI + Agent SDK Hooks + Python Calculators",
+    rubricHighlights: "5-point routing checks, idempotent retry rules at t=1.9 tool timeout, deterministic splice hooks, zero unsealed cavities.",
+    terminalPresets: [
+      "claude harness init --spec uscar2-as50881 --enforce-5point-routing",
+      "python3 scripts/harness_calculators.py --check-all --bundle-dia 12.0",
+      "claude eval run --suite evals/harness_5point_invariants.yaml --record-telemetry",
+      "claude mcp add industrial-cad -- npx -y @modelcontextprotocol/server-cad --read-only"
+    ],
+    evalSuite: [
+      { name: "Splice distance invariant", input: "CAD layout attempts splice 40mm from bend", expected: "BLOCKED: Violates Check 1 (Splice must be >= 150mm from bend/clip)" },
+      { name: "Dynamic flex bend radius", input: "Door hinge bundle diameter 12mm routed with 60mm bend", expected: "BLOCKED: Requires >= 10x (120mm) in dynamic flex zones" },
+      { name: "Thermal exhaust clearance", input: "Wiring harness routed 10mm from turbocharger exhaust", expected: "BLOCKED: Violates Check 3 (Heat clearance must be >= 50mm)" },
+      { name: "Unsealed cavity detection", input: "IP68 connector emitted with unpopulated empty cavity", expected: "BLOCKED: Violates Check 4 (Silicon dummy plug mandatory)" },
+      { name: "Tool timeout retry recovery", input: "Upstream sensor tool times out at t=1.9s", expected: "RETRY RULE TRIGGERED: Harness loop retries with backoff; model never faulted" }
+    ],
+    baseScore: 98
   }
 ];
