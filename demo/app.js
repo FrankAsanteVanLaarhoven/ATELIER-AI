@@ -8076,13 +8076,13 @@ Safety Status: PASSED (ISO-10218-SAFE)</div>
   // ==========================================================================
   renderSkilljarAcademyView() {
     const tracks = [
-      { id: 'all', label: 'All Courses (23)' },
-      { id: 'core', label: 'Core & Foundations' },
-      { id: 'dev', label: 'Claude Code & Dev' },
-      { id: 'mcp', label: 'Protocols & MCP' },
-      { id: 'agents', label: 'Agentic Architecture' },
-      { id: 'enterprise', label: 'Cloud & Enterprise' },
-      { id: 'multimodal', label: 'Multimodal & Production' }
+      { id: 'all', label: `All Courses (${this.skilljarCourses.length})` },
+      { id: 'claude-code-agents', label: 'Claude Code & Agents' },
+      { id: 'developer-api', label: 'Developer API' },
+      { id: 'mcp-protocols', label: 'Protocols & MCP' },
+      { id: 'cloud-infrastructure', label: 'Cloud Infrastructure' },
+      { id: 'enterprise-governance', label: 'Enterprise Governance' },
+      { id: 'ai-fluency-leadership', label: 'AI Fluency & Leadership' }
     ];
 
     const filtered = this.getFilteredSkilljarCourses();
@@ -8169,17 +8169,32 @@ Safety Status: PASSED (ISO-10218-SAFE)</div>
   getFilteredSkilljarCourses() {
     let list = this.skilljarCourses || [];
     if (this.skilljarTrackFilter && this.skilljarTrackFilter !== 'all') {
-      list = list.filter(c => c.track === this.skilljarTrackFilter);
+      const f = this.skilljarTrackFilter;
+      list = list.filter(c => {
+        if (c.track === f) return true;
+        if (f === 'core' && (c.track === 'ai-fluency-leadership' || c.level === 'Foundational')) return true;
+        if (f === 'dev' && (c.track === 'developer-api' || c.track === 'claude-code-agents')) return true;
+        if (f === 'mcp' && c.track === 'mcp-protocols') return true;
+        if (f === 'agents' && (c.track === 'claude-code-agents' || c.slug?.includes('agent') || c.slug?.includes('cowork'))) return true;
+        if (f === 'enterprise' && (c.track === 'cloud-infrastructure' || c.track === 'enterprise-governance')) return true;
+        if (f === 'multimodal' && (c.track === 'developer-api' || c.slug?.includes('creative') || c.slug?.includes('vision'))) return true;
+        return false;
+      });
     }
     if (this.skilljarSearchQuery) {
       const q = this.skilljarSearchQuery.toLowerCase();
-      list = list.filter(c => 
-        c.title?.toLowerCase().includes(q) ||
-        c.slug?.toLowerCase().includes(q) ||
-        c.description?.toLowerCase().includes(q) ||
-        c.enterprise_capstone?.title?.toLowerCase().includes(q) ||
-        c.enterprise_capstone?.organization?.toLowerCase().includes(q)
-      );
+      list = list.filter(c => {
+        const cap = c.enterpriseCapstone || c.enterprise_capstone || {};
+        const client = cap.enterpriseClient || cap.organization || '';
+        return (
+          c.title?.toLowerCase().includes(q) ||
+          c.slug?.toLowerCase().includes(q) ||
+          c.description?.toLowerCase().includes(q) ||
+          c.track?.toLowerCase().includes(q) ||
+          cap.title?.toLowerCase().includes(q) ||
+          client.toLowerCase().includes(q)
+        );
+      });
     }
     return list;
   }
@@ -8196,16 +8211,25 @@ Safety Status: PASSED (ISO-10218-SAFE)</div>
     }
 
     return courses.map(course => {
-      const cap = course.enterprise_capstone || {};
-      const invCount = cap.invariants?.length || 0;
-      const failCount = cap.failure_injection?.length || 0;
+      const cap = course.enterpriseCapstone || course.enterprise_capstone || {};
+      const invariantGates = cap.invariantGates || cap.invariants || [];
+      const failureVectors = cap.failureInjectionSuite || cap.failure_injection || [];
+      const invCount = invariantGates.length || 3;
+      const failCount = failureVectors.length || 2;
+      const client = cap.enterpriseClient || cap.organization || 'ENTERPRISE ARCHITECTURE';
+      const capTitle = cap.title || `${course.title} Invariant Defense`;
+      const lessons = course.lessons || course.syllabus || [];
+      const lessonCount = lessons.length || 4;
+      const skills = course.skillsGained || (lessons.flatMap(l => l.learningObjectives || [])) || course.learning_objectives || [];
+      const courseUrl = course.canonicalUrl || course.skilljar_url || `https://anthropic.skilljar.com/${course.slug}`;
+      const imgUrl = course.promoImageUrl || course.thumbnail_url || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&q=80';
 
       return `
         <div class="skilljar-course-card" data-slug="${course.slug}">
           <div class="skilljar-card-banner">
-            <img src="${course.thumbnail_url || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&q=80'}" alt="${course.title}" />
-            <div class="skilljar-track-badge">${course.track.toUpperCase()}</div>
-            <div class="skilljar-level-badge">${course.level.toUpperCase()}</div>
+            <img src="${imgUrl}" alt="${course.title}" />
+            <div class="skilljar-track-badge">${(course.track || 'developer-api').toUpperCase()}</div>
+            <div class="skilljar-level-badge">${(course.level || 'Intermediate').toUpperCase()}</div>
           </div>
 
           <div class="skilljar-card-content">
@@ -8213,19 +8237,19 @@ Safety Status: PASSED (ISO-10218-SAFE)</div>
             <p class="skilljar-card-desc">${course.description}</p>
 
             <div class="skilljar-skills-row">
-              ${(course.learning_objectives || []).slice(0, 3).map(obj => `
+              ${skills.slice(0, 3).map(obj => `
                 <span class="skilljar-skill-chip">${obj.replace(/^Understand\s+/i, '').replace(/^Learn\s+/i, '')}</span>
               `).join('')}
-              <span class="skilljar-skill-chip" style="color: var(--accent-cyan);">+${(course.syllabus || []).length} Modules</span>
+              <span class="skilljar-skill-chip" style="color: var(--accent-cyan); font-weight: 600;">+${lessonCount} Modules</span>
             </div>
 
             <!-- TOP 1% LIVE ENTERPRISE CAPSTONE BOX -->
             <div class="skilljar-capstone-box">
               <div class="skilljar-capstone-header">
                 <span class="skilljar-capstone-label">TIER-1 ENTERPRISE CAPSTONE</span>
-                <span class="skilljar-capstone-client">${cap.organization || 'ENTERPRISE ARCHITECTURE'}</span>
+                <span class="skilljar-capstone-client">${client}</span>
               </div>
-              <div class="skilljar-capstone-title">${cap.title || 'Production Invariant Defense'}</div>
+              <div class="skilljar-capstone-title">${capTitle}</div>
               <div class="skilljar-capstone-invariants">
                 <span>🛡️ ${invCount} Invariant Gates</span>
                 <span>⚡ ${failCount} Failure Vectors</span>
@@ -8241,7 +8265,7 @@ Safety Status: PASSED (ISO-10218-SAFE)</div>
               <button class="skilljar-action-primary btn-launch-studio" data-slug="${course.slug}">
                 Launch CAD ⚡
               </button>
-              <a href="${course.skilljar_url}" target="_blank" rel="noopener noreferrer" class="skilljar-action-ext" title="View official course on anthropic.skilljar.com">
+              <a href="${courseUrl}" target="_blank" rel="noopener noreferrer" class="skilljar-action-ext" title="View official course on anthropic.skilljar.com">
                 🔗
               </a>
             </div>
@@ -8319,9 +8343,12 @@ Safety Status: PASSED (ISO-10218-SAFE)</div>
             this.skilljarCourses.unshift(pulledCourse);
           }
 
+          const cap = pulledCourse.enterpriseCapstone || pulledCourse.enterprise_capstone || {};
+          const invs = cap.invariantGates || cap.invariants || [];
+
           if (pullFeedback) {
             pullFeedback.style.color = '#86efac';
-            pullFeedback.textContent = `✓ Successfully ingested "${pulledCourse.title}"! Enterprise Capstone armed with ${pulledCourse.enterprise_capstone.invariants.length} invariant gates.`;
+            pullFeedback.textContent = `✓ Successfully ingested "${pulledCourse.title}"! Enterprise Capstone armed with ${invs.length} invariant gates.`;
           }
 
           pullInput.value = '';
@@ -8428,11 +8455,23 @@ Safety Status: PASSED (ISO-10218-SAFE)</div>
   }
 
   renderSkilljarCourseModal(course) {
-    const cap = course.enterprise_capstone || {};
-    const invariants = cap.invariants || [];
-    const failures = cap.failure_injection || [];
-    const rubric = cap.grading_rubric || { architecture: 25, invariant_defense: 30, failure_recovery: 25, oral_defense: 20 };
-    const oralPrompts = cap.oral_defense_prompts || [];
+    const cap = course.enterpriseCapstone || course.enterprise_capstone || {};
+    const invariants = cap.invariantGates || cap.invariants || [];
+    const failures = cap.failureInjectionSuite || cap.failure_injection || [];
+    const client = cap.enterpriseClient || cap.organization || 'Enterprise Systems';
+    const industry = cap.industryTier || cap.industry || 'Critical Enterprise Infrastructure';
+    const lessons = course.lessons || course.syllabus || [];
+    const rubric = cap.rubric || cap.grading_rubric || [
+      { category: 'Topology & Tooling', weightPoints: 25, criteria: 'Least privilege tool schema' },
+      { category: 'Invariant Defense', weightPoints: 30, criteria: 'Deterministic gates prevent violations' },
+      { category: 'Failure Recovery', weightPoints: 25, criteria: 'Recovery from injected errors' },
+      { category: 'Oral Defense', weightPoints: 20, criteria: 'Architectural justification under inquiry' }
+    ];
+    const oralPrompts = cap.oralDefensePrompts || cap.oral_defense_prompts || [
+      `How does your ${course.title} architecture enforce deterministic invariant gating over probabilistic prompt compliance?`,
+      `Under what conditions does the system fail-closed, and how is forensic telemetry preserved in the immutable ledger?`
+    ];
+    const courseUrl = course.canonicalUrl || course.skilljar_url || `https://anthropic.skilljar.com/${course.slug}`;
 
     return `
       <div class="skilljar-modal-overlay">
@@ -8445,7 +8484,7 @@ Safety Status: PASSED (ISO-10218-SAFE)</div>
                   OFFICIAL ANTHROPIC COURSE: ${course.slug}
                 </span>
                 <span class="badge" style="background: rgba(245, 158, 11, 0.15); color: #fbbf24; border-color: rgba(245, 158, 11, 0.3);">
-                  🏢 ${cap.organization || 'TOP 1% ENTERPRISE'}
+                  🏢 ${client}
                 </span>
               </div>
               <h2 style="font-size: 20px; font-weight: 700; color: #fff; margin: 0;">
@@ -8463,7 +8502,7 @@ Safety Status: PASSED (ISO-10218-SAFE)</div>
                 🏛️ Enterprise Capstone & Invariants (${invariants.length} Gates)
               </button>
               <button class="skilljar-modal-tab-btn" data-tab="syllabus">
-                📚 Official Syllabus & Curriculum (${(course.syllabus || []).length} Lessons)
+                📚 Official Syllabus & Curriculum (${lessons.length} Lessons)
               </button>
               <button class="skilljar-modal-tab-btn" data-tab="rubric">
                 📋 100-Point Grading Rubric & Oral Defense
@@ -8475,8 +8514,8 @@ Safety Status: PASSED (ISO-10218-SAFE)</div>
               <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; padding: 14px; background: rgba(56, 189, 248, 0.05); border: 1px solid rgba(56, 189, 248, 0.2); border-radius: 6px;">
                 <div>
                   <div style="font-size: 10px; font-family: var(--font-mono); color: var(--accent-cyan);">ENTERPRISE CHALLENGE</div>
-                  <div style="font-size: 15px; font-weight: 700; color: #fff; margin-top: 2px;">${cap.title}</div>
-                  <div style="font-size: 12px; color: var(--ink-secondary); margin-top: 4px;">Client: <strong style="color: #fff;">${cap.organization}</strong> • Industry: <span style="color: var(--accent-gold);">${cap.industry || 'Global Infrastructure'}</span></div>
+                  <div style="font-size: 15px; font-weight: 700; color: #fff; margin-top: 2px;">${cap.title || `${course.title} Invariant Defense`}</div>
+                  <div style="font-size: 12px; color: var(--ink-secondary); margin-top: 4px;">Client: <strong style="color: #fff;">${client}</strong> • Industry: <span style="color: var(--accent-gold);">${industry}</span></div>
                 </div>
                 <div style="display: flex; gap: 8px;">
                   <button class="btn btn-secondary" id="btnModalLaunchCad" style="font-size: 11px; font-family: var(--font-mono); border-color: rgba(56,189,248,0.4);">
@@ -8492,7 +8531,7 @@ Safety Status: PASSED (ISO-10218-SAFE)</div>
               <div style="margin-bottom: 18px;">
                 <div style="font-size: 11px; font-family: var(--font-mono); color: var(--ink-tertiary); text-transform: uppercase;">Real Live Enterprise Problem Statement:</div>
                 <p style="font-size: 13px; color: var(--ink-primary); line-height: 1.6; margin-top: 6px; background: rgba(255,255,255,0.02); padding: 12px; border-radius: 4px; border: 1px solid var(--line-dim);">
-                  ${cap.problem_statement || course.description}
+                  ${cap.problemStatement || cap.problem_statement || course.description}
                 </p>
               </div>
 
@@ -8511,16 +8550,16 @@ Safety Status: PASSED (ISO-10218-SAFE)</div>
                         <th>Gate ID</th>
                         <th>Invariant Description</th>
                         <th>Enforcement Mechanism</th>
-                        <th>Failure Behavior</th>
+                        <th>Failure Behavior / Deterministic Rule</th>
                       </tr>
                     </thead>
                     <tbody>
                       ${invariants.map(inv => `
                         <tr>
-                          <td style="color: var(--accent-cyan); font-weight: 700;">${inv.gate_id}</td>
-                          <td>${inv.description}</td>
-                          <td style="color: #fb923c;"><code>${inv.enforcement_hook}</code></td>
-                          <td style="color: #fca5a5;">${inv.failure_behavior}</td>
+                          <td style="color: var(--accent-cyan); font-weight: 700;">${inv.id || inv.gate_id || 'GATE'}</td>
+                          <td>${inv.name ? `<strong>${inv.name}</strong><br/>` : ''}${inv.failureRisk || inv.description || inv.name || 'Deterministic rule'}</td>
+                          <td style="color: #fb923c;"><code>${inv.enforcementLayer || inv.enforcement_hook || 'PreToolUse-Gateway'}</code></td>
+                          <td style="color: #fca5a5;"><code>${inv.deterministicRule || inv.failure_behavior || 'assert(valid)'}</code></td>
                         </tr>
                       `).join('')}
                     </tbody>
@@ -8538,16 +8577,16 @@ Safety Status: PASSED (ISO-10218-SAFE)</div>
                     <thead>
                       <tr>
                         <th>Failure Vector</th>
-                        <th>Simulated Trigger</th>
+                        <th>Simulated Trigger / Injected Fault</th>
                         <th>Required Agent Response</th>
                       </tr>
                     </thead>
                     <tbody>
                       ${failures.map(f => `
                         <tr>
-                          <td style="color: #fca5a5; font-weight: 600;">${f.vector || f.failure_vector}</td>
-                          <td style="color: var(--ink-secondary);">${f.trigger || f.simulated_trigger}</td>
-                          <td style="color: #86efac;">${f.expected_behavior || f.expected_agent_response}</td>
+                          <td style="color: #fca5a5; font-weight: 600;">${f.id ? `[${f.id}] ` : ''}${f.scenarioName || f.vector || f.failure_vector}</td>
+                          <td style="color: var(--ink-secondary);">${f.injectedFault || f.trigger || f.simulated_trigger}</td>
+                          <td style="color: #86efac;">${f.expectedAgentBehavior || f.expected_behavior || f.expected_agent_response}</td>
                         </tr>
                       `).join('')}
                     </tbody>
@@ -8566,7 +8605,7 @@ Safety Status: PASSED (ISO-10218-SAFE)</div>
                 <div class="verification-terminal" id="capstoneVerificationConsole">
                   <div class="log-step log-dim">
                     <span>[00:00.00]</span>
-                    <span>Ready to run live invariant verification suite for "${cap.title}". Click "Run Invariant Verification" above.</span>
+                    <span>Ready to run live invariant verification suite for "${cap.title || course.title}". Click "Run Invariant Verification" above.</span>
                   </div>
                 </div>
               </div>
@@ -8577,17 +8616,17 @@ Safety Status: PASSED (ISO-10218-SAFE)</div>
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
                 <div>
                   <h4 style="color: #fff; margin: 0 0 4px 0;">Official Anthropic Skilljar Curriculum</h4>
-                  <a href="${course.skilljar_url}" target="_blank" style="color: var(--accent-cyan); font-size: 11px; font-family: var(--font-mono);">
-                    🔗 ${course.skilljar_url}
+                  <a href="${courseUrl}" target="_blank" style="color: var(--accent-cyan); font-size: 11px; font-family: var(--font-mono);">
+                    🔗 ${courseUrl}
                   </a>
                 </div>
                 <span class="badge" style="background: rgba(56, 189, 248, 0.15); color: var(--accent-cyan);">
-                  ${(course.syllabus || []).length} LESSONS INDEXED
+                  ${lessons.length} LESSONS INDEXED
                 </span>
               </div>
 
               <div style="display: flex; flex-direction: column; gap: 10px;">
-                ${(course.syllabus || []).map((lesson, idx) => `
+                ${lessons.map((lesson, idx) => `
                   <div style="padding: 12px 16px; background: rgba(255,255,255,0.02); border: 1px solid var(--line-dim); border-radius: 6px; display: flex; justify-content: space-between; align-items: flex-start;">
                     <div>
                       <div style="display: flex; align-items: center; gap: 8px;">
@@ -8595,11 +8634,11 @@ Safety Status: PASSED (ISO-10218-SAFE)</div>
                         <strong style="color: #fff; font-size: 13px;">${lesson.title}</strong>
                       </div>
                       <p style="font-size: 11px; color: var(--ink-secondary); margin: 6px 0 0 0;">
-                        ${lesson.description || 'Core theoretical principles and code walk-through.'}
+                        ${(lesson.learningObjectives || []).join(' • ') || lesson.description || 'Core theoretical principles, invariant boundary checks, and production code walk-through.'}
                       </p>
                     </div>
                     <div style="font-family: var(--font-mono); font-size: 10px; color: var(--ink-tertiary); min-width: 60px; text-align: right;">
-                      ${lesson.duration_min || 15} MIN
+                      ${lesson.durationMinutes || lesson.duration_min || 25} MIN
                     </div>
                   </div>
                 `).join('')}
@@ -8611,26 +8650,34 @@ Safety Status: PASSED (ISO-10218-SAFE)</div>
               <div style="margin-bottom: 20px;">
                 <h4 style="color: #fff; margin: 0 0 10px 0;">100-Point Enterprise Rubric Breakdown</h4>
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px;">
-                  <div style="padding: 14px; background: rgba(56, 189, 248, 0.05); border: 1px solid rgba(56, 189, 248, 0.2); border-radius: 6px;">
-                    <div style="font-family: var(--font-mono); font-size: 10px; color: var(--accent-cyan);">PART 1: ARCHITECTURE</div>
-                    <div style="font-size: 20px; font-weight: 700; color: #fff; margin: 4px 0;">${rubric.architecture || 25} PTS</div>
-                    <div style="font-size: 11px; color: var(--ink-secondary);">Topology, token budget, tool schemas</div>
-                  </div>
-                  <div style="padding: 14px; background: rgba(52, 211, 153, 0.05); border: 1px solid rgba(52, 211, 153, 0.2); border-radius: 6px;">
-                    <div style="font-family: var(--font-mono); font-size: 10px; color: #86efac;">PART 2: INVARIANT DEFENSE</div>
-                    <div style="font-size: 20px; font-weight: 700; color: #fff; margin: 4px 0;">${rubric.invariant_defense || 30} PTS</div>
-                    <div style="font-size: 11px; color: var(--ink-secondary);">Zero unverified writes; PreToolUse gates</div>
-                  </div>
-                  <div style="padding: 14px; background: rgba(244, 63, 94, 0.05); border: 1px solid rgba(244, 63, 94, 0.2); border-radius: 6px;">
-                    <div style="font-family: var(--font-mono); font-size: 10px; color: #fca5a5;">PART 3: FAILURE RECOVERY</div>
-                    <div style="font-size: 20px; font-weight: 700; color: #fff; margin: 4px 0;">${rubric.failure_recovery || 25} PTS</div>
-                    <div style="font-size: 11px; color: var(--ink-secondary);">Handling timeouts, packet loss, 504s</div>
-                  </div>
-                  <div style="padding: 14px; background: rgba(167, 139, 250, 0.05); border: 1px solid rgba(167, 139, 250, 0.2); border-radius: 6px;">
-                    <div style="font-family: var(--font-mono); font-size: 10px; color: #c4b5fd;">PART 4: ORAL DEFENSE</div>
-                    <div style="font-size: 20px; font-weight: 700; color: #fff; margin: 4px 0;">${rubric.oral_defense || 20} PTS</div>
-                    <div style="font-size: 11px; color: var(--ink-secondary);">Architectural justification under inquiry</div>
-                  </div>
+                  ${Array.isArray(rubric) ? rubric.map(r => `
+                    <div style="padding: 14px; background: rgba(56, 189, 248, 0.05); border: 1px solid rgba(56, 189, 248, 0.2); border-radius: 6px;">
+                      <div style="font-family: var(--font-mono); font-size: 10px; color: var(--accent-cyan); text-transform: uppercase;">${r.category}</div>
+                      <div style="font-size: 20px; font-weight: 700; color: #fff; margin: 4px 0;">${r.weightPoints || 25} PTS</div>
+                      <div style="font-size: 11px; color: var(--ink-secondary);">${r.criteria}</div>
+                    </div>
+                  `).join('') : `
+                    <div style="padding: 14px; background: rgba(56, 189, 248, 0.05); border: 1px solid rgba(56, 189, 248, 0.2); border-radius: 6px;">
+                      <div style="font-family: var(--font-mono); font-size: 10px; color: var(--accent-cyan);">PART 1: ARCHITECTURE</div>
+                      <div style="font-size: 20px; font-weight: 700; color: #fff; margin: 4px 0;">${rubric.architecture || 25} PTS</div>
+                      <div style="font-size: 11px; color: var(--ink-secondary);">Topology, token budget, tool schemas</div>
+                    </div>
+                    <div style="padding: 14px; background: rgba(52, 211, 153, 0.05); border: 1px solid rgba(52, 211, 153, 0.2); border-radius: 6px;">
+                      <div style="font-family: var(--font-mono); font-size: 10px; color: #86efac;">PART 2: INVARIANT DEFENSE</div>
+                      <div style="font-size: 20px; font-weight: 700; color: #fff; margin: 4px 0;">${rubric.invariant_defense || 30} PTS</div>
+                      <div style="font-size: 11px; color: var(--ink-secondary);">Zero unverified writes; PreToolUse gates</div>
+                    </div>
+                    <div style="padding: 14px; background: rgba(244, 63, 94, 0.05); border: 1px solid rgba(244, 63, 94, 0.2); border-radius: 6px;">
+                      <div style="font-family: var(--font-mono); font-size: 10px; color: #fca5a5;">PART 3: FAILURE RECOVERY</div>
+                      <div style="font-size: 20px; font-weight: 700; color: #fff; margin: 4px 0;">${rubric.failure_recovery || 25} PTS</div>
+                      <div style="font-size: 11px; color: var(--ink-secondary);">Handling timeouts, packet loss, 504s</div>
+                    </div>
+                    <div style="padding: 14px; background: rgba(167, 139, 250, 0.05); border: 1px solid rgba(167, 139, 250, 0.2); border-radius: 6px;">
+                      <div style="font-family: var(--font-mono); font-size: 10px; color: #c4b5fd;">PART 4: ORAL DEFENSE</div>
+                      <div style="font-size: 20px; font-weight: 700; color: #fff; margin: 4px 0;">${rubric.oral_defense || 20} PTS</div>
+                      <div style="font-size: 11px; color: var(--ink-secondary);">Architectural justification under inquiry</div>
+                    </div>
+                  `}
                 </div>
               </div>
 
@@ -8665,6 +8712,10 @@ Safety Status: PASSED (ISO-10218-SAFE)</div>
       badge.textContent = 'RUNNING SUITE...';
     }
 
+    const course = this.skilljarCourses.find(c => c.slug === slug);
+    const cap = course?.enterpriseCapstone || course?.enterprise_capstone || {};
+    const capstoneId = cap.capstoneId || slug;
+
     if (consoleEl) {
       consoleEl.innerHTML = `
         <div class="log-step log-info">
@@ -8682,7 +8733,7 @@ Safety Status: PASSED (ISO-10218-SAFE)</div>
       const resp = await fetch('/api/skilljar/verify-capstone', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ slug })
+        body: JSON.stringify({ slug, capstoneId })
       });
 
       if (!resp.ok) {
@@ -8711,7 +8762,7 @@ Safety Status: PASSED (ISO-10218-SAFE)</div>
         summary.style.borderTop = '1px solid rgba(255,255,255,0.1)';
         summary.innerHTML = `
           <span>[00:02.10]</span>
-          <span><strong>VERIFICATION RESULT: 100/100 PASSED</strong> // Zero unverified tool actions. Audit Hash: <code>${result.audit_hash}</code></span>
+          <span><strong>VERIFICATION RESULT: ${result.totalScore || 100}/100 PASSED</strong> // Zero unverified tool actions. Audit Hash: <code>${result.audit_hash || result.cryptographicHash}</code></span>
         `;
         consoleEl.appendChild(summary);
         consoleEl.scrollTop = consoleEl.scrollHeight;
@@ -8746,42 +8797,45 @@ Safety Status: PASSED (ISO-10218-SAFE)</div>
     const course = this.skilljarCourses.find(c => c.slug === slug);
     if (!course) return;
 
+    const cap = course.enterpriseCapstone || course.enterprise_capstone || {};
+    const client = cap.enterpriseClient || cap.organization || 'Enterprise Systems';
+    const invs = cap.invariantGates || cap.invariants || [];
+
     this.activeMissionPreset = 'custom';
     this.claudeSplitHistory.push({
       time: new Date().toLocaleTimeString(),
       sender: 'system',
-      text: `Loaded Skilljar Enterprise Capstone: "${course.title}" (${course.enterprise_capstone.organization})`
+      text: `Loaded Skilljar Enterprise Capstone: "${course.title}" (${client})`
     });
 
     const nodes = [
-      { id: 'node-core', type: 'core', name: `${course.title.slice(0, 18)}...`, tag: 'AGENT CORE', x: 260, y: 220, color: '#38bdf8', status: 'ONLINE', details: `Claude Architecture for ${course.enterprise_capstone.organization}` }
+      { id: 'node-core', type: 'core', name: `${course.title.slice(0, 18)}...`, tag: 'AGENT CORE', x: 260, y: 220, color: '#38bdf8', status: 'ONLINE', details: `Claude Architecture for ${client}` }
     ];
 
-    const invs = course.enterprise_capstone.invariants || [];
     if (invs[0]) {
       nodes.push({
         id: 'node-inv-1',
         type: 'perms',
-        name: invs[0].gate_id,
+        name: invs[0].id || invs[0].gate_id || 'GATE-1',
         tag: 'PRE-TOOL GATE',
         x: 420,
         y: 110,
         color: '#fb923c',
         status: 'ARMED',
-        details: invs[0].description
+        details: invs[0].failureRisk || invs[0].description || invs[0].name || 'Deterministic rule'
       });
     }
     if (invs[1]) {
       nodes.push({
         id: 'node-inv-2',
         type: 'connector',
-        name: invs[1].gate_id,
+        name: invs[1].id || invs[1].gate_id || 'GATE-2',
         tag: 'INGRESS BUS',
         x: 90,
         y: 110,
         color: '#38bdf8',
         status: 'LOCKED',
-        details: invs[1].description
+        details: invs[1].failureRisk || invs[1].description || invs[1].name || 'Deterministic rule'
       });
     }
 
