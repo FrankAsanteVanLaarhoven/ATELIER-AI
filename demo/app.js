@@ -596,6 +596,12 @@ class ClaudeArchitectPlatform {
       });
     }
 
+    // Topbar Manual trigger
+    document.getElementById('btnTopbarOpenManual')?.addEventListener('click', () => {
+      this.switchView('platform-manual');
+      this.playHaptic('click');
+    });
+
     // Command palette trigger
     const cmdTrigger = document.getElementById('cmdTrigger');
     const cmdModal = document.getElementById('cmdModal');
@@ -745,7 +751,8 @@ class ClaudeArchitectPlatform {
         'case-studies': 'Case Studies & Failure Injection',
         'exam-engine': 'Timed Mock Exam & Drills',
         'capstone': 'Capstone & Defense Studio',
-        'proctor': 'Proctor & Exam Integrity Studio'
+        'proctor': 'Proctor & Exam Integrity Studio',
+        'platform-manual': 'Platform Manual / Comprehensive Operator & Architectural Handbook'
       };
       breadcrumb.textContent = titles[viewName] || 'Enterprise Studio';
     }
@@ -777,6 +784,7 @@ class ClaudeArchitectPlatform {
     if (!list) return;
 
     const baseCommands = [
+      { title: 'Open Platform Manual & Architectural Handbook', sub: 'Comprehensive handbook: 5-step loop, reproducible labs, 8 enterprise gates, CLI, voice runtime, and cheatsheet', action: () => { this.switchView('platform-manual'); } },
       { title: 'Open Voice-Native Agent Runtime', sub: 'Continuous session identity, Loop 2 grounded replanning & physical safety boundary', action: () => { this.switchView('voice-runtime'); } },
       { title: 'Voice: Test Second Loop Interruption ("No, not that robot—the G1 beside it")', sub: 'Real-time barge-in, deixis re-grounding and dynamic plan branch mutation', action: () => { this.switchView('voice-runtime'); this.runVoiceScenario('scen-second-loop-robot'); } },
       { title: 'Voice: Test Parameter Override ("Change wire 101 to 16 AWG before crimping")', sub: 'In-flight tooling invalidation & USCAR-21 crimp recalculation', action: () => { this.switchView('voice-runtime'); this.runVoiceScenario('scen-parameter-override'); } },
@@ -849,6 +857,10 @@ class ClaudeArchitectPlatform {
     if (!container) return;
 
     switch (this.currentView) {
+      case 'platform-manual':
+        container.innerHTML = this.renderPlatformManualView();
+        this.attachPlatformManualEvents();
+        break;
       case 'capstone-tracker':
         container.innerHTML = this.renderCapstoneTrackerView();
         this.attachCapstoneTrackerEvents();
@@ -9154,6 +9166,681 @@ enterprise_gates:
     a.click();
     URL.revokeObjectURL(url);
     this.playHaptic('success');
+  }
+
+  // -------------------------------------------------------------------------
+  // 4. ON-PLATFORM MANUAL & ARCHITECTURAL HANDBOOK VIEW
+  // -------------------------------------------------------------------------
+
+  renderPlatformManualView() {
+    return `
+      <div class="manual-container">
+        <!-- Hero Banner -->
+        <div class="manual-header-banner">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px;">
+            <div>
+              <div class="manual-kicker">
+                <span>📖</span> ATELIER-AI OPERATOR & ARCHITECT MANUAL • v2.8 PRODUCTION
+              </div>
+              <h1 class="manual-title" style="font-size: 26px; margin: 6px 0 8px;">
+                The Production Claude Engineering Handbook
+              </h1>
+              <p style="font-size: 13px; color: var(--ink-secondary); max-width: 820px; line-height: 1.6; margin: 0;">
+                Welcome to ATELIER-AI. This platform trains you to transition from passive prompting to <strong>AI-directed engineering</strong>: starting with an idea and finishing with a working, tested, reproducible, auditable system verified against 8 Enterprise Gates.
+              </p>
+            </div>
+            <div style="display: flex; gap: 8px; flex-shrink: 0;">
+              <button class="pill-btn primary" id="btnManualStartProject" style="background: var(--accent-emerald); border-color: var(--accent-emerald); color: #000; font-weight: 700; font-size: 11px;">
+                🚀 Start My Capstone
+              </button>
+              <button class="pill-btn primary" id="btnManualOpenLabs" style="background: var(--accent-cyan); border-color: var(--accent-cyan); color: #000; font-weight: 700; font-size: 11px;">
+                🧪 Open Lab Workbench
+              </button>
+            </div>
+          </div>
+
+          <!-- Live Search Bar -->
+          <div class="manual-search-row">
+            <input type="text" class="manual-search-input" id="manualSearchInput" placeholder="🔍 Search manual sections, enterprise gates, commands, or invariants (e.g. 'EG-3', '3x reproducibility', 'hooks', 'CFO', 'VAD', 'Skilljar')..." />
+            <span style="font-size: 11px; font-family: var(--font-mono); color: var(--ink-tertiary);" id="manualSearchCount">10 Sections Available</span>
+          </div>
+        </div>
+
+        <!-- 2-Column Split Manual Layout -->
+        <div class="manual-layout">
+          <!-- Sticky Table of Contents -->
+          <aside class="manual-toc-card" id="manualToc">
+            <div style="font-size: 11px; font-family: var(--font-mono); color: var(--ink-tertiary); margin-bottom: 6px; padding: 0 4px;">
+              HANDBOOK CHAPTERS:
+            </div>
+            <a class="manual-toc-item active" href="#manual-sec-1">
+              <span class="manual-toc-num">01</span>
+              <span>The 5-Step Learning Loop</span>
+            </a>
+            <a class="manual-toc-item" href="#manual-sec-2">
+              <span class="manual-toc-num">02</span>
+              <span>Day 1 Capstone & 8 Gates</span>
+            </a>
+            <a class="manual-toc-item" href="#manual-sec-3">
+              <span class="manual-toc-num">03</span>
+              <span>Reproducible Lab Workbench</span>
+            </a>
+            <a class="manual-toc-item" href="#manual-sec-4">
+              <span class="manual-toc-num">04</span>
+              <span>8-Tier AI Coach & Independence</span>
+            </a>
+            <a class="manual-toc-item" href="#manual-sec-5">
+              <span class="manual-toc-num">05</span>
+              <span>Claude Code CLI Side-by-Side</span>
+            </a>
+            <a class="manual-toc-item" href="#manual-sec-6">
+              <span class="manual-toc-num">06</span>
+              <span>Continuous Voice & Safety</span>
+            </a>
+            <a class="manual-toc-item" href="#manual-sec-7">
+              <span class="manual-toc-num">07</span>
+              <span>Anthropic Skilljar Hub</span>
+            </a>
+            <a class="manual-toc-item" href="#manual-sec-8">
+              <span class="manual-toc-num">08</span>
+              <span>Proctor & Integrity Engine</span>
+            </a>
+            <a class="manual-toc-item" href="#manual-sec-9">
+              <span class="manual-toc-num">09</span>
+              <span>Evidence Ledger & Export</span>
+            </a>
+            <a class="manual-toc-item" href="#manual-sec-10">
+              <span class="manual-toc-num">10</span>
+              <span>Keyboard & Slash Cheatsheet</span>
+            </a>
+          </aside>
+
+          <!-- Main Content Column -->
+          <div class="manual-content-column" id="manualContentCol">
+            <!-- SECTION 1 -->
+            <section class="manual-section-card" id="manual-sec-1">
+              <div class="manual-kicker"><span>01</span> ARCHITECTURAL CORE</div>
+              <h2 class="manual-title">The 5-Step Enterprise Learning Loop</h2>
+              <p style="font-size: 13px; line-height: 1.6; color: var(--ink-secondary);">
+                ATELIER-AI rejects the passive "tutorial video + prompt copy-paste" paradigm. Instead, the platform operationalizes Anthropic's 2026 finding across 400,000 Claude sessions: <em>human domain expertise determines the problem definition and success invariants, while Claude executes the implementation.</em>
+              </p>
+
+              <div class="manual-steps-grid">
+                <div class="manual-step-box">
+                  <div class="manual-step-badge">STEP 1</div>
+                  <div class="manual-step-name">Your Real Idea</div>
+                  <div class="manual-step-desc">Pick a project you genuinely care about (FinOps spend auditor, CRM intelligence router, CAD wiring checker, health claims engine).</div>
+                </div>
+                <div class="manual-step-box">
+                  <div class="manual-step-badge">STEP 2</div>
+                  <div class="manual-step-name">AI Project Interview</div>
+                  <div class="manual-step-desc">The interview engine analyzes your idea, probes edge cases, establishes non-negotiable invariants, and provisions 8 Enterprise Gates.</div>
+                </div>
+                <div class="manual-step-box">
+                  <div class="manual-step-badge">STEP 3</div>
+                  <div class="manual-step-name">Invariant-Enforced Labs</div>
+                  <div class="manual-step-desc">Learn each new Claude capability (effort calibration, CLAUDE.md briefing, deterministic skills, lifecycle hooks) inside pure multi-file sandboxes.</div>
+                </div>
+                <div class="manual-step-box">
+                  <div class="manual-step-badge">STEP 4</div>
+                  <div class="manual-step-name">3x Clean Reproducibility</div>
+                  <div class="manual-step-desc">Run three consecutive automated execution loops with zero manual intervention to mathematically prove determinism.</div>
+                </div>
+                <div class="manual-step-box">
+                  <div class="manual-step-badge">STEP 5</div>
+                  <div class="manual-step-name">Signed Evidence Ledger</div>
+                  <div class="manual-step-desc">Export an immutable, tamper-evident <code>atelier.yaml</code> proof portfolio signed with SHA-256 for executive stakeholder approval.</div>
+                </div>
+              </div>
+
+              <div class="manual-callout emerald">
+                <strong>Core Invariant:</strong> "If it only worked once, it didn't work." Every system delivered on ATELIER must execute cleanly three times consecutively with identical output hashes.
+              </div>
+            </section>
+
+            <!-- SECTION 2 -->
+            <section class="manual-section-card" id="manual-sec-2">
+              <div class="manual-kicker"><span>02</span> PERSONAL CAPSTONE</div>
+              <h2 class="manual-title">Day 1 Capstone & The 8 Enterprise Gates</h2>
+              <p style="font-size: 13px; line-height: 1.6; color: var(--ink-secondary);">
+                On Day 1, you do not sit through slides. You start by launching your Personal Project Interview. The system binds your idea to an 8-Gate verification matrix required by the top 1% of enterprise engineering organizations:
+              </p>
+
+              <div class="manual-table-wrap">
+                <table class="manual-table">
+                  <thead>
+                    <tr>
+                      <th>Gate ID</th>
+                      <th>Gate Name</th>
+                      <th>Verification Mechanism</th>
+                      <th>Passing Requirement</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td style="font-family: var(--font-mono); color: var(--accent-cyan);">EG-1</td>
+                      <td>Deterministic Invariant Gate</td>
+                      <td>Automated acceptance test suite execution</td>
+                      <td>100% unit tests pass; zero unhandled rejections</td>
+                    </tr>
+                    <tr>
+                      <td style="font-family: var(--font-mono); color: var(--accent-cyan);">EG-2</td>
+                      <td>Cost & Token Budget Gate</td>
+                      <td>Real-time prompt caching discount auditing</td>
+                      <td>>= 80% prompt caching discount on warm context</td>
+                    </tr>
+                    <tr>
+                      <td style="font-family: var(--font-mono); color: var(--accent-cyan);">EG-3</td>
+                      <td>Clean Reproducibility Gate</td>
+                      <td>3x consecutive clean runs without state leakage</td>
+                      <td>3/3 clean executions with matching SHA-256 digest</td>
+                    </tr>
+                    <tr>
+                      <td style="font-family: var(--font-mono); color: var(--accent-cyan);">EG-4</td>
+                      <td>Sandbox Containment Gate</td>
+                      <td>Container isolation boundary inspection</td>
+                      <td>Zero prohibited filesystem or network escapes</td>
+                    </tr>
+                    <tr>
+                      <td style="font-family: var(--font-mono); color: var(--accent-cyan);">EG-5</td>
+                      <td>Failure Injection Resilience Gate</td>
+                      <td>Controlled simulation of 3 distinct fault vectors</td>
+                      <td>Zero crashes; graceful deny-and-continue recovery</td>
+                    </tr>
+                    <tr>
+                      <td style="font-family: var(--font-mono); color: var(--accent-cyan);">EG-6</td>
+                      <td>Context Compaction Gate</td>
+                      <td>Multi-turn compaction retention verification</td>
+                      <td>Invoice IDs, token totals, and entities preserved</td>
+                    </tr>
+                    <tr>
+                      <td style="font-family: var(--font-mono); color: var(--accent-cyan);">EG-7</td>
+                      <td>Subagent Fleet Coordination Gate</td>
+                      <td>Multi-agent isolation and delegation checker</td>
+                      <td>Zero coordinator context bloat; strict task boundaries</td>
+                    </tr>
+                    <tr>
+                      <td style="font-family: var(--font-mono); color: var(--accent-cyan);">EG-8</td>
+                      <td>Tamper-Evident Evidence Ledger Gate</td>
+                      <td>Cryptographic SHA-256 verification log</td>
+                      <td>Exportable <code>atelier.yaml</code> ledger committed</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div class="manual-action-btn-row">
+                <button class="manual-interactive-btn" id="btnManualTriggerInterview">
+                  <span>+ Launch AI Project Interview</span>
+                </button>
+                <button class="manual-interactive-btn" id="btnManualVerifyGates">
+                  <span>⚡ Verify Enterprise Gates Now</span>
+                </button>
+              </div>
+            </section>
+
+            <!-- SECTION 3 -->
+            <section class="manual-section-card" id="manual-sec-3">
+              <div class="manual-kicker"><span>03</span> REPRODUCIBLE LAB WORKBENCH</div>
+              <h2 class="manual-title">Reproducible Lab Workbench (Multi-File Pure Invariants)</h2>
+              <p style="font-size: 13px; line-height: 1.6; color: var(--ink-secondary);">
+                Every lab in ATELIER-AI is a pure, multi-file enterprise repository. There are zero toy stubs or single-line mocks. You inspect the architecture, make edits, and verify invariants in real-time.
+              </p>
+
+              <div class="manual-steps-grid">
+                <div class="manual-step-box">
+                  <div class="manual-step-badge">1. FILE TREE</div>
+                  <div class="manual-step-name">Sandbox Files</div>
+                  <div class="manual-step-desc">Click between source files (<code>src/...</code>), unit test suites (<code>tests/...</code>), configs, and <code>CLAUDE.md</code>.</div>
+                </div>
+                <div class="manual-step-box">
+                  <div class="manual-step-badge">2. EDITOR</div>
+                  <div class="manual-step-name">In-Browser Code Workspace</div>
+                  <div class="manual-step-desc">Edit pure TypeScript/Python implementations directly. Edits immediately bind to memory and acceptance test runners.</div>
+                </div>
+                <div class="manual-step-box">
+                  <div class="manual-step-badge">3. RUN TESTS</div>
+                  <div class="manual-step-name">Invariant Verification</div>
+                  <div class="manual-step-desc">Click <strong>▶ RUN TESTS</strong> to execute tests against non-negotiable invariants and view live terminal logs.</div>
+                </div>
+                <div class="manual-step-box">
+                  <div class="manual-step-badge">4. RUN AGAIN (3x)</div>
+                  <div class="manual-step-name">Reproducibility Loop</div>
+                  <div class="manual-step-desc">Click <strong>↻ RUN AGAIN (3x)</strong> to execute 3 clean iterations, verify determinism, and compute a cryptographic SHA-256 digest.</div>
+                </div>
+                <div class="manual-step-box">
+                  <div class="manual-step-badge">5. INJECT FAILURE</div>
+                  <div class="manual-step-name">Fault Vector Testing</div>
+                  <div class="manual-step-desc">Simulate edge-case failures (prompt injection, missing signatures, latency bloat) to practice "Break It -> Fix It -> Harden It".</div>
+                </div>
+                <div class="manual-step-box">
+                  <div class="manual-step-badge">6. RESET LAB</div>
+                  <div class="manual-step-name">Clean Canonical Restore</div>
+                  <div class="manual-step-desc">Restore starter repository files to their pristine canonical state at any time with one click.</div>
+                </div>
+              </div>
+
+              <div class="manual-code-snippet">
+// Flagship Labs in the Catalog:
+L1.1: Reasoning Effort Benchmark (Low vs Med vs High vs XHigh floating-point order matcher)
+L1.2: CLAUDE.md Invariant Guard (A/B testing with Zod schema & zero forbidden actions)
+L2.2: Executable Skills (Deterministic Python thermal derating calculation vs model guessing)
+L2.3: Lifecycle Hooks & Security (Hard-coded PreToolUse CFO signature gates on payouts > $500)
+L4.1: Dynamic Tool Search (Deferred tool loading saving 98% context across 140+ tools)
+L5.1: Auto Mode Sandbox & Recovery (Resilient deny-and-continue alternative routing)
+              </div>
+
+              <div class="manual-action-btn-row">
+                <button class="manual-interactive-btn" id="btnManualJumpL11">
+                  <span>🧪 Launch Lab L1.1: Reasoning Effort Benchmark</span>
+                </button>
+                <button class="manual-interactive-btn" id="btnManualJumpL23">
+                  <span>⚡ Launch Lab L2.3: Lifecycle Hooks & Security</span>
+                </button>
+              </div>
+            </section>
+
+            <!-- SECTION 4 -->
+            <section class="manual-section-card" id="manual-sec-4">
+              <div class="manual-kicker"><span>04</span> PEDAGOGICAL INTERVENTION</div>
+              <h2 class="manual-title">8-Tier AI Coach & Independence Score</h2>
+              <p style="font-size: 13px; line-height: 1.6; color: var(--ink-secondary);">
+                Traditional AI assistants give you the complete code answer immediately, preventing genuine learning. ATELIER-AI employs an <strong>8-Tier Progressive Hint Ladder</strong> that starts in stealth observation mode and tracks your Independence Score:
+              </p>
+
+              <div class="manual-table-wrap">
+                <table class="manual-table">
+                  <thead>
+                    <tr>
+                      <th>Tier</th>
+                      <th>Level Name</th>
+                      <th>Type of Guidance</th>
+                      <th>Independence Penalty</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td style="font-family: var(--font-mono); color: #34d399;">Tier 0</td>
+                      <td><strong>Stealth Observation</strong></td>
+                      <td>Coach watches quietly; verifies invariant adherence silently.</td>
+                      <td>0% Deduction</td>
+                    </tr>
+                    <tr>
+                      <td style="font-family: var(--font-mono); color: #34d399;">Tier 1</td>
+                      <td><strong>Socratic Question</strong></td>
+                      <td>"What happens to the spread when the best bid exceeds the best ask?"</td>
+                      <td>0% Deduction</td>
+                    </tr>
+                    <tr>
+                      <td style="font-family: var(--font-mono); color: #34d399;">Tier 2</td>
+                      <td><strong>Conceptual Analogy</strong></td>
+                      <td>Explains the architectural concept using concrete mental models.</td>
+                      <td>0% Deduction</td>
+                    </tr>
+                    <tr>
+                      <td style="font-family: var(--font-mono); color: #34d399;">Tier 3</td>
+                      <td><strong>Strategic Direction</strong></td>
+                      <td>Recommends which file or algorithm to inspect (e.g. "Review EPSILON guards").</td>
+                      <td>0% Deduction</td>
+                    </tr>
+                    <tr>
+                      <td style="font-family: var(--font-mono); color: #fbbf24;">Tier 4</td>
+                      <td><strong>Step-by-Step Breakdown</strong></td>
+                      <td>Ordered chronological checklist of steps to complete the invariant.</td>
+                      <td>-5% Deduction</td>
+                    </tr>
+                    <tr>
+                      <td style="font-family: var(--font-mono); color: #fbbf24;">Tier 5</td>
+                      <td><strong>Targeted Code Snippet</strong></td>
+                      <td>Small 2-3 line code idiom showing specific function signature.</td>
+                      <td>-10% Deduction</td>
+                    </tr>
+                    <tr>
+                      <td style="font-family: var(--font-mono); color: #f87171;">Tier 6</td>
+                      <td><strong>Structural Scaffold</strong></td>
+                      <td>Complete skeleton with typed function signatures and TODO placeholders.</td>
+                      <td>-15% Deduction</td>
+                    </tr>
+                    <tr>
+                      <td style="font-family: var(--font-mono); color: #f87171;">Tier 7</td>
+                      <td><strong>Complete Reference Solution</strong></td>
+                      <td>Full canonical code implementation with thorough explanation.</td>
+                      <td>-25% Deduction</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div class="manual-callout gold">
+                <strong>Industry Standard:</strong> Enterprise certification requires maintaining an Independence Score of <strong>>= 85%</strong>. Exhausting Tier 7 answers drops your score and reflects on your verifiable portfolio.
+              </div>
+            </section>
+
+            <!-- SECTION 5 -->
+            <section class="manual-section-card" id="manual-sec-5">
+              <div class="manual-kicker"><span>05</span> LOCAL TERMINAL BRIDGE</div>
+              <h2 class="manual-title">Claude Code CLI Side-by-Side (⌥C)</h2>
+              <p style="font-size: 13px; line-height: 1.6; color: var(--ink-secondary);">
+                Press <strong>⌥C</strong> anywhere on the platform (or click <strong>CLAUDE CLI SIDE-BY-SIDE</strong> in the topbar) to reveal the real Claude Code terminal drawer. The drawer connects directly to your local <code>/Users/favl/.local/bin/claude</code> executable:
+              </p>
+
+              <div class="manual-steps-grid">
+                <div class="manual-step-box">
+                  <div class="manual-step-badge">1. SIDE-BY-SIDE VIEW</div>
+                  <div class="manual-step-name">Persistent Drawer</div>
+                  <div class="manual-step-desc">Keeps your active lab workbench, code editor, or capstone blueprint visible while executing CLI commands.</div>
+                </div>
+                <div class="manual-step-box">
+                  <div class="manual-step-badge">2. QUICK ACTION CHIPS</div>
+                  <div class="manual-step-name">1-Click Commands</div>
+                  <div class="manual-step-desc">Click instant chips: <code>/effort high</code>, <code>/goal</code>, <code>/compact</code>, <code>/cost</code>, or <code>/review</code>.</div>
+                </div>
+                <div class="manual-step-box">
+                  <div class="manual-step-badge">3. REAL CLI BRIDGE</div>
+                  <div class="manual-step-name">Live Subprocess</div>
+                  <div class="manual-step-desc">Interacts with local Claude CLI with automated fallbacks, terminal history, and colored ANSI outputs.</div>
+                </div>
+              </div>
+
+              <div class="manual-action-btn-row">
+                <button class="manual-interactive-btn" id="btnManualToggleCli">
+                  <span>💻 Toggle Claude CLI Drawer (⌥C)</span>
+                </button>
+              </div>
+            </section>
+
+            <!-- SECTION 6 -->
+            <section class="manual-section-card" id="manual-sec-6">
+              <div class="manual-kicker"><span>06</span> MULTIMODAL RUNTIME</div>
+              <h2 class="manual-title">Continuous Voice Runtime & Dual-Loop Safety</h2>
+              <p style="font-size: 13px; line-height: 1.6; color: var(--ink-secondary);">
+                Located in the persistent topbar and full-screen studio, the Voice Runtime implements Anthropic-grade continuous voice agent architecture with sub-220ms end-to-end latency:
+              </p>
+
+              <div class="manual-steps-grid">
+                <div class="manual-step-box">
+                  <div class="manual-step-badge">LOOP 1</div>
+                  <div class="manual-step-name">Fast Voice Activity & Speech</div>
+                  <div class="manual-step-desc">Streaming Voice Activity Detection (VAD) + Fast ASR transcription + low-latency neural TTS synthesis.</div>
+                </div>
+                <div class="manual-step-box">
+                  <div class="manual-step-badge">LOOP 2</div>
+                  <div class="manual-step-name">Grounded Re-Planning</div>
+                  <div class="manual-step-desc">The second cognitive loop listens continuously in the background for human corrections and spatial deixis ("No, not that robot—the G1 beside it!").</div>
+                </div>
+                <div class="manual-step-box">
+                  <div class="manual-step-badge">BARGE-IN</div>
+                  <div class="manual-step-name">Immediate Interruption</div>
+                  <div class="manual-step-desc">Clicking <strong>🛑 Barge-In</strong> immediately halts audio synthesis, flushes partial tokens, and re-grounds agent intent.</div>
+                </div>
+                <div class="manual-step-box">
+                  <div class="manual-step-badge">SAFETY</div>
+                  <div class="manual-step-name">Physical Safety Gate</div>
+                  <div class="manual-step-desc">Deterministic ISO 10218 velocity clamps prevent spoken hallucinations from directly triggering hardware without boundary checks.</div>
+                </div>
+              </div>
+
+              <div class="manual-action-btn-row">
+                <button class="manual-interactive-btn" id="btnManualOpenVoice">
+                  <span>🎙️ Open Continuous Voice Studio</span>
+                </button>
+              </div>
+            </section>
+
+            <!-- SECTION 7 -->
+            <section class="manual-section-card" id="manual-sec-7">
+              <div class="manual-kicker"><span>07</span> ACADEMY & CAPSTONES</div>
+              <h2 class="manual-title">Anthropic Skilljar Academy Hub</h2>
+              <p style="font-size: 13px; line-height: 1.6; color: var(--ink-secondary);">
+                All 23 official Anthropic Skilljar Academy courses are mapped and indexed into ATELIER-AI with 1-click on-the-fly pulling and an authentic <strong>Top 1% Enterprise Capstone</strong> built around each course.
+              </p>
+
+              <div class="manual-callout cyan">
+                <strong>Course Tracks Supported:</strong>
+                <ul style="margin: 6px 0 0 16px; padding: 0;">
+                  <li><strong>Core Prompting & Fundamentals:</strong> AI Fluency, Prompt Engineering Interactive Tutorial.</li>
+                  <li><strong>Claude Code & Agentic Workflows:</strong> Claude Code in Action, Multi-Agent Coordination, Advanced Tool Use.</li>
+                  <li><strong>Security & Safety:</strong> AI Safety Principles, Adversarial Robustness, Red Teaming with Claude.</li>
+                  <li><strong>Enterprise Architecture:</strong> System Integration, Model Context Protocol (MCP), Cost & Latency Optimization.</li>
+                </ul>
+              </div>
+
+              <div class="manual-action-btn-row">
+                <button class="manual-interactive-btn" id="btnManualOpenSkilljar">
+                  <span>🎓 Explore Anthropic Skilljar Academy</span>
+                </button>
+              </div>
+            </section>
+
+            <!-- SECTION 8 -->
+            <section class="manual-section-card" id="manual-sec-8">
+              <div class="manual-kicker"><span>08</span> EXAM INTEGRITY</div>
+              <h2 class="manual-title">Proctor & Anti-Cheat Protocols (CCAR-SEC-1)</h2>
+              <p style="font-size: 13px; line-height: 1.6; color: var(--ink-secondary);">
+                When taking the 60-item timed mock certification exams, the platform engages the CCAR-SEC-1 integrity monitor:
+              </p>
+
+              <div class="manual-steps-grid">
+                <div class="manual-step-box">
+                  <div class="manual-step-badge">FOCUS GUARD</div>
+                  <div class="manual-step-name">Tab & Window Tracking</div>
+                  <div class="manual-step-desc">Switching browser tabs or clicking outside the window triggers an immediate violation warning modal.</div>
+                </div>
+                <div class="manual-step-box">
+                  <div class="manual-step-badge">CLIPBOARD LOCK</div>
+                  <div class="manual-step-name">Anti-Copy / Paste</div>
+                  <div class="manual-step-desc">Clipboard injection attempts are intercepted and recorded in the audit trail digest.</div>
+                </div>
+                <div class="manual-step-box">
+                  <div class="manual-step-badge">AUDIT TRAIL</div>
+                  <div class="manual-step-name">Permanent Signature</div>
+                  <div class="manual-step-desc">All violations decrement candidate integrity scores and appear on the final verification certificate.</div>
+                </div>
+              </div>
+
+              <div class="manual-action-btn-row">
+                <button class="manual-interactive-btn" id="btnManualOpenExam">
+                  <span>⏱️ Open Timed Mock Exam Engine</span>
+                </button>
+              </div>
+            </section>
+
+            <!-- SECTION 9 -->
+            <section class="manual-section-card" id="manual-sec-9">
+              <div class="manual-kicker"><span>09</span> STAKEHOLDER PROOF</div>
+              <h2 class="manual-title">Evidence Ledger & atelier.yaml Export</h2>
+              <p style="font-size: 13px; line-height: 1.6; color: var(--ink-secondary);">
+                The culmination of your work is not an unverified certificate. It is a verifiable, tamper-evident <strong><code>atelier.yaml</code></strong> specification signed with SHA-256 containing your verified invariants, 3x reproducibility logs, and gate evaluations:
+              </p>
+
+              <div class="manual-code-snippet">
+atelier_version: "2.8"
+blueprint:
+  id: "capstone-01"
+  title: "Customer Intelligence & Priority Routing Agent"
+  target_architecture: "Claude Code + PreToolUse Hooks + MCP Gateway"
+
+verification_ledger:
+  sha256_root: "07f411b95ac6df0630b246c7f9993439aac41466f2856064e04af84587e15690"
+  clean_reproducibility_loop: true
+  attempts_verified: 3
+  independence_rate: 94%
+
+enterprise_gates:
+  - id: "EG-1" (Deterministic Invariant Gate): PASS
+  - id: "EG-2" (Cost Budget Gate): PASS
+  - id: "EG-3" (3x Reproducibility Loop): PASS
+  - id: "EG-4" (Sandbox Containment Gate): PASS
+  - id: "EG-8" (Tamper-Evident Evidence Ledger): PASS
+              </div>
+
+              <div class="manual-action-btn-row">
+                <button class="manual-interactive-btn" id="btnManualExportYaml">
+                  <span>💾 Download Signed atelier.yaml</span>
+                </button>
+                <button class="manual-interactive-btn" id="btnManualOpenEvidence">
+                  <span>📊 Open Evidence Portfolio & Unlock Tree</span>
+                </button>
+              </div>
+            </section>
+
+            <!-- SECTION 10 -->
+            <section class="manual-section-card" id="manual-sec-10">
+              <div class="manual-kicker"><span>10</span> OPERATOR CHEATSHEET</div>
+              <h2 class="manual-title">Keyboard Shortcuts & Slash Commands</h2>
+
+              <div class="manual-table-wrap">
+                <table class="manual-table">
+                  <thead>
+                    <tr>
+                      <th>Keybinding / Command</th>
+                      <th>Scope</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td style="font-family: var(--font-mono); color: var(--accent-cyan); font-weight: 700;">⌘K / Ctrl+K</td>
+                      <td>Global Platform</td>
+                      <td>Open Command Palette (search views, commands, and scenarios)</td>
+                    </tr>
+                    <tr>
+                      <td style="font-family: var(--font-mono); color: var(--accent-cyan); font-weight: 700;">⌘B / Ctrl+B</td>
+                      <td>Navigation</td>
+                      <td>Toggle Navigation Sidebar (expand or collapse to mini-rail)</td>
+                    </tr>
+                    <tr>
+                      <td style="font-family: var(--font-mono); color: var(--accent-cyan); font-weight: 700;">⌥C / Alt+C</td>
+                      <td>Global Platform</td>
+                      <td>Toggle Claude Code CLI Drawer side-by-side</td>
+                    </tr>
+                    <tr>
+                      <td style="font-family: var(--font-mono); color: var(--accent-cyan); font-weight: 700;">/goal &lt;goal&gt;</td>
+                      <td>Claude CLI</td>
+                      <td>Launch autonomous goal loop with deterministic PreToolUse hooks</td>
+                    </tr>
+                    <tr>
+                      <td style="font-family: var(--font-mono); color: var(--accent-cyan); font-weight: 700;">/effort &lt;level&gt;</td>
+                      <td>Claude CLI</td>
+                      <td>Set reasoning effort budget: low (1k), med (4k), high (16k), max (32k)</td>
+                    </tr>
+                    <tr>
+                      <td style="font-family: var(--font-mono); color: var(--accent-cyan); font-weight: 700;">/compact</td>
+                      <td>Claude CLI</td>
+                      <td>Compress multi-turn context into state summary (-80% token reduction)</td>
+                    </tr>
+                    <tr>
+                      <td style="font-family: var(--font-mono); color: var(--accent-cyan); font-weight: 700;">/cost</td>
+                      <td>Claude CLI</td>
+                      <td>Inspect live token ledger and Anthropic prompt caching savings</td>
+                    </tr>
+                    <tr>
+                      <td style="font-family: var(--font-mono); color: var(--accent-cyan); font-weight: 700;">/review</td>
+                      <td>Claude CLI</td>
+                      <td>Inspect uncommitted git diffs against architectural rules</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  attachPlatformManualEvents() {
+    // Search & Filter
+    const searchInput = document.getElementById('manualSearchInput');
+    const sections = document.querySelectorAll('.manual-section-card');
+    const countBadge = document.getElementById('manualSearchCount');
+
+    if (searchInput) {
+      searchInput.addEventListener('input', (e) => {
+        const query = (e.target.value || '').toLowerCase().trim();
+        let visibleCount = 0;
+
+        sections.forEach(sec => {
+          const text = sec.textContent.toLowerCase();
+          const match = !query || text.includes(query);
+          sec.style.display = match ? 'flex' : 'none';
+          if (match) visibleCount++;
+        });
+
+        if (countBadge) {
+          countBadge.textContent = query ? `${visibleCount} of ${sections.length} Matching` : `${sections.length} Sections Available`;
+        }
+      });
+    }
+
+    // TOC Smooth Scrolling & Active State
+    const tocItems = document.querySelectorAll('.manual-toc-item');
+    tocItems.forEach(item => {
+      item.addEventListener('click', (e) => {
+        e.preventDefault();
+        tocItems.forEach(i => i.classList.remove('active'));
+        item.classList.add('active');
+        const targetId = item.getAttribute('href');
+        const targetEl = document.querySelector(targetId);
+        if (targetEl) {
+          targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          this.playHaptic('click');
+        }
+      });
+    });
+
+    // Interactive Deep-Link Buttons
+    document.getElementById('btnManualStartProject')?.addEventListener('click', () => {
+      this.switchView('capstone-tracker');
+      this.openInterviewModal();
+    });
+
+    document.getElementById('btnManualOpenLabs')?.addEventListener('click', () => {
+      this.switchView('lab-workbench');
+    });
+
+    document.getElementById('btnManualTriggerInterview')?.addEventListener('click', () => {
+      this.openInterviewModal();
+    });
+
+    document.getElementById('btnManualVerifyGates')?.addEventListener('click', () => {
+      this.switchView('capstone-tracker');
+      document.getElementById('btnVerifyEnterpriseGates')?.click();
+    });
+
+    document.getElementById('btnManualJumpL11')?.addEventListener('click', async () => {
+      this.switchView('lab-workbench');
+      await this.switchLab('lab-1.1-reasoning-effort');
+    });
+
+    document.getElementById('btnManualJumpL23')?.addEventListener('click', async () => {
+      this.switchView('lab-workbench');
+      await this.switchLab('lab-2.3-lifecycle-hooks');
+    });
+
+    document.getElementById('btnManualToggleCli')?.addEventListener('click', () => {
+      this.toggleClaudeCliSplit();
+    });
+
+    document.getElementById('btnManualOpenVoice')?.addEventListener('click', () => {
+      this.switchView('voice-runtime');
+    });
+
+    document.getElementById('btnManualOpenSkilljar')?.addEventListener('click', () => {
+      this.switchView('skilljar-academy');
+    });
+
+    document.getElementById('btnManualOpenExam')?.addEventListener('click', () => {
+      this.switchView('exam-engine');
+    });
+
+    document.getElementById('btnManualExportYaml')?.addEventListener('click', () => {
+      this.exportAtelierManifest();
+    });
+
+    document.getElementById('btnManualOpenEvidence')?.addEventListener('click', () => {
+      this.switchView('evidence-portfolio');
+    });
   }
 }
 
