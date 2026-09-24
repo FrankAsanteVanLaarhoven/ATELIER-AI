@@ -10,6 +10,372 @@
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
 </head>
 <body>
+  <!-- =========================================================================
+       PALANTIR-SOTA / MATRIX / MISSION IMPOSSIBLE TACTICAL SECURITY SPLASH
+       ========================================================================= -->
+  <div id="authSplash" class="auth-splash-screen" role="dialog" aria-modal="true" aria-label="Security Clearance Authentication">
+    <!-- Matrix Obsidian Data Rain Canvas -->
+    <canvas id="matrixRainCanvas" class="auth-matrix-canvas"></canvas>
+
+    <!-- Top Tactical Classification Banner (Palantir Foundry / Gotham Style) -->
+    <div class="auth-top-banner">
+      <div class="banner-left">
+        <span class="security-classification-tag">TOP SECRET // SI-TK // NOFORN // REL TO USA, FVEY</span>
+        <span class="security-separator">|</span>
+        <span class="security-node">NODE: PALANTIR-FOUNDRY-DEF-09</span>
+      </div>
+      <div class="banner-center">
+        <span class="hud-pulse-dot emerald"></span>
+        <span class="security-system-title">ATELIER OPERATIONAL COMMAND • SECURE GATEWAY</span>
+      </div>
+      <div class="banner-right">
+        <span class="security-cipher-tag">KYBER-1024 • AES-256-GCM</span>
+        <span class="security-clock" id="authZuluClock">2026-09-24 19:30:00 ZULU</span>
+        <button class="auth-audio-toggle" id="authAudioToggle" title="Toggle Tactical Audio Feedback">
+          <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Main Glassmorphic Auth Panel (Apple Disciplined Form + Matrix/Palantir Accents) -->
+    <div class="auth-container">
+      <div class="auth-panel" id="authPanel">
+        <!-- Brand Header Lockup -->
+        <div class="auth-header">
+          <div class="auth-brand-badge">
+            <div class="aperture-icon-wrap">
+              <svg class="aperture-svg" viewBox="0 0 100 100" fill="none">
+                <circle cx="50" cy="50" r="46" stroke="rgba(16, 185, 129, 0.4)" stroke-width="1.5" stroke-dasharray="6 3"/>
+                <circle cx="50" cy="50" r="38" stroke="rgba(56, 189, 248, 0.3)" stroke-width="1"/>
+                <polygon points="50,15 80,33 80,67 50,85 20,67 20,33" stroke="rgba(255, 255, 255, 0.5)" stroke-width="1.5" fill="none"/>
+                <circle cx="50" cy="50" r="14" fill="rgba(16, 185, 129, 0.15)" stroke="var(--accent-emerald)" stroke-width="2"/>
+                <circle cx="50" cy="50" r="4" fill="var(--accent-emerald)"/>
+              </svg>
+            </div>
+            <div class="auth-brand-text">
+              <div class="auth-brand-title">Atelier <span>OS v2.8</span></div>
+              <div class="auth-brand-sub">CLAUDE ARCHITECT OPERATIONAL COMMAND</div>
+            </div>
+          </div>
+          <div class="auth-clearance-pill">
+            <span class="hud-pulse-dot emerald"></span>
+            <span id="authClearanceTag">CLEARANCE REQUIRED: LEVEL 2+</span>
+          </div>
+        </div>
+
+        <p class="auth-description">
+          Cryptographic security clearance required. Authenticate using enterprise credentials, biometric retinal scan, or FIDO2 hardware token to access the autonomous multi-agent operating environment.
+        </p>
+
+        <!-- Segmented Tab Navigation (Apple macOS / iPadOS Disciplined) -->
+        <div class="auth-tabs" role="tablist">
+          <button class="auth-tab active" data-auth-tab="signin" role="tab" aria-selected="true">
+            <span class="tab-glyph">🔐</span>
+            <span>01 // Sign In</span>
+          </button>
+          <button class="auth-tab" data-auth-tab="signup" role="tab" aria-selected="false">
+            <span class="tab-glyph">🛡️</span>
+            <span>02 // Request Clearance</span>
+          </button>
+          <button class="auth-tab" data-auth-tab="biometric" role="tab" aria-selected="false">
+            <span class="tab-glyph">👁️</span>
+            <span>03 // Biometric / Passkey</span>
+          </button>
+          <button class="auth-tab" data-auth-tab="guest" role="tab" aria-selected="false">
+            <span class="tab-glyph">⚡</span>
+            <span>04 // Guest Operator</span>
+          </button>
+        </div>
+
+        <!-- Tab 1: Sign In -->
+        <div class="auth-tab-content active" id="tabContentSignIn">
+          <form id="formSignIn" class="auth-form" onsubmit="return false;">
+            <div class="auth-input-group">
+              <label class="auth-label" for="inputSignInEmail">
+                <span>OPERATOR IDENTIFIER / ENTERPRISE EMAIL</span>
+                <span class="label-tag">PKI-VERIFIED</span>
+              </label>
+              <div class="auth-input-wrapper">
+                <span class="auth-input-icon">👤</span>
+                <input type="text" id="inputSignInEmail" class="auth-input" value="architect@atelier.defense.gov" placeholder="operator@enterprise.internal" autocomplete="username" required />
+                <button type="button" class="auth-quick-fill-btn" id="btnFillDemoUser" title="Fill Verified Architect Credentials">Demo Auto-Fill</button>
+              </div>
+            </div>
+
+            <div class="auth-input-group">
+              <label class="auth-label" for="inputSignInPassword">
+                <span>CRYPTOGRAPHIC ACCESS KEY / PASSPHRASE</span>
+                <span class="label-tag">AES-256</span>
+              </label>
+              <div class="auth-input-wrapper">
+                <span class="auth-input-icon">🔑</span>
+                <input type="password" id="inputSignInPassword" class="auth-input" value="••••••••••••••••••••" placeholder="Enter keyphrase..." autocomplete="current-password" required />
+                <button type="button" class="auth-input-toggle-btn" id="btnTogglePassword" title="Show/Hide Keyphrase">
+                  <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                </button>
+              </div>
+            </div>
+
+            <div class="auth-grid-row">
+              <div class="auth-input-group" style="margin-bottom: 0;">
+                <label class="auth-label" for="inputSignInTotp">
+                  <span>TIME-BASED 2FA TOKEN (TOTP)</span>
+                  <span class="label-tag emerald" id="authTotpCountdown">18s</span>
+                </label>
+                <div class="auth-input-wrapper">
+                  <span class="auth-input-icon">⏱️</span>
+                  <input type="text" id="inputSignInTotp" class="auth-input mono-val" value="849 201" maxlength="7" placeholder="000 000" />
+                </div>
+              </div>
+
+              <div class="auth-toggle-group">
+                <label class="auth-checkbox-label">
+                  <input type="checkbox" id="authRememberNode" checked />
+                  <span class="auth-toggle-switch"></span>
+                  <span class="toggle-text">Trust Hardware Node</span>
+                </label>
+                <span class="toggle-hint">Retain clearance session token for 12 hours</span>
+              </div>
+            </div>
+
+            <button type="submit" class="auth-submit-btn" id="btnSubmitSignIn">
+              <span class="btn-glow-layer"></span>
+              <span class="btn-content">
+                <span class="btn-icon">⚡</span>
+                <span class="btn-text">VERIFY CREDENTIALS & INITIALIZE CONSOLE</span>
+                <span class="btn-shortcut">↵</span>
+              </span>
+            </button>
+          </form>
+        </div>
+
+        <!-- Tab 2: Request Clearance / Sign Up -->
+        <div class="auth-tab-content" id="tabContentSignUp">
+          <form id="formSignUp" class="auth-form" onsubmit="return false;">
+            <div class="auth-grid-2">
+              <div class="auth-input-group">
+                <label class="auth-label" for="inputSignUpName">OPERATOR FULL NAME</label>
+                <div class="auth-input-wrapper">
+                  <span class="auth-input-icon">🪪</span>
+                  <input type="text" id="inputSignUpName" class="auth-input" placeholder="e.g. Dr. Elena Vance" required />
+                </div>
+              </div>
+
+              <div class="auth-input-group">
+                <label class="auth-label" for="inputSignUpOrg">ORGANIZATION / COMMAND UNIT</label>
+                <div class="auth-input-wrapper">
+                  <span class="auth-input-icon">🏢</span>
+                  <input type="text" id="inputSignUpOrg" class="auth-input" placeholder="e.g. Palantir Foundry Systems" required />
+                </div>
+              </div>
+            </div>
+
+            <div class="auth-input-group">
+              <label class="auth-label" for="inputSignUpEmail">ENTERPRISE CLASSIFIED EMAIL</label>
+              <div class="auth-input-wrapper">
+                <span class="auth-input-icon">✉️</span>
+                <input type="email" id="inputSignUpEmail" class="auth-input" placeholder="name@command.defense.gov" required />
+              </div>
+            </div>
+
+            <div class="auth-input-group">
+              <label class="auth-label">REQUESTED CLEARANCE TIER</label>
+              <div class="clearance-tier-cards" id="clearanceTierCards">
+                <label class="tier-card" data-tier="1">
+                  <input type="radio" name="clearanceTier" value="Tier 1" />
+                  <div class="tier-card-body">
+                    <div class="tier-header">
+                      <span class="tier-badge">TIER 1</span>
+                      <span class="tier-title">Apprentice</span>
+                    </div>
+                    <div class="tier-desc">Prompt caching, curriculum domains, basic Claude labs.</div>
+                  </div>
+                </label>
+                <label class="tier-card active" data-tier="2">
+                  <input type="radio" name="clearanceTier" value="Tier 2" checked />
+                  <div class="tier-card-body">
+                    <div class="tier-header">
+                      <span class="tier-badge emerald">TIER 2</span>
+                      <span class="tier-title">Architect</span>
+                    </div>
+                    <div class="tier-desc">Multi-agent mesh, MCP gateways, Claude Code CLI drawer.</div>
+                  </div>
+                </label>
+                <label class="tier-card" data-tier="3">
+                  <input type="radio" name="clearanceTier" value="Tier 3" />
+                  <div class="tier-card-body">
+                    <div class="tier-header">
+                      <span class="tier-badge gold">TIER 3 (TS//SCI)</span>
+                      <span class="tier-title">Commander</span>
+                    </div>
+                    <div class="tier-desc">Continuous voice runtime, ISO 10218 safety clamps, Capstone defense.</div>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <div class="auth-input-group">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 6px;">
+                <label class="auth-label" for="inputSignUpKey" style="margin-bottom:0;">CRYPTOGRAPHIC PASSPHRASE</label>
+                <button type="button" class="auth-text-btn" id="btnGenKey">🎲 Generate Quantum-Safe Key</button>
+              </div>
+              <div class="auth-input-wrapper">
+                <span class="auth-input-icon">🔐</span>
+                <input type="text" id="inputSignUpKey" class="auth-input mono-val" placeholder="Generates 256-bit passphrase..." required />
+              </div>
+            </div>
+
+            <button type="submit" class="auth-submit-btn emerald-mode" id="btnSubmitSignUp">
+              <span class="btn-glow-layer"></span>
+              <span class="btn-content">
+                <span class="btn-icon">🛡️</span>
+                <span class="btn-text">PROVISION OPERATOR & ISSUE CLEARANCE TOKEN</span>
+                <span class="btn-shortcut">↵</span>
+              </span>
+            </button>
+          </form>
+        </div>
+
+        <!-- Tab 3: Biometric Retina & Passkey (Mission Impossible Style) -->
+        <div class="auth-tab-content" id="tabContentBiometric">
+          <div class="biometric-hud-card">
+            <div class="biometric-reticle-wrap">
+              <div class="reticle-radar-disc"></div>
+              <div class="reticle-sweep-line" id="biometricSweepLine"></div>
+              <div class="reticle-crosshair"></div>
+              <div class="reticle-iris-center" id="biometricIrisCenter">
+                <svg width="44" height="44" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+              </div>
+              <div class="reticle-corner tl"></div>
+              <div class="reticle-corner tr"></div>
+              <div class="reticle-corner bl"></div>
+              <div class="reticle-corner br"></div>
+            </div>
+
+            <div class="biometric-status-block">
+              <div class="bio-status-title" id="bioStatusTitle">AWAITING BIOMETRIC LOCK</div>
+              <div class="bio-status-sub" id="bioStatusSub">Align reticle with front camera or place FIDO2 security key on reader</div>
+              <div class="bio-meter-bar">
+                <div class="bio-meter-fill" id="bioMeterFill" style="width: 0%;"></div>
+              </div>
+              <div class="bio-metrics-row">
+                <span>SENSOR: 60 FPS OPTRONIC</span>
+                <span id="bioMatchConfidence">CONFIDENCE: --</span>
+                <span>CIPHER: FIDO2 / WebAuthn</span>
+              </div>
+            </div>
+
+            <div class="biometric-actions">
+              <button type="button" class="auth-submit-btn cyan-mode" id="btnTriggerBiometricScan">
+                <span class="btn-glow-layer"></span>
+                <span class="btn-content">
+                  <span class="btn-icon">👁️</span>
+                  <span class="btn-text" id="btnBiometricText">ENGAGE RETINAL & PASSKEY SCAN</span>
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 4: Guest Operator / Rapid Evaluation -->
+        <div class="auth-tab-content" id="tabContentGuest">
+          <div class="guest-presets-card">
+            <div class="guest-card-header">
+              <span class="guest-card-title">RAPID AUDITOR & EVALUATOR BYPASS</span>
+              <span class="guest-badge">NO REGISTRATION REQUIRED</span>
+            </div>
+            <p class="guest-card-desc">
+              Select an operational role profile to instantly test the Atelier OS with pre-configured access permissions, populated telemetry, and active capstones:
+            </p>
+
+            <div class="guest-roles-grid">
+              <button type="button" class="guest-role-btn active" data-guest-role="architect">
+                <div class="guest-role-top">
+                  <span class="role-icon">🎖️</span>
+                  <span class="role-name">Frank Van Laarhoven</span>
+                  <span class="role-tier-tag">TS//SCI TIER 3</span>
+                </div>
+                <div class="role-role-title">Lead Systems Architect • Enterprise FinOps & Harness</div>
+                <div class="role-access-list">Full access: Day 1 Capstone, 8 Enterprise Gates, Voice Runtime, Claude CLI</div>
+              </button>
+
+              <button type="button" class="guest-role-btn" data-guest-role="auditor">
+                <div class="guest-role-top">
+                  <span class="role-icon">🔍</span>
+                  <span class="role-name">Red Team Auditor</span>
+                  <span class="role-tier-tag">ZERO-TRUST</span>
+                </div>
+                <div class="role-role-title">CCAR Invariant Compliance Inspector</div>
+                <div class="role-access-list">Focus: 3x Repeat Engine, Invariant Fuzzing, Failure Vector Injection, Evidence Ledger</div>
+              </button>
+
+              <button type="button" class="guest-role-btn" data-guest-role="student">
+                <div class="guest-role-top">
+                  <span class="role-icon">🎓</span>
+                  <span class="role-name">Academy Candidate</span>
+                  <span class="role-tier-tag">TIER 1 LABS</span>
+                </div>
+                <div class="role-role-title">Anthropic Certified Architect Aspirant</div>
+                <div class="role-access-list">Focus: 23 Skilljar Labs, Reasoning Effort Benchmark, Prompt Caching Optimizer</div>
+              </button>
+            </div>
+
+            <button type="button" class="auth-submit-btn gold-mode" id="btnSubmitGuest">
+              <span class="btn-glow-layer"></span>
+              <span class="btn-content">
+                <span class="btn-icon">🚀</span>
+                <span class="btn-text" id="btnGuestSubmitText">ENTER CONSOLE AS LEAD ARCHITECT</span>
+                <span class="btn-shortcut">ESC</span>
+              </span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Mission Impossible Classified Directive Box -->
+        <div class="auth-directive-card">
+          <div class="directive-header">
+            <span class="directive-tag">IMF DIRECTIVE // CLAUDE ARCHITECT OP-2026</span>
+            <span class="directive-status"><span class="hud-pulse-dot emerald"></span> ACTIVE ORDER</span>
+          </div>
+          <p class="directive-quote">
+            "Your mission, should you choose to accept it: Transition from passive prompt consumption to AI-directed systems engineering. Construct, verify, and stress-test autonomous Claude systems governed by deterministic invariant hooks, physical safety clamps, and the 8 Enterprise Gates."
+          </p>
+          <div class="directive-footer">
+            <button type="button" class="duress-btn" id="btnDuressProtocol" title="Emergency Duress Protocol: Immediately purge cache, wipe memory buffers and lock terminal">
+              <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+              <span>DURESS KILLSWITCH: PURGE BUFFER</span>
+            </button>
+            <span class="directive-crypto-sig">SIG: SHA-256//9a8f27c4b1...e740</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Matrix / Mission Impossible Interstitial Decryption Overlay -->
+    <div class="auth-verification-overlay" id="authVerifyOverlay">
+      <div class="verify-hud-center">
+        <div class="verify-reticle-ring">
+          <div class="verify-inner-spin"></div>
+          <div class="verify-lock-icon">🛡️</div>
+        </div>
+        <div class="verify-status-title" id="verifyStatusTitle">CLEARANCE VERIFICATION IN PROGRESS</div>
+        <div class="verify-matrix-stream" id="verifyMatrixStream">
+          01000001 01010100 01000101 01001100 01001001 01000101 01010010<br/>
+          CIPHER: AES-256-GCM • VALIDATING INTEGRITY INVARIANTS...<br/>
+          IDENTITY: FRANK VAN LAARHOVEN [CONFIRMED]<br/>
+          CLEARANCE: TS//SCI LEVEL 4 [GRANTED]<br/>
+          DECRYPTING CONSOLE WORKBENCHES...
+        </div>
+        <div class="verify-progress-track">
+          <div class="verify-progress-bar" id="verifyProgressBar"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div id="app">
     <!-- Left Navigation Sidebar (Keyline Atelier Inspired) -->
     <aside class="sidebar">
@@ -164,11 +530,14 @@
         </div>
 
         <div class="user-badge">
-          <div class="user-avatar">FV</div>
+          <div class="user-avatar" id="sidebarUserAvatar">FV</div>
           <div class="user-info">
-            <div class="user-name">Frank Van Laarhoven</div>
-            <div class="user-role">Lead Systems Architect • 1,420 pts</div>
+            <div class="user-name" id="sidebarUserName">Frank Van Laarhoven</div>
+            <div class="user-role" id="sidebarUserRole">Lead Systems Architect • 1,420 pts</div>
           </div>
+          <button class="lock-console-btn" id="btnLockConsole" title="Lock Console / Switch Security Clearance">
+            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+          </button>
         </div>
       </div>
     </aside>
@@ -239,6 +608,12 @@
         </div>
 
         <div class="topbar-right">
+          <button class="topbar-security-pill" id="topbarLockConsole" title="Active Security Clearance: Click to Lock Console">
+            <span class="hud-pulse-dot emerald"></span>
+            <span id="topbarClearanceLevel">TS//SCI TIER 4</span>
+            <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin-left: 4px; opacity: 0.65;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+          </button>
+
           <button class="topbar-manual-btn" id="btnTopbarOpenManual" title="Open Interactive Platform Manual & Architectural Handbook">
             <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
             <span style="font-weight: 700;">MANUAL</span>

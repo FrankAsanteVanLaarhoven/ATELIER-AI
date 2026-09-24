@@ -16,8 +16,214 @@ import {
   SKILLJAR_COURSES_DATA
 } from './data.js?v=3.0';
 
+// =========================================================================
+// TACTICAL AUDIO ENGINE (Web Audio API Synthesizer - Mission Impossible / Matrix)
+// =========================================================================
+class TacticalAudioEngine {
+  constructor() {
+    this.ctx = null;
+    this.muted = false;
+  }
+  ensureContext() {
+    try {
+      if (!this.ctx && (window.AudioContext || window.webkitAudioContext)) {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        this.ctx = new AudioContext();
+      }
+      if (this.ctx && this.ctx.state === 'suspended') {
+        this.ctx.resume();
+      }
+    } catch (e) {}
+  }
+  playClick() {
+    if (this.muted) return;
+    this.ensureContext();
+    if (!this.ctx) return;
+    try {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(1200, this.ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(320, this.ctx.currentTime + 0.035);
+      gain.gain.setValueAtTime(0.04, this.ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.035);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start();
+      osc.stop(this.ctx.currentTime + 0.035);
+    } catch (e) {}
+  }
+  playChirp() {
+    if (this.muted) return;
+    this.ensureContext();
+    if (!this.ctx) return;
+    try {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(880, this.ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(1760, this.ctx.currentTime + 0.07);
+      gain.gain.setValueAtTime(0.05, this.ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.07);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start();
+      osc.stop(this.ctx.currentTime + 0.07);
+    } catch (e) {}
+  }
+  playScanSweep() {
+    if (this.muted) return;
+    this.ensureContext();
+    if (!this.ctx) return;
+    try {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(350, this.ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(2100, this.ctx.currentTime + 0.35);
+      gain.gain.setValueAtTime(0.05, this.ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.35);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start();
+      osc.stop(this.ctx.currentTime + 0.35);
+    } catch (e) {}
+  }
+  playAccessGranted() {
+    if (this.muted) return;
+    this.ensureContext();
+    if (!this.ctx) return;
+    try {
+      const chords = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6 (Harmonic arpeggio chord)
+      chords.forEach((freq, idx) => {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        const start = this.ctx.currentTime + (idx * 0.07);
+        osc.frequency.setValueAtTime(freq, start);
+        gain.gain.setValueAtTime(0.08, start);
+        gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.85);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(start);
+        osc.stop(start + 0.9);
+      });
+    } catch (e) {}
+  }
+  playDuress() {
+    if (this.muted) return;
+    this.ensureContext();
+    if (!this.ctx) return;
+    try {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(950, this.ctx.currentTime);
+      osc.frequency.linearRampToValueAtTime(350, this.ctx.currentTime + 0.18);
+      osc.frequency.linearRampToValueAtTime(950, this.ctx.currentTime + 0.36);
+      gain.gain.setValueAtTime(0.12, this.ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.45);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start();
+      osc.stop(this.ctx.currentTime + 0.45);
+    } catch (e) {}
+  }
+  playLockTone() {
+    if (this.muted) return;
+    this.ensureContext();
+    if (!this.ctx) return;
+    try {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(600, this.ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(220, this.ctx.currentTime + 0.15);
+      gain.gain.setValueAtTime(0.06, this.ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.15);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start();
+      osc.stop(this.ctx.currentTime + 0.15);
+    } catch (e) {}
+  }
+}
+
+// =========================================================================
+// MATRIX RAIN CANVAS ENGINE (Disciplined Obsidian Phosphor Rain)
+// =========================================================================
+class MatrixRainEngine {
+  constructor(canvas) {
+    this.canvas = canvas;
+    this.ctx = canvas ? canvas.getContext('2d') : null;
+    this.drops = [];
+    this.fontSize = 13;
+    this.characters = '0123456789ABCDEFΞΨΩΣΠλμθνραβγδεアイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン';
+    this.animId = null;
+    this.resize = this.resize.bind(this);
+    this.render = this.render.bind(this);
+  }
+  start() {
+    if (!this.canvas || !this.ctx) return;
+    window.addEventListener('resize', this.resize);
+    this.resize();
+    this.render();
+  }
+  stop() {
+    if (this.animId) cancelAnimationFrame(this.animId);
+    window.removeEventListener('resize', this.resize);
+  }
+  resize() {
+    if (!this.canvas) return;
+    this.canvas.width = window.innerWidth;
+    this.canvas.height = window.innerHeight;
+    const columns = Math.floor(this.canvas.width / this.fontSize);
+    this.drops = [];
+    for (let i = 0; i < columns; i++) {
+      this.drops[i] = Math.floor(Math.random() * -60);
+    }
+  }
+  render() {
+    if (!this.ctx) return;
+    this.ctx.fillStyle = 'rgba(4, 5, 7, 0.16)';
+    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+    this.ctx.font = `${this.fontSize}px 'JetBrains Mono', monospace`;
+
+    for (let i = 0; i < this.drops.length; i++) {
+      const char = this.characters.charAt(Math.floor(Math.random() * this.characters.length));
+      const x = i * this.fontSize;
+      const y = this.drops[i] * this.fontSize;
+
+      if (Math.random() > 0.90) {
+        this.ctx.fillStyle = '#67e8f9'; // bright cyan lead
+      } else if (Math.random() > 0.55) {
+        this.ctx.fillStyle = '#34d399'; // emerald
+      } else {
+        this.ctx.fillStyle = '#065f46'; // dark phosphor green
+      }
+
+      this.ctx.fillText(char, x, y);
+
+      if (y > this.canvas.height && Math.random() > 0.985) {
+        this.drops[i] = 0;
+      }
+      this.drops[i]++;
+    }
+
+    this.animId = requestAnimationFrame(this.render);
+  }
+}
+
 class ClaudeArchitectPlatform {
   constructor() {
+    this.isAuthenticated = false;
+    this.activeAuthTab = 'signin';
+    this.selectedGuestRole = 'architect';
+    this.selectedClearanceTier = 'Tier 2';
+    this.audioEngine = new TacticalAudioEngine();
+    this.matrixRain = null;
+
     this.currentView = 'atelier';
     this.currentTheme = 'dark';
     this.thinkingEffort = 'medium'; // 'low' | 'medium' | 'high' | 'max'
@@ -290,6 +496,7 @@ class ClaudeArchitectPlatform {
   }
 
   init() {
+    this.initAuthSplashScreen();
     this.initSidebar();
     this.bindEvents();
     this.initAudio();
@@ -298,6 +505,345 @@ class ClaudeArchitectPlatform {
     this.initCapstoneAndLabs();
     this.render();
     this.setupShortcuts();
+  }
+
+  initAuthSplashScreen() {
+    const splash = document.getElementById('authSplash');
+    if (!splash) return;
+
+    // Start Matrix rain canvas
+    const canvas = document.getElementById('matrixRainCanvas');
+    if (canvas) {
+      this.matrixRain = new MatrixRainEngine(canvas);
+      this.matrixRain.start();
+    }
+
+    // Live GMT/Zulu clock
+    const updateZulu = () => {
+      const el = document.getElementById('authZuluClock');
+      if (!el) return;
+      const now = new Date();
+      el.textContent = now.toISOString().replace('T', ' ').slice(0, 19) + ' ZULU';
+    };
+    updateZulu();
+    setInterval(updateZulu, 1000);
+
+    // Dynamic TOTP Token generator and countdown
+    let totpSec = 22;
+    const totpEl = document.getElementById('authTotpCountdown');
+    const totpInput = document.getElementById('inputSignInTotp');
+    setInterval(() => {
+      totpSec--;
+      if (totpSec <= 0) {
+        totpSec = 30;
+        if (totpInput) {
+          const rand = Math.floor(100000 + Math.random() * 900000).toString();
+          totpInput.value = `${rand.slice(0, 3)} ${rand.slice(3)}`;
+        }
+      }
+      if (totpEl) totpEl.textContent = `${totpSec}s`;
+    }, 1000);
+
+    // Audio feedback toggle
+    const audioBtn = document.getElementById('authAudioToggle');
+    audioBtn?.addEventListener('click', () => {
+      this.audioEngine.muted = !this.audioEngine.muted;
+      audioBtn.classList.toggle('muted', this.audioEngine.muted);
+      if (!this.audioEngine.muted) this.audioEngine.playChirp();
+    });
+
+    // Tab switcher (Apple macOS/iPadOS segmented control)
+    const tabs = splash.querySelectorAll('.auth-tab');
+    const tagEl = document.getElementById('authClearanceTag');
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        tabs.forEach(t => {
+          t.classList.remove('active');
+          t.setAttribute('aria-selected', 'false');
+        });
+        tab.classList.add('active');
+        tab.setAttribute('aria-selected', 'true');
+        this.activeAuthTab = tab.dataset.authTab;
+
+        splash.querySelectorAll('.auth-tab-content').forEach(c => c.classList.remove('active'));
+        if (this.activeAuthTab === 'signin') {
+          document.getElementById('tabContentSignIn')?.classList.add('active');
+          if (tagEl) tagEl.textContent = 'CLEARANCE REQUIRED: LEVEL 2+';
+        } else if (this.activeAuthTab === 'signup') {
+          document.getElementById('tabContentSignUp')?.classList.add('active');
+          if (tagEl) tagEl.textContent = 'PROVISIONING NEW ARCHITECT IDENTITY';
+        } else if (this.activeAuthTab === 'biometric') {
+          document.getElementById('tabContentBiometric')?.classList.add('active');
+          if (tagEl) tagEl.textContent = 'BIOMETRIC HARDWARE ENCLAVE ACTIVE';
+        } else if (this.activeAuthTab === 'guest') {
+          document.getElementById('tabContentGuest')?.classList.add('active');
+          if (tagEl) tagEl.textContent = 'UNRESTRICTED EVALUATION ACCESS';
+        }
+        this.audioEngine.playClick();
+      });
+    });
+
+    // Demo user quick-fill
+    document.getElementById('btnFillDemoUser')?.addEventListener('click', () => {
+      const email = document.getElementById('inputSignInEmail');
+      const pass = document.getElementById('inputSignInPassword');
+      if (email) email.value = 'architect@atelier.defense.gov';
+      if (pass) pass.value = '••••••••••••••••••••';
+      this.audioEngine.playChirp();
+    });
+
+    // Password show/hide toggle
+    document.getElementById('btnTogglePassword')?.addEventListener('click', () => {
+      const pass = document.getElementById('inputSignInPassword');
+      if (!pass) return;
+      pass.type = pass.type === 'password' ? 'text' : 'password';
+      this.audioEngine.playClick();
+    });
+
+    // Key Generator
+    document.getElementById('btnGenKey')?.addEventListener('click', () => {
+      const keyInput = document.getElementById('inputSignUpKey');
+      if (keyInput) {
+        const chars = '0123456789abcdef';
+        let key = 'qsk-2026-';
+        for (let i = 0; i < 32; i++) key += chars[Math.floor(Math.random() * chars.length)];
+        keyInput.value = key;
+        this.audioEngine.playChirp();
+      }
+    });
+
+    // Tier Cards in Sign Up
+    const tierCards = splash.querySelectorAll('.tier-card');
+    tierCards.forEach(card => {
+      card.addEventListener('click', () => {
+        tierCards.forEach(c => c.classList.remove('active'));
+        card.classList.add('active');
+        const radio = card.querySelector('input[type="radio"]');
+        if (radio) {
+          radio.checked = true;
+          this.selectedClearanceTier = radio.value;
+        }
+        this.audioEngine.playClick();
+      });
+    });
+
+    // Sign In Submit
+    const handleSignIn = (e) => {
+      if (e) e.preventDefault();
+      const email = document.getElementById('inputSignInEmail')?.value || 'architect@atelier.defense.gov';
+      this.executeClearanceUnlock({
+        name: 'Frank Van Laarhoven',
+        role: 'Lead Systems Architect • Enterprise FinOps & Harness',
+        clearance: 'TS//SCI TIER 4'
+      });
+    };
+    document.getElementById('btnSubmitSignIn')?.addEventListener('click', handleSignIn);
+    document.getElementById('formSignIn')?.addEventListener('submit', handleSignIn);
+
+    // Sign Up Submit
+    const handleSignUp = (e) => {
+      if (e) e.preventDefault();
+      const name = document.getElementById('inputSignUpName')?.value || 'Dr. Elena Vance';
+      const org = document.getElementById('inputSignUpOrg')?.value || 'Palantir Foundry Systems';
+      const tier = this.selectedClearanceTier || 'Tier 2';
+      this.executeClearanceUnlock({
+        name: name,
+        role: `${tier} Architect • ${org}`,
+        clearance: tier === 'Tier 3' ? 'TS//SCI TIER 3' : 'LEVEL 2 ACTIVE'
+      });
+    };
+    document.getElementById('btnSubmitSignUp')?.addEventListener('click', handleSignUp);
+    document.getElementById('formSignUp')?.addEventListener('submit', handleSignUp);
+
+    // Biometric Scanner (Mission Impossible HUD)
+    const btnBiometric = document.getElementById('btnTriggerBiometricScan');
+    btnBiometric?.addEventListener('click', () => {
+      const iris = document.getElementById('biometricIrisCenter');
+      const title = document.getElementById('bioStatusTitle');
+      const sub = document.getElementById('bioStatusSub');
+      const fill = document.getElementById('bioMeterFill');
+      const conf = document.getElementById('bioMatchConfidence');
+      const btnText = document.getElementById('btnBiometricText');
+
+      if (iris) iris.classList.add('scanning');
+      if (title) title.textContent = 'ALIGNING OPTRONIC SENSOR & LOCKING IRIS...';
+      if (sub) sub.textContent = 'Targeting retinal vascular matrix • FIDO2 token detected';
+      if (btnText) btnText.textContent = 'AUTHENTICATING SCAN...';
+      if (btnBiometric) btnBiometric.disabled = true;
+
+      this.audioEngine.playScanSweep();
+
+      let progress = 0;
+      const interval = setInterval(() => {
+        progress += 12;
+        if (fill) fill.style.width = `${Math.min(progress, 100)}%`;
+
+        if (progress === 48) {
+          if (title) title.textContent = 'COMPARING IRIS HASH AGAINST IMF RECORD...';
+          this.audioEngine.playChirp();
+        } else if (progress >= 96) {
+          clearInterval(interval);
+          if (title) title.textContent = 'BIOMETRIC MATCH: 99.98% • IDENTITY CONFIRMED';
+          if (conf) conf.textContent = 'CONFIDENCE: 99.98%';
+          if (sub) sub.textContent = 'Verified Subject: Frank Van Laarhoven (Lead Systems Architect)';
+          this.audioEngine.playAccessGranted();
+
+          setTimeout(() => {
+            this.executeClearanceUnlock({
+              name: 'Frank Van Laarhoven',
+              role: 'Lead Systems Architect • Biometric Verified',
+              clearance: 'TS//SCI TIER 4'
+            });
+            if (iris) iris.classList.remove('scanning');
+            if (btnBiometric) btnBiometric.disabled = false;
+            if (btnText) btnText.textContent = 'ENGAGE RETINAL & PASSKEY SCAN';
+          }, 600);
+        }
+      }, 70);
+    });
+
+    // Guest Presets
+    const guestRoles = splash.querySelectorAll('.guest-role-btn');
+    const guestBtnText = document.getElementById('btnGuestSubmitText');
+    guestRoles.forEach(roleBtn => {
+      roleBtn.addEventListener('click', () => {
+        guestRoles.forEach(r => r.classList.remove('active'));
+        roleBtn.classList.add('active');
+        this.selectedGuestRole = roleBtn.dataset.guestRole;
+        if (guestBtnText) {
+          if (this.selectedGuestRole === 'architect') guestBtnText.textContent = 'ENTER CONSOLE AS LEAD ARCHITECT';
+          else if (this.selectedGuestRole === 'auditor') guestBtnText.textContent = 'ENTER CONSOLE AS RED TEAM AUDITOR';
+          else if (this.selectedGuestRole === 'student') guestBtnText.textContent = 'ENTER CONSOLE AS ACADEMY CANDIDATE';
+        }
+        this.audioEngine.playClick();
+      });
+    });
+
+    document.getElementById('btnSubmitGuest')?.addEventListener('click', () => {
+      if (this.selectedGuestRole === 'auditor') {
+        this.executeClearanceUnlock({
+          name: 'Sarah Connor',
+          role: 'Red Team Invariant Auditor • Zero-Trust Compliance',
+          clearance: 'AUDITOR // ZERO-TRUST'
+        });
+      } else if (this.selectedGuestRole === 'student') {
+        this.executeClearanceUnlock({
+          name: 'Alex Rivera',
+          role: 'Anthropic Certified Candidate • Cohort 2026',
+          clearance: 'TIER 1 CANDIDATE'
+        });
+      } else {
+        this.executeClearanceUnlock({
+          name: 'Frank Van Laarhoven',
+          role: 'Lead Systems Architect • Enterprise FinOps & Harness',
+          clearance: 'TS//SCI TIER 4'
+        });
+      }
+    });
+
+    // Duress Killswitch
+    document.getElementById('btnDuressProtocol')?.addEventListener('click', () => {
+      this.audioEngine.playDuress();
+      const directiveCard = splash.querySelector('.auth-directive-card');
+      if (directiveCard) {
+        directiveCard.style.borderColor = 'var(--accent-rose)';
+        directiveCard.style.boxShadow = '0 0 25px rgba(244, 63, 94, 0.4)';
+      }
+      alert('⚠️ DURESS PROTOCOL ACTIVATED: Hardware memory buffer purged. All transient session telemetry wiped. Node in locked zero-trust containment.');
+      setTimeout(() => {
+        if (directiveCard) {
+          directiveCard.style.borderColor = '';
+          directiveCard.style.boxShadow = '';
+        }
+      }, 3000);
+    });
+
+    // Console Lock button in Sidebar & Topbar
+    document.getElementById('btnLockConsole')?.addEventListener('click', () => this.lockConsole());
+    document.getElementById('topbarLockConsole')?.addEventListener('click', () => this.lockConsole());
+
+    // ESC shortcut bypass for convenient evaluator workflow
+    window.addEventListener('keydown', (e) => {
+      if (!this.isAuthenticated) {
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          this.executeClearanceUnlock({
+            name: 'Frank Van Laarhoven',
+            role: 'Lead Systems Architect • Enterprise FinOps & Harness',
+            clearance: 'TS//SCI TIER 4'
+          });
+        }
+      }
+    });
+  }
+
+  executeClearanceUnlock(operatorData) {
+    const splash = document.getElementById('authSplash');
+    const overlay = document.getElementById('authVerifyOverlay');
+    const stream = document.getElementById('verifyMatrixStream');
+    const bar = document.getElementById('verifyProgressBar');
+
+    if (operatorData) {
+      if (operatorData.name) this.learnerState.name = operatorData.name;
+      if (operatorData.role) this.learnerState.role = operatorData.role;
+      if (operatorData.clearance) this.learnerState.clearanceLevel = operatorData.clearance;
+    }
+
+    // Update Console sidebar & topbar badges
+    const avatarEl = document.getElementById('sidebarUserAvatar');
+    const nameEl = document.getElementById('sidebarUserName');
+    const roleEl = document.getElementById('sidebarUserRole');
+    const topClearance = document.getElementById('topbarClearanceLevel');
+
+    if (avatarEl) {
+      const initials = (this.learnerState.name || 'FV')
+        .split(' ')
+        .map(n => n[0])
+        .slice(0, 2)
+        .join('')
+        .toUpperCase();
+      avatarEl.textContent = initials || 'FV';
+    }
+    if (nameEl) nameEl.textContent = this.learnerState.name;
+    if (roleEl) roleEl.textContent = this.learnerState.role;
+    if (topClearance) topClearance.textContent = this.learnerState.clearanceLevel || 'TS//SCI TIER 4';
+
+    // Activate Verification HUD
+    if (overlay) overlay.classList.add('active');
+    this.audioEngine.playScanSweep();
+
+    if (stream) {
+      stream.innerHTML = `
+        01000001 01010100 01000101 01001100 01001001 01000101 01010010<br/>
+        VALIDATING CRYPTOGRAPHIC INTEGRITY INVARIANTS...<br/>
+        OPERATOR IDENT: <strong>${(this.learnerState.name || 'FRANK VAN LAARHOVEN').toUpperCase()}</strong> [CONFIRMED]<br/>
+        SECURITY CLEARANCE: <strong>${this.learnerState.clearanceLevel || 'TS//SCI TIER 4'}</strong> [AUTHORIZED]<br/>
+        DECRYPTING MISSION CONTROL WORKBENCHES...
+      `;
+    }
+
+    if (bar) {
+      bar.style.width = '0%';
+      setTimeout(() => { bar.style.width = '100%'; }, 50);
+    }
+
+    setTimeout(() => {
+      this.audioEngine.playAccessGranted();
+    }, 450);
+
+    setTimeout(() => {
+      if (overlay) overlay.classList.remove('active');
+      if (splash) splash.classList.add('unlocked');
+      this.isAuthenticated = true;
+    }, 1100);
+  }
+
+  lockConsole() {
+    const splash = document.getElementById('authSplash');
+    if (!splash) return;
+    this.audioEngine.playLockTone();
+    splash.classList.remove('unlocked');
+    this.isAuthenticated = false;
   }
 
   initSidebar() {
