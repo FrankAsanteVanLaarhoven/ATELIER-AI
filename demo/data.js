@@ -3505,3 +3505,912 @@ export const CAPSTONE_PRESETS = [
     baseScore: 98
   }
 ];
+
+// ============================================================================
+// SYSTEM SLASH COMMANDS & SKILLS (TOKEN-EFFICIENT ORCHESTRATION)
+// ============================================================================
+export const SYSTEM_SLASH_COMMANDS = [
+  {
+    command: "/goal",
+    args: "<objective>",
+    category: "Autonomous Execution",
+    description: "Launches persistent, autonomous goal pursuit that runs until all verification checks pass. Eliminates repetitive user turn prompts and saves tokens through deterministic verification checkpoints.",
+    tokenImpact: "Up to 65% token savings by running autonomous loop with deterministic PreToolUse invariant guards.",
+    example: "/goal Refactor harness routing to satisfy USCAR-21 150mm clearance and verify passing DRC",
+    outputSchema: "Phased milestone execution with pass/fail telemetry assertions."
+  },
+  {
+    command: "/effort",
+    args: "<low | medium | high | max>",
+    category: "Inference Budgeting",
+    description: "Dynamically regulates Claude reasoning depth and thinking token allocation. Use 'low' for deterministic edits and 'max' only for complex multi-system architectural derivations.",
+    tokenImpact: "Conserves 8,000 to 24,000 thinking tokens per invocation on routine tasks.",
+    example: "/effort low (for syntax formatting) or /effort high (for physical wire bundle derating)",
+    outputSchema: "Active thinking token budget updated: [Low: 2k | Med: 8k | High: 16k | Max: 32k]."
+  },
+  {
+    command: "/plan",
+    args: "<task description>",
+    category: "Execution Planning",
+    description: "Generates an architectural phase-gate execution plan before executing any code changes. Prevents costly trial-and-error tool calls that waste tokens.",
+    tokenImpact: "Eliminates redundant file edits and rollback loops, saving ~40,000 tokens on multi-file refactors.",
+    example: "/plan Migrate 5-point harness routing checks into a reusable MCP tool",
+    outputSchema: "Phased gate list with user confirmation checkpoint before tool dispatch."
+  },
+  {
+    command: "/compact",
+    args: "[threshold_tokens]",
+    category: "Context Optimization",
+    description: "Compresses long multi-turn session history into an indexed working scratchpad. Drops raw tool outputs and large file dumps while preserving critical decision context.",
+    tokenImpact: "Reduces active prompt context by 75% - 85%, cutting cost on subsequent turns from $0.45 to $0.06.",
+    example: "/compact 60000",
+    outputSchema: "Compressed working memory summary (250 words) + indexed decision register."
+  },
+  {
+    command: "/cost",
+    args: "",
+    category: "Telemetry & Accounting",
+    description: "Outputs real-time token consumption ledger, prompt caching hit-rates (cache_read vs cache_write), and cumulative USD expenditure.",
+    tokenImpact: "Full transparency over token waste; identifies un-cached repetitive system instructions.",
+    example: "/cost",
+    outputSchema: "Token table: Input, Cache Read (90% off), Cache Write, Output, Total Cost ($)."
+  },
+  {
+    command: "/grill-me",
+    args: "<architectural proposal>",
+    category: "Alignment & Constraints",
+    description: "Initiates a rapid technical interview where Claude acts as a Staff Systems Architect, challenging edge cases and clarifying ambiguous requirements before code is written.",
+    tokenImpact: "Avoids costly downstream rewrites caused by misaligned assumptions.",
+    example: "/grill-me Dual-redundant 800V bus architecture with shared ground",
+    outputSchema: "3 targeted architectural pressure-test questions with multi-choice options."
+  },
+  {
+    command: "/learn",
+    args: "<operational rule>",
+    category: "Persistent Memory",
+    description: "Distills a corrected user workflow or critical bug fix into a permanent, compact instruction inside CLAUDE.md. Prevents having to re-explain project constraints in future turns.",
+    tokenImpact: "Saves 500+ prompt tokens on every subsequent user turn permanently.",
+    example: "/learn Never place ultrasonic splices within 150mm of bundle bends in this repo",
+    outputSchema: "Appended invariant entry in CLAUDE.md with verification hash."
+  },
+  {
+    command: "/schedule",
+    args: "<cron | seconds> <prompt>",
+    category: "Automation",
+    description: "Configures recurring cron jobs or one-shot liveness timers. Prevents wasteful polling loops by relying on reactive system wakeup notifications.",
+    tokenImpact: "Zero token consumption while waiting; model only wakes when timer triggers.",
+    example: "/schedule 3600 'Run DRC audit against active CAD formboard'",
+    outputSchema: "Background timer task registered with notification handle."
+  },
+  {
+    command: "/harness-verify",
+    args: "[--standard USCAR-21 | AS50881]",
+    category: "Physical Invariants",
+    description: "Runs deterministic Design Rule Checks (DRC) against active harness nodes, enforcing physical splice clearance, bend radius, and cavity seal constraints.",
+    tokenImpact: "Runs 100% in local deterministic code (< 5ms) without consuming LLM inference tokens.",
+    example: "/harness-verify --standard USCAR-21",
+    outputSchema: "DRC Pass/Fail report with exact millimeter clearances and failure modes."
+  }
+];
+
+// ============================================================================
+// TOKEN & CONTEXT EFFICIENCY ENGINE (SELF-HEALING & RESOURCE MAXIMIZATION)
+// ============================================================================
+export const TOKEN_OPTIMIZATION_MODULE = {
+  title: "Token & Context Efficiency Engine",
+  subtitle: "Self-Healing Context, Anthropic Prompt Caching & Minimalist Tooling",
+  overview: "Enterprise AI systems fail financially when developers treat token context as an infinite buffer. By architecting self-healing system prompts, leveraging Anthropic Prompt Caching (90% discount), and replacing blind repo dumps with targeted line searches, teams reduce token expenditure by 85% to 96% while improving reasoning accuracy.",
+  
+  pillars: [
+    {
+      id: "prompt-caching",
+      name: "Anthropic Prompt Caching (cache_control)",
+      icon: "bolt",
+      discount: "90% Cost Reduction ($0.30/M vs $3.00/M)",
+      rule: "Place static invariants, CLAUDE.md, and MCP tool schemas at the top with cache_control: {'type': 'ephemeral'}. Only append dynamic state at the message tail.",
+      badPractice: "Interleaving dynamic user inputs before large system prompt blocks or tool definitions, causing 100% cache invalidation on every turn.",
+      goodPractice: "Structure: [System Core (Cached)] -> [CLAUDE.md & Invariants (Cached)] -> [MCP Tools (Cached)] -> [Dynamic Session Tail].",
+      codeSnippet: `// Correct Anthropic Prompt Caching Structure
+const response = await anthropic.messages.create({
+  model: "claude-3-7-sonnet-20250219",
+  max_tokens: 4096,
+  system: [
+    {
+      type: "text",
+      text: SYSTEM_PROMPT_INVARIANTS,
+      cache_control: { type: "ephemeral" } // ⚡ 90% discount on cache read ($0.30/M)
+    }
+  ],
+  tools: MCP_TOOL_DEFINITIONS.map((tool, idx) => 
+    idx === MCP_TOOL_DEFINITIONS.length - 1
+      ? { ...tool, cache_control: { type: "ephemeral" } } // ⚡ Cache all tools
+      : tool
+  ),
+  messages: conversationHistory // Only dynamic messages change
+});`
+    },
+    {
+      id: "hierarchical-search",
+      name: "Hierarchical Search vs. Context Dumping",
+      icon: "search",
+      discount: "45,000+ Tokens Saved Per Debug Run",
+      rule: "Never run blind file dumps (e.g. cat entire files or ls -R). Use ripgrep with line filters (grep_search) and slice windows (view_file StartLine/EndLine).",
+      badPractice: "Reading 5 whole files (15,000 tokens) to find a single 4-line function definition.",
+      goodPractice: "grep_search for symbol -> view_file StartLine: 240, EndLine: 265 (only 35 tokens consumed).",
+      codeSnippet: `// ✗ ANTI-PATTERN: Blind context blowout
+view_file({ AbsolutePath: "/repo/harness/engine.py" }); // 12,000 tokens!
+
+// ✓ SOTA BEST PRACTICE: Targeted slice
+const match = grep_search({ Query: "def check_splice_clearance", SearchPath: "/repo" });
+view_file({ AbsolutePath: match.path, StartLine: 45, EndLine: 65 }); // 120 tokens!`
+    },
+    {
+      id: "self-healing",
+      name: "Self-Healing Adaptive Context & Anticipation",
+      icon: "sparkles",
+      discount: "Zero Wasteful Reprompting",
+      rule: "System prompts must anticipate user intent from historical session state and recover from tool errors locally rather than forcing repetitive multi-turn re-prompts.",
+      badPractice: "Agent crashes on 504 tool timeout; prompts user: 'Error occurred, what would you like me to do?'; user repeats entire context.",
+      goodPractice: "Deterministic harness loop catches 504, executes idempotent exponential backoff retry rule, and returns verified answer without user token waste.",
+      codeSnippet: `// Self-Healing Harness Loop (Zero Token Reprompt)
+harness.on('ToolError', async (error, call) => {
+  if (error.code === 504 || error.is_retryable) {
+    // Self-healing: retry with localized jitter backoff
+    telemetry.recordSpan('tool_retry', { tool: call.name });
+    return await executeToolWithBackoff(call, { maxRetries: 3 });
+  }
+  throw error;
+});`
+    },
+    {
+      id: "context-compaction",
+      name: "Dynamic Context Compaction (/compact)",
+      icon: "archive",
+      discount: "80% Context Overhead Reduction",
+      rule: "When active conversation context exceeds 75,000 tokens, compact historical turns into a structured 250-word state scratchpad and drop raw tool execution traces.",
+      badPractice: "Carrying 40 turns of raw stdout traces, shell commands, and JSON payloads into turn 41.",
+      goodPractice: "Compress turns 1-35 into a 250-word state summary with immutable decisions and pending invariants.",
+      codeSnippet: `// Dynamic Compaction Trigger
+if (currentTokens > 75000) {
+  const scratchpad = await generateCompactedSummary(sessionHistory.slice(0, -5));
+  sessionHistory = [
+    { role: "system", content: \`COMPACTED STATE CHECKPOINT:\\n\${scratchpad}\` },
+    ...sessionHistory.slice(-5) // Keep last 5 active turns intact
+  ];
+}`
+    }
+  ],
+
+  tokenCalculator: {
+    baseInputCostPerM: 3.00,
+    cachedReadCostPerM: 0.30,   // 90% discount!
+    cachedWriteCostPerM: 3.75,
+    outputCostPerM: 15.00,
+    typicalRepoTokens: 145000,
+    optimizedTokens: 12400
+  }
+};
+
+// ============================================================================
+// SEARCHABLE CLAUDE COMMANDS & SKILLS LIBRARY REGISTRY
+// ============================================================================
+export const CLAUDE_COMMANDS_LIBRARY = [
+  // --- CORE SLASH COMMANDS ---
+  {
+    id: "cmd-goal",
+    name: "Autonomous Persistent Goal",
+    command: "/goal",
+    syntax: "/goal <objective>",
+    category: "Slash Commands",
+    categoryBadgeColor: "var(--accent-cyan)",
+    description: "Launches persistent, autonomous goal pursuit that runs until all verification checks pass. Eliminates repetitive user turns by running an autonomous inner loop protected by deterministic PreToolUse invariant guards.",
+    tokenImpact: "Up to 65% token savings by replacing repetitive human-in-the-loop reprompts with autonomous loop assertions.",
+    example: "/goal Refactor harness routing to satisfy USCAR-21 150mm clearance and verify passing DRC",
+    copyText: "/goal Refactor harness routing to satisfy USCAR-21 150mm clearance and verify passing DRC",
+    tags: ["goal", "autonomous", "loop", "persistence", "agent", "invariant", "uscar"],
+    interactive: true,
+    placeholder: "Refactor harness routing to satisfy USCAR-21 150mm clearance"
+  },
+  {
+    id: "cmd-effort",
+    name: "Adaptive Thinking Token Budget",
+    command: "/effort",
+    syntax: "/effort <low | medium | high | max>",
+    category: "Inference & Tokens",
+    categoryBadgeColor: "var(--accent-emerald)",
+    description: "Dynamically regulates Claude reasoning depth and thinking token allocation. Set to 'low' for deterministic code edits/formatting and 'max' only for multi-system architectural derivations or formal DRC proofs.",
+    tokenImpact: "Conserves 8,000 to 24,000 thinking tokens per invocation on routine tasks.",
+    example: "/effort max",
+    copyText: "/effort max",
+    tags: ["effort", "thinking", "budget", "tokens", "reasoning", "cost", "inference"],
+    interactive: true,
+    options: ["low", "medium", "high", "max"],
+    defaultOption: "high"
+  },
+  {
+    id: "cmd-plan",
+    name: "Architectural Phase-Gate Plan",
+    command: "/plan",
+    syntax: "/plan <task description>",
+    category: "Slash Commands",
+    categoryBadgeColor: "var(--accent-cyan)",
+    description: "Generates an architectural phase-gate execution plan before executing any code changes. Prevents costly trial-and-error tool calls and rolling back hallucinated file edits.",
+    tokenImpact: "Eliminates redundant file edits and rollback loops, saving ~40,000 tokens on multi-file refactors.",
+    example: "/plan Migrate 5-point harness routing checks into a reusable MCP tool with USCAR-21 rules",
+    copyText: "/plan Migrate 5-point harness routing checks into a reusable MCP tool with USCAR-21 rules",
+    tags: ["plan", "planning", "phase", "gate", "architecture", "verification"],
+    interactive: true,
+    placeholder: "Implement deterministic 5-point DRC validator tool for vehicle wire harnesses"
+  },
+  {
+    id: "cmd-compact",
+    name: "Dynamic Context Compactor",
+    command: "/compact",
+    syntax: "/compact [threshold_tokens]",
+    category: "Context & Cache",
+    categoryBadgeColor: "#a78bfa",
+    description: "Compresses long multi-turn session history into an indexed working scratchpad. Drops raw tool stdout, large file dumps, and JSON traces while preserving critical architectural decisions and pending invariants.",
+    tokenImpact: "Reduces active prompt context by 75% - 85%, cutting cost on subsequent turns from $0.45 to $0.06.",
+    example: "/compact 60000",
+    copyText: "/compact 60000",
+    tags: ["compact", "context", "history", "compression", "scratchpad", "memory", "token"],
+    interactive: true,
+    options: ["30000", "50000", "60000", "75000", "100000"],
+    defaultOption: "60000"
+  },
+  {
+    id: "cmd-cost",
+    name: "Session Token & Cost Ledger",
+    command: "/cost",
+    syntax: "/cost",
+    category: "Inference & Tokens",
+    categoryBadgeColor: "var(--accent-emerald)",
+    description: "Outputs real-time token consumption ledger, prompt caching hit-rates (cache_read vs cache_write vs uncached input), and cumulative USD expenditure formatted as an ASCII telemetry table.",
+    tokenImpact: "Full transparency over token waste; immediately identifies un-cached repetitive system instructions.",
+    example: "/cost",
+    copyText: "/cost",
+    tags: ["cost", "ledger", "price", "dollars", "telemetry", "prompt caching", "accounting"],
+    interactive: false
+  },
+  {
+    id: "cmd-tokens",
+    name: "Context Window Token Telemetry",
+    command: "/tokens",
+    syntax: "/tokens",
+    category: "Inference & Tokens",
+    categoryBadgeColor: "var(--accent-emerald)",
+    description: "Displays current session token breakdown across system prompt invariants, tool schema overhead, conversation turns, and generation outputs against model context limits.",
+    tokenImpact: "Prevents surprise context overflow and signals when to trigger /compact.",
+    example: "/tokens",
+    copyText: "/tokens",
+    tags: ["tokens", "context", "window", "usage", "limit", "breakdown"],
+    interactive: false
+  },
+  {
+    id: "cmd-cache-status",
+    name: "Anthropic Prompt Cache Inspector",
+    command: "/cache-status",
+    syntax: "/cache-status",
+    category: "Context & Cache",
+    categoryBadgeColor: "#a78bfa",
+    description: "Inspects cache_control breakpoints, TTL status, and verifies whether static CLAUDE.md invariants and MCP tool declarations are cleanly hit at the $0.30/M read discount.",
+    tokenImpact: "Confirms 90% discount on cached tokens is active and flags cache invalidation leaks.",
+    example: "/cache-status",
+    copyText: "/cache-status",
+    tags: ["cache", "prompt caching", "ephemeral", "discount", "breakpoints", "ttl"],
+    interactive: false
+  },
+  {
+    id: "cmd-grill-me",
+    name: "Staff Architect Pressure-Test",
+    command: "/grill-me",
+    syntax: "/grill-me <proposal>",
+    category: "Slash Commands",
+    categoryBadgeColor: "var(--accent-cyan)",
+    description: "Initiates a rapid technical interview where Claude acts as a Staff Systems Architect, challenging edge cases, thermal limits, failure modes, and ambiguous specs before code is written.",
+    tokenImpact: "Avoids costly downstream architectural rewrites caused by misaligned assumptions.",
+    example: "/grill-me Dual-redundant 800V bus architecture with shared ground and 50G vibration profile",
+    copyText: "/grill-me Dual-redundant 800V bus architecture with shared ground and 50G vibration profile",
+    tags: ["grill", "interview", "challenge", "requirements", "edge cases", "architecture"],
+    interactive: true,
+    placeholder: "Dual-redundant 800V bus architecture with shared ground"
+  },
+  {
+    id: "cmd-learn",
+    name: "CLAUDE.md Invariant Learning",
+    command: "/learn",
+    syntax: "/learn <rule>",
+    category: "Slash Commands",
+    categoryBadgeColor: "var(--accent-cyan)",
+    description: "Distills a corrected user workflow or critical bug fix into a permanent, compact instruction inside CLAUDE.md. Prevents having to re-explain project constraints in future turns.",
+    tokenImpact: "Saves 500+ prompt tokens on every subsequent user turn permanently.",
+    example: "/learn Never place ultrasonic splices within 150mm of bundle bends in this repo",
+    copyText: "/learn Never place ultrasonic splices within 150mm of bundle bends in this repo",
+    tags: ["learn", "memory", "claude.md", "invariants", "rules", "persistence"],
+    interactive: true,
+    placeholder: "Never place ultrasonic splices within 150mm of bundle bends in this repo"
+  },
+  {
+    id: "cmd-schedule",
+    name: "Reactive Scheduler & Liveness",
+    command: "/schedule",
+    syntax: "/schedule <seconds | cron> <prompt>",
+    category: "Slash Commands",
+    categoryBadgeColor: "var(--accent-cyan)",
+    description: "Configures recurring cron schedules or one-shot liveness timers. Eliminates wasteful active polling loops by relying on reactive system wakeup notifications.",
+    tokenImpact: "Zero token consumption while waiting; model only wakes when timer triggers.",
+    example: "/schedule 3600 'Run DRC audit against active CAD formboard'",
+    copyText: "/schedule 3600 'Run DRC audit against active CAD formboard'",
+    tags: ["schedule", "cron", "timer", "background", "polling", "liveness"],
+    interactive: true,
+    placeholder: "3600 'Run DRC audit against active CAD formboard'"
+  },
+  {
+    id: "cmd-theme",
+    name: "3-Way Theme Controller",
+    command: "/theme",
+    syntax: "/theme <dark | light | system>",
+    category: "Slash Commands",
+    categoryBadgeColor: "var(--accent-cyan)",
+    description: "Programmatically changes the portal theme across Dark (Tactical Obsidian), Light (Snow White Apple HIG), or System (OS auto-detection).",
+    tokenImpact: "Instant local CSS variable reconfiguration without LLM roundtrips.",
+    example: "/theme light",
+    copyText: "/theme light",
+    tags: ["theme", "dark", "light", "system", "apple", "color", "appearance"],
+    interactive: true,
+    options: ["dark", "light", "system"],
+    defaultOption: "dark"
+  },
+  {
+    id: "cmd-harness-verify",
+    name: "Design Rule Check (DRC) Invariant Verification",
+    command: "/harness-verify",
+    syntax: "/harness-verify [--standard USCAR-21 | AS50881 | ISO19642]",
+    category: "DRC & Harness",
+    categoryBadgeColor: "#fb923c",
+    description: "Runs deterministic Design Rule Checks (DRC) against active CAD harness nodes, validating physical splice clearance (>= 150mm), bend radius, vibration anchors, and cavity seals.",
+    tokenImpact: "Runs 100% in local deterministic code (< 5ms) without consuming LLM inference tokens.",
+    example: "/harness-verify --standard USCAR-21",
+    copyText: "/harness-verify --standard USCAR-21",
+    tags: ["harness", "drc", "uscar", "as50881", "verification", "splice", "clearance"],
+    interactive: true,
+    options: ["--standard USCAR-21", "--standard AS50881", "--standard ISO19642"],
+    defaultOption: "--standard USCAR-21"
+  },
+
+  // --- CLAUDE CODE CLI & TERMINAL COMMANDS ---
+  {
+    id: "cmd-cli-init",
+    name: "Launch Claude Code CLI",
+    command: "claude",
+    syntax: "claude [options]",
+    category: "CLI & Terminal",
+    categoryBadgeColor: "var(--accent-indigo)",
+    description: "Initializes the native Claude Code agent in your terminal with workspace auto-detection, CLAUDE.md parsing, and MCP server initialization.",
+    tokenImpact: "Reads CLAUDE.md once and caches system invariants for all turns.",
+    example: "claude",
+    copyText: "claude",
+    tags: ["claude", "cli", "terminal", "init", "start", "session"],
+    interactive: false
+  },
+  {
+    id: "cmd-cli-resume",
+    name: "Resume Previous Session",
+    command: "claude --resume",
+    syntax: "claude --resume",
+    category: "CLI & Terminal",
+    categoryBadgeColor: "var(--accent-indigo)",
+    description: "Resumes the previous conversation session with full history, tool state, and warm prompt cache intact. Prevents re-reading project files.",
+    tokenImpact: "Saves up to 50,000 initialization tokens by restoring existing prompt cache.",
+    example: "claude --resume",
+    copyText: "claude --resume",
+    tags: ["resume", "session", "restore", "state", "cache", "cli"],
+    interactive: false
+  },
+  {
+    id: "cmd-cli-print",
+    name: "Non-Interactive Pipeline Command",
+    command: "claude -p",
+    syntax: "claude -p '<prompt>'",
+    category: "CLI & Terminal",
+    categoryBadgeColor: "var(--accent-indigo)",
+    description: "Executes a single instruction non-interactively and streams output to stdout. Ideal for CI/CD test runners, git hooks, and headless scripts.",
+    tokenImpact: "Single-turn execution eliminates conversational context accumulation.",
+    example: "claude -p 'Audit ./src/harness for USCAR-21 compliance and output exit code'",
+    copyText: "claude -p 'Audit ./src/harness for USCAR-21 compliance and output exit code'",
+    tags: ["print", "ci", "cd", "headless", "pipe", "script", "non-interactive"],
+    interactive: true,
+    placeholder: "Audit ./src/harness for USCAR-21 compliance and output exit code"
+  },
+  {
+    id: "cmd-cli-mcp-list",
+    name: "List Model Context Protocol Servers",
+    command: "claude mcp list",
+    syntax: "claude mcp list",
+    category: "CLI & Terminal",
+    categoryBadgeColor: "var(--accent-indigo)",
+    description: "Inspects all registered MCP servers, active connections (stdio/SSE), schemas, and tool signatures exposed to the Claude agent.",
+    tokenImpact: "Verifies which tool schemas are consuming context window space.",
+    example: "claude mcp list",
+    copyText: "claude mcp list",
+    tags: ["mcp", "tools", "servers", "schemas", "protocol", "gateway"],
+    interactive: false
+  },
+  {
+    id: "cmd-cli-doctor",
+    name: "Claude Environment Doctor",
+    command: "claude doctor",
+    syntax: "claude doctor",
+    category: "CLI & Terminal",
+    categoryBadgeColor: "var(--accent-indigo)",
+    description: "Diagnoses CLI health, auth tokens, git configuration, Node.js runtime, sandbox isolation policies, and connectivity to Anthropic API.",
+    tokenImpact: "Pre-flight validation prevents runtime failures and wasted inference calls.",
+    example: "claude doctor",
+    copyText: "claude doctor",
+    tags: ["doctor", "health", "diagnostics", "auth", "sandbox", "config"],
+    interactive: false
+  },
+
+  // --- INDUSTRIAL HARNESS RECIPES & PRODUCTION WORKFLOWS ---
+  {
+    id: "recipe-drc-sweep",
+    name: "Deterministic DRC Audit & Ledger Sweep",
+    command: "Recipe: DRC Sweep",
+    syntax: "/harness-verify --standard USCAR-21 && /cost",
+    category: "Industrial Recipes",
+    categoryBadgeColor: "#f43f5e",
+    description: "Executes local deterministic Design Rule Checks against the active wiring formboard, enforces physical splice clearances, and prints the token and dollar accounting ledger without wasting inference tokens.",
+    tokenImpact: "0 LLM tokens for verification + instant ledger audit ($0 cost).",
+    example: "/harness-verify --standard USCAR-21\n/cost",
+    copyText: "/harness-verify --standard USCAR-21 && /cost",
+    tags: ["recipe", "uscar", "drc", "verify", "audit", "workflow", "production"],
+    interactive: false
+  },
+  {
+    id: "recipe-hierarchical-debug",
+    name: "Hierarchical Search vs Blind Dump",
+    command: "Recipe: SOTA Debug",
+    syntax: "grep_search -> view_file slice -> /effort high",
+    category: "Industrial Recipes",
+    categoryBadgeColor: "#f43f5e",
+    description: "The gold-standard architectural pattern for debugging: locate symbol definitions using ripgrep (`grep_search`), inspect strictly the 20 lines around the target using slice bounds (`view_file StartLine:45 EndLine:65`), allocate high effort, and fix.",
+    tokenImpact: "Consumes only ~550 tokens vs. 48,000 tokens for a blind 15-file monorepo dump (98.8% token reduction).",
+    example: "grep_search({ Query: 'calculate_derating', SearchPath: './src' })\nview_file({ AbsolutePath: './src/derating.ts', StartLine: 45, EndLine: 65 })\n/effort high",
+    copyText: "grep_search({ Query: 'calculate_derating', SearchPath: './src' })\nview_file({ AbsolutePath: './src/derating.ts', StartLine: 45, EndLine: 65 })\n/effort high",
+    tags: ["recipe", "hierarchical", "grep", "search", "slice", "debug", "savings"],
+    interactive: false
+  },
+  {
+    id: "recipe-overnight-goal",
+    name: "Overnight Autonomous Refactoring Gate",
+    command: "Recipe: Autonomous Goal",
+    syntax: "/goal <specification with acceptance tests>",
+    category: "Industrial Recipes",
+    categoryBadgeColor: "#f43f5e",
+    description: "Hands-off overnight task execution: directs Claude to iteratively refactor legacy harness code, run unit tests, re-verify physical clearances, and stop only when 100% of DRC checks pass.",
+    tokenImpact: "Eliminates 30+ interactive turn roundtrips; executes within a single disciplined goal harness.",
+    example: "/goal 'Migrate EV 800V harness schemas to USCAR-21 Revision 4, run deterministic DRC, and generate formal compliance diff'",
+    copyText: "/goal 'Migrate EV 800V harness schemas to USCAR-21 Revision 4, run deterministic DRC, and generate formal compliance diff'",
+    tags: ["recipe", "overnight", "goal", "autonomous", "uscar", "compliance"],
+    interactive: false
+  },
+  {
+    id: "recipe-context-hygiene",
+    name: "Context Hygiene & Compaction Cycle",
+    command: "Recipe: Context Hygiene",
+    syntax: "/compact 60000 && /cache-status",
+    category: "Industrial Recipes",
+    categoryBadgeColor: "#f43f5e",
+    description: "Standard operating procedure for marathon coding sessions: compresses accumulated multi-turn noise into a 250-word state register and validates that the prompt cache is primed.",
+    tokenImpact: "Drops active token burden by ~60,000 tokens, saving ~$0.18 on every following turn.",
+    example: "/compact 60000\n/cache-status",
+    copyText: "/compact 60000 && /cache-status",
+    tags: ["recipe", "hygiene", "compact", "cache", "cycle", "marathon"],
+    interactive: false
+  }
+];
+
+// =========================================================================
+// VOICE-NATIVE AGENT RUNTIME DATA LAYER
+// Continuous Conversation State, The Second Loop & Physical Safety Boundary
+// =========================================================================
+export const VOICE_RUNTIME_DATA = {
+  version: "3.2-production",
+  session: {
+    sessionId: "SES-VOICE-2026-9281",
+    status: "active",
+    user: "Frank Van Laarhoven",
+    role: "Lead Systems Architect",
+    voiceprintMatch: 99.8,
+    locale: "en-US",
+    safetyClearance: "Tier-1 Hardware Interlock & CAD Release"
+  },
+  groundedEntities: [
+    {
+      id: "G1-04",
+      name: "Unitree G1 Humanoid #04",
+      type: "Physical Robot",
+      state: "Executing Task (Tray Inspection)",
+      spatialCoords: { x: 2.4, y: 1.1, z: 0.0 },
+      workcell: "Cell 2 / Formboard Bench",
+      deicticAliases: ["that robot", "the active humanoid", "primary unit", "G1 number four"]
+    },
+    {
+      id: "G1-05",
+      name: "Unitree G1 Humanoid #05",
+      type: "Physical Robot",
+      state: "Standby / Gripper Parked",
+      spatialCoords: { x: 3.6, y: 1.1, z: 0.0 },
+      workcell: "Cell 2 / Beside G1-04 (+1.2m offset)",
+      deicticAliases: ["the G1 beside it", "the adjacent robot", "secondary humanoid", "the standby G1"]
+    },
+    {
+      id: "HARNESS-W101",
+      name: "Harness Bundle W-101",
+      type: "CAD / Physical Wire Bundle",
+      state: "Active Routing (Node J1 -> J2)",
+      standard: "USCAR-21 Rev 4 & AS50881",
+      activeWire: "Wire #101 (18 AWG TXL / Copper)",
+      deicticAliases: ["it", "this harness", "the bundle", "main inverter feeder", "wire 101"]
+    },
+    {
+      id: "TOOL-CRIMP-02",
+      name: "Schleuniger Automated Crimper Unit #02",
+      type: "Actuator Tool",
+      state: "Armed (Awaiting Verified Pull-Off Target)",
+      standard: "USCAR-21 §4.2",
+      deicticAliases: ["the crimper", "terminal press", "applicator", "die station"]
+    }
+  ],
+  pipelineStages: [
+    { id: "audio_vad", name: "1. Audio & VAD", icon: "mic", latency: 18, desc: "20ms sliding audio frames, WebRTC VAD & SNR energy threshold." },
+    { id: "asr", name: "2. Streaming ASR", icon: "transcript", latency: 92, desc: "Streaming Conformer/Whisper with sub-word partial hypotheses." },
+    { id: "speaker_id", name: "3. Speaker & Lang ID", icon: "user-check", latency: 22, desc: "Acoustic biometric vector verification & language gating (en-US)." },
+    { id: "semantic_parse", name: "4. Semantic Parsing", icon: "code", latency: 35, desc: "Extracts intent slots and resolves deictic pronouns to grounded physical entities." },
+    { id: "context_retrieval", name: "5. Context Retrieval", icon: "database", latency: 28, desc: "Pulls cross-agent continuous conversation state, active CAD board & spatial map." },
+    { id: "policy_gate", name: "6. Policy Gate", icon: "shield", latency: 12, desc: "Enforces ISO 13849 safety envelopes and RBAC administrative policy." },
+    { id: "agent_reason", name: "7. Agent Reasoning", icon: "cpu", latency: 110, desc: "Dispatches to project-specific specialist agent with prompt cache optimization." },
+    { id: "tool_exec", name: "8. Tool Execution", icon: "tool", latency: 40, desc: "Deterministic MCP tool call / CAD router / PreToolUse invariant validation." },
+    { id: "verification", name: "9. State Verification", icon: "check-circle", latency: 15, desc: "Validates post-condition state invariants and physical compliance diff." },
+    { id: "response_plan", name: "10. Response Planner", icon: "message-square", latency: 35, desc: "Generates concise, non-fluff audio response with prosody & cadence tags." },
+    { id: "tts_synth", name: "11. Expressive TTS", icon: "volume-2", latency: 85, desc: "Low-latency neural audio streaming directly to operator's headset." }
+  ],
+  secondLoop: {
+    title: "Continuous State & Interruption Loop",
+    bargeInLatencyMs: 28,
+    stateMemoryScope: "Persistent Session (Sits ABOVE Individual Agents)",
+    classes: [
+      {
+        name: "Spatial / Entity Correction",
+        trigger: "No, not that robot—the G1 beside it",
+        interruptionPoint: "Mid-execution of picking tray (t=420ms)",
+        stateUpdate: "Swaps active target from G1-04 to G1-05; recalculates spatial trajectory",
+        replanning: "Invalidates trajectory branch; recalculates inverse kinematics; resumes execution safely"
+      },
+      {
+        name: "In-Flight Parameter Override",
+        trigger: "Wait, change wire 101 to 16 AWG Raychem 44 before crimping!",
+        interruptionPoint: "Tool queuing at Schleuniger station (t=180ms)",
+        stateUpdate: "Overwrites wire gauge: 18 AWG -> 16 AWG, insulation: Raychem 44",
+        replanning: "Re-runs USCAR-21 crimp height & pull-off force calculation (135N threshold); swaps applicator die"
+      },
+      {
+        name: "Clarification & Grounded Explanation",
+        trigger: "Why did you route the splice near the bulkhead instead of the tray?",
+        interruptionPoint: "During route inspection (t=0ms)",
+        stateUpdate: "Accesses AS50881 thermal clearance rule (§5.2.1) in episodic memory",
+        replanning: "Speaks grounded rationale: 'Bulkhead routing avoids 140°C thermal plume from exhaust manifold. Rerouting to tray requires additional heat sleeving.'"
+      },
+      {
+        name: "Emergency Verbal Abort (E-Stop)",
+        trigger: "Stop immediately—hold actuator position!",
+        interruptionPoint: "Immediate barge-in (<30ms)",
+        stateUpdate: "Sets hardware E-Stop flag; freezes joint velocities",
+        replanning: "Halts EtherCAT packet queue; requires manual 2-man safety clear to resume"
+      }
+    ]
+  },
+  safetyBoundary: {
+    title: "Mandatory Physical & Digital Safety Boundary",
+    ruleFormula: "Voice request -> Intent -> Proposed physical action -> Safety validator -> Human confirmation (when required) -> Controller",
+    ironcladRule: "Never allow the language model itself to directly translate unrestricted speech into actuator commands.",
+    validators: [
+      {
+        id: "PHYS-01",
+        rule: "Collaborative Velocity & Force Envelope (ISO 10218-1)",
+        condition: "Actuator tip speed <= 250 mm/s; collision force <= 150 N",
+        actionOnFail: "Deterministic clamp to safe limit or hard abort"
+      },
+      {
+        id: "PHYS-02",
+        rule: "USCAR-21 / AS50881 Terminal & Splice Invariant",
+        condition: "Pull-off force >= 135 N for 16 AWG; crimp height +/- 0.03mm",
+        actionOnFail: "Reject crimp cycle; lock tool until calibrated"
+      },
+      {
+        id: "PHYS-03",
+        rule: "High-Consequence Human Confirmation Interlock",
+        condition: "Energized High Voltage (>60V DC) or irreversible wire severance",
+        actionOnFail: "Hold in gate; prompt visual modal or 2-factor voice confirmation"
+      },
+      {
+        id: "PHYS-04",
+        rule: "Airframe Thermal Clearance (AS50881 §5.2.1)",
+        condition: "Minimum 50mm clearance from fluid lines / manifolds",
+        actionOnFail: "Reject route; notify operator with DRC rule code"
+      }
+    ]
+  },
+  scenarios: [
+    {
+      id: "scen-nominal-route",
+      name: "1. Nominal Linear Execution (CAD & DRC)",
+      badge: "Loop 1 (Nominal)",
+      badgeColor: "#10b981",
+      audioTranscript: "Route wire 101 from Connector J1 to J2 and verify USCAR-21 compliance.",
+      speaker: "Frank Van Laarhoven (Lead Architect)",
+      groundedEntities: ["HARNESS-W101 (J1 -> J2)", "Wire #101 (18 AWG)"],
+      intent: "ROUTE_WIRE_AND_VERIFY_DRC",
+      proposedAction: {
+        action: "EXECUTE_ROUTING_DRC",
+        target: "HARNESS-W101",
+        wire: "101",
+        from: "J1-Pin3",
+        to: "J2-Pin7",
+        rule: "USCAR-21 Rev 4"
+      },
+      safetyStatus: "PASSED (Deterministic DRC Validated)",
+      safetyCode: "USCAR-21-OK",
+      humanConfirmationRequired: false,
+      responseAudioText: "Wire 101 successfully routed between J1 and J2. Splice clearance is 18.4 millimeters. USCAR-21 terminal crimp check passes at 92 Newtons.",
+      telemetry: { vadMs: 18, asrMs: 84, parseMs: 32, reasonMs: 98, safetyMs: 11, ttsMs: 82, totalMs: 325 }
+    },
+    {
+      id: "scen-second-loop-robot",
+      name: "2. The Second Loop: Pronoun & Entity Grounding Shift",
+      badge: "Loop 2 (Correction)",
+      badgeColor: "#6366f1",
+      audioTranscript: "Have the robot pick up the terminal tray... No, not that robot—the G1 beside it!",
+      speaker: "Frank Van Laarhoven (Lead Architect)",
+      initialGrounding: "Unitree G1 #04 (G1-04)",
+      interruptionDetected: "Barge-in at t=380ms ('No, not that robot—')",
+      secondLoopAction: "Entity Re-Grounding & Dynamic Replanning",
+      updatedGrounding: "Unitree G1 #05 (G1-05 / Offset +1.2m)",
+      proposedAction: {
+        action: "PICK_TERMINAL_TRAY",
+        robot_id: "G1-05",
+        tray_id: "TRAY-TE-1326030",
+        trajectory: "TRAJ-G1-05-APPROACH-SAFE",
+        speed_mms: 180
+      },
+      safetyStatus: "PASSED (ISO 10218 Speed Envelope Checked: 180 mm/s <= 250 mm/s)",
+      safetyCode: "ISO-10218-SAFE",
+      humanConfirmationRequired: false,
+      responseAudioText: "Acknowledged. Disengaging G1 number 4. Re-routing task to Unitree G1 number 5 beside it. Approach speed clamped to 180 millimeters per second.",
+      telemetry: { vadMs: 16, asrMs: 92, parseMs: 44, reasonMs: 112, safetyMs: 14, ttsMs: 88, totalMs: 366 }
+    },
+    {
+      id: "scen-parameter-override",
+      name: "3. The Second Loop: In-Flight Parameter Override",
+      badge: "Loop 2 (Override)",
+      badgeColor: "#a855f7",
+      audioTranscript: "Wait, change wire 101 to 16 AWG Raychem 44 before crimping!",
+      speaker: "Frank Van Laarhoven (Lead Architect)",
+      initialPlan: "Crimp 18 AWG TXL wire (Die C-18, Pull-off target 89 N)",
+      interruptionDetected: "In-flight override before tool actuation",
+      secondLoopAction: "Tooling Invalidation & Crimp Height Recalculation",
+      updatedPlan: "Crimp 16 AWG Raychem 44 (Die C-16, Pull-off target 135 N)",
+      proposedAction: {
+        action: "UPDATE_CRIMP_TOOLING",
+        wire: "101",
+        new_gauge: "16 AWG",
+        new_insulation: "Raychem 44",
+        applicator_die: "DIE-C16-S2",
+        crimp_height_mm: 1.24,
+        min_pull_n: 135
+      },
+      safetyStatus: "PASSED (USCAR-21 §4.2 Tooling Verified)",
+      safetyCode: "USCAR21-DIE-C16",
+      humanConfirmationRequired: false,
+      responseAudioText: "Holding crimper cycle. Wire 101 updated to 16 AWG Raychem 44. Applicator die swapped to C-16. Minimum tensile threshold updated to 135 Newtons.",
+      telemetry: { vadMs: 17, asrMs: 88, parseMs: 38, reasonMs: 95, safetyMs: 12, ttsMs: 80, totalMs: 330 }
+    },
+    {
+      id: "scen-safety-violation",
+      name: "4. Physical Safety Barrier: Velocity Overrun Blocked",
+      badge: "Safety Gate (Blocked)",
+      badgeColor: "#f43f5e",
+      audioTranscript: "Swing the robotic arm at full speed across the workcell right now!",
+      speaker: "Frank Van Laarhoven (Lead Architect)",
+      groundedEntities: ["Unitree G1 #04 (G1-04)"],
+      intent: "COMMAND_ACTUATOR_MAX_VELOCITY",
+      proposedAction: {
+        action: "ACTUATE_JOINTS",
+        robot_id: "G1-04",
+        velocity_mms: 850,
+        collision_scan: false
+      },
+      safetyStatus: "CRITICAL REJECTION — BLOCKED AT SAFETY VALIDATOR",
+      safetyCode: "ERR_ISO_10218_VELOCITY_OVERRUN",
+      safetyDetails: "Proposed speed 850 mm/s violates ISO 10218 collaborative maximum of 250 mm/s without optical curtain interlock. Voice intent denied from reaching controller.",
+      humanConfirmationRequired: false,
+      responseAudioText: "Command rejected by Safety Validator. Actuator speed of 850 millimeters per second exceeds the ISO 10218 safety limit of 250 millimeters per second. Motion prohibited.",
+      telemetry: { vadMs: 18, asrMs: 78, parseMs: 29, reasonMs: 82, safetyMs: 9, ttsMs: 94, totalMs: 310 }
+    },
+    {
+      id: "scen-human-confirmation",
+      name: "5. High-Consequence Physical Gate: Human Confirmation Required",
+      badge: "Safety Gate (Interlock)",
+      badgeColor: "#f59e0b",
+      audioTranscript: "Energize the 800V High Voltage DC rail on Harness W-101.",
+      speaker: "Frank Van Laarhoven (Lead Architect)",
+      groundedEntities: ["HARNESS-W101", "800V Inverter HV Rail"],
+      intent: "ENERGIZE_HIGH_VOLTAGE_BUS",
+      proposedAction: {
+        action: "ENGAGE_HV_CONTACTOR",
+        circuit: "HARNESS-W101-HV",
+        voltage_nominal: 800,
+        contactor_id: "CONTACTOR-HV-MAIN"
+      },
+      safetyStatus: "HOLD — HIGH-CONSEQUENCE SAFETY INTERLOCK ACTIVE",
+      safetyCode: "GATE_HIGH_CONSEQUENCE_HV",
+      safetyDetails: "Energizing 800V DC rail is classified as Level-4 irreversible physical hazard. Controller dispatch requires explicit dual-factor operator confirmation.",
+      humanConfirmationRequired: true,
+      confirmationPrompt: "CONFIRM HIGH VOLTAGE ENERGIZATION (800V DC)?",
+      responseAudioText: "High voltage hazard detected. Energizing 800-volt rail requires dual-factor operator authorization. Please confirm execution on your console or speak 'CONFIRM ENERGIZE'.",
+      telemetry: { vadMs: 19, asrMs: 82, parseMs: 34, reasonMs: 88, safetyMs: 15, ttsMs: 91, totalMs: 329 }
+    }
+  ],
+  voiceRegions: [
+    {
+      id: "en-US",
+      name: "American (US)",
+      flag: "🇺🇸",
+      lang: "en-US",
+      defaultVoiceHint: "Samantha",
+      fallbackVoiceHint: "Albert",
+      samplePitch: 1.0,
+      sampleRate: 1.05,
+      samplePhrase: "American voice profile engaged. Voice-native runtime connected with continuous state and identity."
+    },
+    {
+      id: "en-GB",
+      name: "British (UK)",
+      flag: "🇬🇧",
+      lang: "en-GB",
+      defaultVoiceHint: "Daniel",
+      fallbackVoiceHint: "Eddy (English (United Kingdom))",
+      samplePitch: 0.96,
+      sampleRate: 1.0,
+      samplePhrase: "British English runtime active. Grounded deictic resolution operating nominal at 212 milliseconds."
+    },
+    {
+      id: "en-AU",
+      name: "Australian",
+      flag: "🇦🇺",
+      lang: "en-AU",
+      defaultVoiceHint: "Karen",
+      fallbackVoiceHint: "Lee",
+      samplePitch: 1.02,
+      sampleRate: 1.02,
+      samplePhrase: "Australian voice profile selected. Safety validator active across all robotic actuators."
+    },
+    {
+      id: "en-CA",
+      name: "Canadian",
+      flag: "🇨🇦",
+      lang: "en-CA",
+      defaultVoiceHint: "Samantha",
+      fallbackVoiceHint: "Alex",
+      samplePitch: 1.0,
+      sampleRate: 1.03,
+      samplePhrase: "Canadian English runtime online. Multi-agent coordination state synchronized."
+    },
+    {
+      id: "en-IE",
+      name: "Irish",
+      flag: "🇮🇪",
+      lang: "en-IE",
+      defaultVoiceHint: "Moira",
+      fallbackVoiceHint: "Daniel",
+      samplePitch: 1.0,
+      sampleRate: 0.98,
+      samplePhrase: "Irish voice profile initialized. Telemetry stream ready for continuous execution."
+    },
+    {
+      id: "en-IN",
+      name: "Indian English",
+      flag: "🇮🇳",
+      lang: "en-IN",
+      defaultVoiceHint: "Rishi",
+      fallbackVoiceHint: "Lekha",
+      samplePitch: 1.05,
+      sampleRate: 1.02,
+      samplePhrase: "Indian English voice synthesis active. Deterministic USCAR-21 and ISO 10218 barriers enforced."
+    },
+    {
+      id: "en-ZA",
+      name: "South African",
+      flag: "🇿🇦",
+      lang: "en-ZA",
+      defaultVoiceHint: "Tessa",
+      fallbackVoiceHint: "Daniel",
+      samplePitch: 1.0,
+      sampleRate: 1.0,
+      samplePhrase: "South African voice profile calibrated. Actuator dispatch held pending validation."
+    },
+    {
+      id: "de-DE",
+      name: "German (EU)",
+      flag: "🇩🇪",
+      lang: "de-DE",
+      defaultVoiceHint: "Anna",
+      fallbackVoiceHint: "Eddy (German (Germany))",
+      samplePitch: 0.95,
+      sampleRate: 1.0,
+      samplePhrase: "German European voice profile selected. Deterministic safety interlocks operational."
+    },
+    {
+      id: "fr-FR",
+      name: "French (EU)",
+      flag: "🇫🇷",
+      lang: "fr-FR",
+      defaultVoiceHint: "Jacques",
+      fallbackVoiceHint: "Thomas",
+      samplePitch: 1.0,
+      sampleRate: 1.0,
+      samplePhrase: "French European voice profile active. Architecture continuous runtime operational."
+    },
+    {
+      id: "ja-JP",
+      name: "Japanese",
+      flag: "🇯🇵",
+      lang: "ja-JP",
+      defaultVoiceHint: "Kyoko",
+      fallbackVoiceHint: "Flo (Japanese (Japan))",
+      samplePitch: 1.05,
+      sampleRate: 1.05,
+      samplePhrase: "Japanese synthesis active. Autonomous robotics telemetry linked."
+    }
+  ],
+  voiceTypes: [
+    {
+      id: "systems_architect",
+      name: "Systems Architect",
+      icon: "🧠",
+      pitch: 1.0,
+      rate: 1.02,
+      tagline: "Natural, balanced neural prosody for engineering collaboration",
+      promptModifier: "Calm, analytical, clear technical cadence."
+    },
+    {
+      id: "flight_director",
+      name: "Industrial Flight Director",
+      icon: "⚡",
+      pitch: 0.95,
+      rate: 1.08,
+      tagline: "Crisp, authoritative telemetry articulation for factory cells",
+      promptModifier: "Crisp, concise, zero pleasantries, high signal-to-noise ratio."
+    },
+    {
+      id: "safety_validator",
+      name: "Safety & Admissibility Officer",
+      icon: "🛡️",
+      pitch: 0.92,
+      rate: 0.96,
+      tagline: "Deliberate, formal cadence enforcing deterministic barriers",
+      promptModifier: "Formal, unambiguous, ISO-10218 safety-critical terminology."
+    },
+    {
+      id: "tactical_teleop",
+      name: "Tactical Teleoperation",
+      icon: "🎯",
+      pitch: 1.04,
+      rate: 1.15,
+      tagline: "High-cadence, punchy feedback for live physical teleoperation",
+      promptModifier: "Ultra-fast, punchy, immediate confirmation pulses."
+    }
+  ]
+};
+
+

@@ -8,17 +8,75 @@ import {
   CURRICULUM_DOMAINS, 
   APPLIED_TRACKS, 
   VIDEO_MODULES,
-  CAPSTONE_PRESETS 
-} from './data.js?v=2.7';
+  CAPSTONE_PRESETS,
+  SYSTEM_SLASH_COMMANDS,
+  TOKEN_OPTIMIZATION_MODULE,
+  CLAUDE_COMMANDS_LIBRARY,
+  VOICE_RUNTIME_DATA
+} from './data.js?v=3.0';
 
 class ClaudeArchitectPlatform {
   constructor() {
     this.currentView = 'atelier';
+    this.currentTheme = 'dark';
+    this.thinkingEffort = 'medium'; // 'low' | 'medium' | 'high' | 'max'
+    this.promptRefactorResult = null;
+    this.cmdLibSearchQuery = '';
+    this.cmdLibSelectedCategory = 'ALL';
+    this.cmdBuilderSelectedId = 'cmd-goal';
     this.activeVideoModule = VIDEO_MODULES[0];
     this.isPlaying = false;
     this.videoTime = 0; // seconds
     this.videoInterval = null;
     this.soundEnabled = true;
+
+    // Voice-Native Agent Runtime & Continuous Conversation Layer
+    this.voiceSessionState = {
+      sessionId: VOICE_RUNTIME_DATA?.session?.sessionId || 'SES-VOICE-2026-9281',
+      status: 'ready', // 'ready' | 'listening' | 'processing' | 'speaking' | 'interrupted'
+      activeSpeaker: VOICE_RUNTIME_DATA?.session?.user || 'Frank Van Laarhoven',
+      voiceprintConfidence: VOICE_RUNTIME_DATA?.session?.voiceprintMatch || 99.8,
+      groundedEntities: [...(VOICE_RUNTIME_DATA?.groundedEntities || [])],
+      activeGroundedId: 'G1-04',
+      conversationHistory: [
+        {
+          sender: 'system',
+          text: 'Voice-Native Agent Runtime v3.2 initialized. Continuous session and identity layer active.',
+          time: '05:10:00',
+          meta: 'Session SES-VOICE-2026-9281'
+        },
+        {
+          sender: 'user',
+          text: 'Route wire 101 from Connector J1 to J2 and verify USCAR-21 compliance.',
+          time: '05:10:14',
+          meta: 'Speaker: Frank Van Laarhoven (99.8% match)'
+        },
+        {
+          sender: 'assistant',
+          text: 'Wire 101 successfully routed between J1 and J2. Splice clearance is 18.4 millimeters. USCAR-21 terminal crimp check passes at 92 Newtons.',
+          time: '05:10:16',
+          meta: 'DRC: USCAR-21-OK • Latency: 325ms'
+        }
+      ],
+      activeScenario: VOICE_RUNTIME_DATA?.scenarios?.[0] || null,
+      isRecording: false,
+      speechSynthesisMuted: false,
+      selectedRegion: 'en-US',
+      selectedVoiceType: 'systems_architect',
+      selectedVoiceName: '',
+      customPitch: 1.0,
+      customRate: 1.04,
+      activeTab: 'scenarios', // 'scenarios' | 'pipeline' | 'second-loop' | 'safety'
+      activePipelineStageId: 'audio_vad',
+      pendingConfirmation: null
+    };
+    this.voiceWaveCanvasAnim = null;
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.onvoiceschanged = () => {
+        this.populateVoiceSynthesizerDropdown();
+      };
+    }
+
     
     // Exam state
     this.examSession = null;
@@ -77,7 +135,7 @@ class ClaudeArchitectPlatform {
     };
     this.capstoneGradingResult = null;
 
-    // Palantir Foundry / Gotham Tactical Harness Studio & CAD State
+    // Enterprise Systems CAD Studio & Harness Formboard State
     this.harnessMode = 'cad'; // 'cad' (Interactive Drag & Drop Formboard) or 'blueprint' (Infographic 5-Part/5-Checks tabs)
     this.claudeCliSplitOpen = true; // Side-by-side Claude Code CLI window
     this.activeMissionPreset = 'ev-800v'; // 'ev-800v', 'aerospace-fbw', 'robotic-arm', 'citadel-finops'
@@ -315,6 +373,54 @@ class ClaudeArchitectPlatform {
     }
   }
 
+  initTheme() {
+    const savedTheme = localStorage.getItem('claude_architect_theme') || 'dark';
+    this.setTheme(savedTheme, false);
+
+    document.querySelectorAll('.theme-seg-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const t = btn.dataset.themeVal;
+        if (t) {
+          this.setTheme(t, true);
+          this.playHaptic('click');
+        }
+      });
+    });
+
+    try {
+      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+        if (this.currentTheme === 'system') {
+          this.applyThemeClasses('system');
+        }
+      });
+    } catch (e) {
+      // Older browsers
+    }
+  }
+
+  setTheme(theme, persist = true) {
+    this.currentTheme = theme;
+    if (persist) {
+      localStorage.setItem('claude_architect_theme', theme);
+    }
+    this.applyThemeClasses(theme);
+
+    document.querySelectorAll('.theme-seg-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.themeVal === theme);
+    });
+  }
+
+  applyThemeClasses(theme) {
+    document.body.classList.remove('theme-light', 'theme-dark', 'theme-system', 'theme-editorial');
+    if (theme === 'light') {
+      document.body.classList.add('theme-light');
+    } else if (theme === 'system') {
+      document.body.classList.add('theme-system');
+    } else {
+      document.body.classList.add('theme-dark');
+    }
+  }
+
   bindEvents() {
     // Navigation
     document.querySelectorAll('.nav-item').forEach(item => {
@@ -327,14 +433,8 @@ class ClaudeArchitectPlatform {
       });
     });
 
-    // Theme toggle
-    const themeBtn = document.getElementById('themeToggle');
-    if (themeBtn) {
-      themeBtn.addEventListener('click', () => {
-        document.body.classList.toggle('theme-editorial');
-        this.playHaptic('click');
-      });
-    }
+    // 3-Way Apple-Style Theme Controller (Light, Dark, System)
+    this.initTheme();
 
     // Sound toggle
     const soundBtn = document.getElementById('soundToggle');
@@ -367,6 +467,34 @@ class ClaudeArchitectPlatform {
     // Topbar Claude CLI Global Toggle
     document.getElementById('claudeCliGlobalToggle')?.addEventListener('click', () => {
       this.toggleClaudeCliSideBySide();
+    });
+
+    // Topbar Continuous Voice Agent Runtime HUD Bindings
+    document.getElementById('voiceHudMicBtn')?.addEventListener('click', () => {
+      this.toggleVoiceRecording();
+    });
+
+    document.getElementById('voiceHudBargeInBtn')?.addEventListener('click', () => {
+      this.triggerVoiceBargeIn("No, not that robot—the G1 beside it!");
+    });
+
+    document.getElementById('voiceHudExpandBtn')?.addEventListener('click', () => {
+      this.switchView('voice-runtime');
+    });
+
+    document.getElementById('voiceHudAccentTag')?.addEventListener('click', () => {
+      this.playHaptic('click');
+      if (this.currentView !== 'voice-runtime') {
+        this.switchView('voice-runtime');
+      }
+      setTimeout(() => {
+        const panel = document.getElementById('voiceProfilePanel');
+        if (panel) {
+          panel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          panel.style.boxShadow = '0 0 24px rgba(14, 165, 233, 0.45)';
+          setTimeout(() => { panel.style.boxShadow = ''; }, 1600);
+        }
+      }, 100);
     });
   }
 
@@ -425,6 +553,9 @@ class ClaudeArchitectPlatform {
     if (breadcrumb) {
       const titles = {
         'atelier': 'Studio Atelier / Dashboard',
+        'token-optimizer': 'Token & Context Maximizer / Cost & Prompt Efficiency',
+        'command-library': 'Claude Command & Skills Library / Copy & Paste Registry',
+        'voice-runtime': 'Voice-Native Agent Runtime',
         'video-masterclass': 'Veo 3 Pro Video Masterclasses',
         'curriculum': 'Curriculum Map & Domains',
         'cli-simulator': 'Claude Code CLI Simulator',
@@ -466,8 +597,21 @@ class ClaudeArchitectPlatform {
     const list = document.getElementById('cmdList');
     if (!list) return;
 
-    const commands = [
-      { title: 'Open Harness Engineering Studio', sub: 'The model writes words. The harness does the work (5 Parts • 5 Checks)', action: () => { this.switchView('harness-studio'); } },
+    const baseCommands = [
+      { title: 'Open Voice-Native Agent Runtime', sub: 'Continuous session identity, Loop 2 grounded replanning & physical safety boundary', action: () => { this.switchView('voice-runtime'); } },
+      { title: 'Voice: Test Second Loop Interruption ("No, not that robot—the G1 beside it")', sub: 'Real-time barge-in, deixis re-grounding and dynamic plan branch mutation', action: () => { this.switchView('voice-runtime'); this.runVoiceScenario('scen-second-loop-robot'); } },
+      { title: 'Voice: Test Parameter Override ("Change wire 101 to 16 AWG before crimping")', sub: 'In-flight tooling invalidation & USCAR-21 crimp recalculation', action: () => { this.switchView('voice-runtime'); this.runVoiceScenario('scen-parameter-override'); } },
+      { title: 'Voice: Test Physical Safety Barrier (Velocity Overrun Blocked)', sub: 'Demonstrates deterministic ISO 10218 safety clamp blocking raw speech from controller', action: () => { this.switchView('voice-runtime'); this.runVoiceScenario('scen-safety-violation'); } },
+      { title: 'Voice: Test High-Consequence Gate (800V DC Human Confirmation)', sub: 'Requires explicit 2-factor confirmation before high-voltage contactor closure', action: () => { this.switchView('voice-runtime'); this.runVoiceScenario('scen-human-confirmation'); } },
+      { title: 'Open Claude Command Library', sub: 'Searchable slash commands, CLI flags & industrial recipes with 1-click copy', action: () => { this.switchView('command-library'); } },
+      { title: 'Open Token & Context Maximizer', sub: 'Anthropic Prompt Caching (-90%), Hierarchical Search & Self-Healing', action: () => { this.switchView('token-optimizer'); } },
+      { title: '/goal <objective>', sub: 'Launch autonomous loop with deterministic PreToolUse invariant guards', action: () => { this.switchView('cli-simulator'); this.executeClaudeSplitCommand('/goal Verify zero DRC violations'); } },
+      { title: '/effort <low | medium | high | max>', sub: 'Dynamically tune Claude thinking token allocation budget', action: () => { this.switchView('cli-simulator'); this.executeClaudeSplitCommand('/effort high'); } },
+      { title: '/plan <task>', sub: 'Generate phase-gate architectural execution plan before touching code', action: () => { this.switchView('cli-simulator'); this.executeClaudeSplitCommand('/plan Audit harness pinouts'); } },
+      { title: '/compact', sub: 'Compress 40+ turns into 250-word state summary (-80% token context)', action: () => { this.switchView('cli-simulator'); this.executeClaudeSplitCommand('/compact'); } },
+      { title: '/cost', sub: 'View real-time token ledger and prompt caching discount metrics', action: () => { this.switchView('cli-simulator'); this.executeClaudeSplitCommand('/cost'); } },
+      { title: '/harness-verify', sub: 'Run local deterministic USCAR-21 (§4.2) and AS50881 rule verification', action: () => { this.switchView('harness-studio'); this.executeClaudeSplitCommand('/harness-verify'); } },
+      { title: 'Open Formboard CAD & Wiring Studio', sub: 'Physical harness engineering formboard (5 Parts • 5 Checks)', action: () => { this.switchView('harness-studio'); } },
       { title: 'Start 60-Item Timed Mock Exam', sub: 'Domain quotas: D1(16), D2(11), D3(12), D4(12), D5(9)', action: () => { this.switchView('exam-engine'); this.startMockExam(); } },
       { title: 'Open Proctor & Exam Integrity Studio', sub: 'Screen recording, focus-lock guard & anti-cheat telemetry', action: () => { this.switchView('proctor'); } },
       { title: 'Open Veo 3 Pro Masterclass (Domain 1)', sub: 'Agentic loops & subagent orchestration', action: () => { this.switchView('video-masterclass'); this.selectVideoModule('mod-1'); } },
@@ -477,8 +621,23 @@ class ClaudeArchitectPlatform {
       { title: 'Executive Slide & Design Studio', sub: 'Create on-brand presentation with claim provenance', action: () => { this.switchView('slides-studio'); } },
       { title: 'Case Study 1: Regulated Support Refund Agent', sub: 'Failure injection & policy gates', action: () => { this.switchView('case-studies'); } },
       { title: 'Capstone 100-Point Rubric & Oral Defense', sub: 'Submit deliverables and defend invariants', action: () => { this.switchView('capstone'); } },
-      { title: 'Toggle Warm Editorial Theme', sub: 'Switch to Keyline stone/cream palette', action: () => { document.body.classList.toggle('theme-editorial'); } }
+      { title: 'Set Theme: Light (Apple Snow)', sub: 'Clean white keyline editorial aesthetics', action: () => { this.setTheme('light'); } },
+      { title: 'Set Theme: Dark (Obsidian Enterprise)', sub: 'Deep tactical midnight CAD palette', action: () => { this.setTheme('dark'); } },
+      { title: 'Set Theme: Auto (Follow System OS)', sub: 'Auto-adapts to system dark/light preference', action: () => { this.setTheme('system'); } }
     ];
+
+    const libCommands = (CLAUDE_COMMANDS_LIBRARY || []).map(cmd => ({
+      title: `${cmd.command} — ${cmd.name}`,
+      sub: `[${cmd.category}] ${cmd.description.slice(0, 80)}...`,
+      action: () => {
+        this.switchView('command-library');
+        this.cmdLibSearchQuery = cmd.command;
+        const searchInput = document.getElementById('cmdLibSearchInput');
+        if (searchInput) searchInput.value = cmd.command;
+      }
+    }));
+
+    const commands = [...baseCommands, ...libCommands];
 
     const q = query.toLowerCase().trim();
     const filtered = commands.filter(c => c.title.toLowerCase().includes(q) || c.sub.toLowerCase().includes(q));
@@ -486,7 +645,7 @@ class ClaudeArchitectPlatform {
     list.innerHTML = filtered.map((c, i) => `
       <div class="cmd-item" data-idx="${i}">
         <div>
-          <div style="font-weight: 500; color: #fff;">${c.title}</div>
+          <div style="font-weight: 500; color: var(--ink-primary);">${c.title}</div>
           <div style="font-size: 11px; color: var(--ink-tertiary);">${c.sub}</div>
         </div>
         <span class="kbd">↵</span>
@@ -514,6 +673,18 @@ class ClaudeArchitectPlatform {
       case 'atelier':
         container.innerHTML = this.renderAtelierView();
         this.attachAtelierEvents();
+        break;
+      case 'token-optimizer':
+        container.innerHTML = this.renderTokenOptimizerView();
+        this.attachTokenOptimizerEvents();
+        break;
+      case 'command-library':
+        container.innerHTML = this.renderCommandLibraryView();
+        this.attachCommandLibraryEvents();
+        break;
+      case 'voice-runtime':
+        container.innerHTML = this.renderVoiceRuntimeView();
+        this.attachVoiceRuntimeEvents();
         break;
       case 'video-masterclass':
         container.innerHTML = this.renderVideoMasterclassView();
@@ -690,6 +861,2159 @@ class ClaudeArchitectPlatform {
     document.getElementById('btnAtelierCase')?.addEventListener('click', () => this.switchView('case-studies'));
     document.getElementById('btnQuickCapstone')?.addEventListener('click', () => this.switchView('capstone'));
     document.getElementById('btnAtelierCapstone')?.addEventListener('click', () => this.switchView('capstone'));
+  }
+
+  // 1.5. TOKEN & CONTEXT EFFICIENCY ENGINE VIEW
+  renderTokenOptimizerView() {
+    const data = TOKEN_OPTIMIZATION_MODULE;
+    const slashCmds = SYSTEM_SLASH_COMMANDS;
+
+    const sampleOptimizedPrompt = `[SYSTEM: CACHED HEAD (cache_control: {"type": "ephemeral"})]
+You are a Staff Systems Architect. The project follows strict invariants defined in CLAUDE.md.
+
+[RULES FOR DETERMINISTIC TOOL USE]
+1. Never dump entire repositories or cat files blindly.
+2. Locate code using: grep_search({ Query: "target_symbol", SearchPath: "./src" })
+3. Read exclusively necessary slice bounds: view_file({ AbsolutePath: "...", StartLine: 45, EndLine: 65 })
+4. On retryable upstream timeouts (504), execute local backoff with jitter; do not re-prompt user.
+
+[USER QUERY]
+Audit physical splice clearance in the vehicle door harness routing and report compliance.`;
+
+    return `
+      <div class="token-opt-layout">
+        <!-- Top Editorial Hero -->
+        <div style="margin-bottom: 24px;">
+          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+            <span class="badge" style="background: rgba(16,185,129,0.15); color: var(--accent-emerald); font-weight: 700;">
+              ANTHROPIC PROMPT CACHING
+            </span>
+            <span class="badge" style="background: rgba(56,189,248,0.15); color: var(--accent-cyan);">
+              -90% COST REDUCTION
+            </span>
+            <span class="badge" style="background: rgba(251,146,60,0.15); color: #fb923c;">
+              SELF-HEALING SYSTEM PROMPTS
+            </span>
+          </div>
+          <h1 style="font-family: var(--font-serif); font-size: 38px; color: var(--ink-primary); margin-bottom: 10px; line-height: 1.15;">
+            Token & Context Efficiency Engine
+          </h1>
+          <p style="font-size: 14px; color: var(--ink-secondary); line-height: 1.6; max-width: 980px;">
+            ${data.overview}
+          </p>
+        </div>
+
+        <!-- Metric Banner -->
+        <div class="token-metric-banner">
+          <div class="token-metric-card">
+            <div class="token-metric-num" style="color: var(--accent-emerald);">$0.30 / M</div>
+            <div class="token-metric-lbl">Cached Input Read ($0.30 vs $3.00/M standard)</div>
+            <div class="token-metric-sub">⚡ 90% discount on cache_control hits</div>
+          </div>
+          <div class="token-metric-card">
+            <div class="token-metric-num" style="color: var(--accent-cyan);">45,000+</div>
+            <div class="token-metric-lbl">Tokens Saved Per Debug Session</div>
+            <div class="token-metric-sub">Using ripgrep + slice vs. blind cat</div>
+          </div>
+          <div class="token-metric-card">
+            <div class="token-metric-num" style="color: #fb923c;">0 Waste</div>
+            <div class="token-metric-lbl">Self-Healing Reprompts</div>
+            <div class="token-metric-sub">Harness loop catches & retries tool faults</div>
+          </div>
+          <div class="token-metric-card">
+            <div class="token-metric-num" style="color: #a78bfa;">-80%</div>
+            <div class="token-metric-lbl">Context Compaction (/compact)</div>
+            <div class="token-metric-sub">Summarizes 40 turns into 250-word state</div>
+          </div>
+        </div>
+
+        <!-- System Slash Commands & Skills Bar -->
+        <div class="tactical-box" style="padding: 20px 24px; margin-bottom: 28px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
+            <div>
+              <div style="font-family: var(--font-mono); font-size: 11px; color: var(--accent-cyan); font-weight: 700;">
+                SYSTEM SLASH COMMAND SKILLS & INFERENCE BUDGETING
+              </div>
+              <div style="font-size: 12px; color: var(--ink-secondary); margin-top: 2px;">
+                Native orchestrations that enforce token conservation, planning gates, and self-healing execution:
+              </div>
+            </div>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <button class="btn btn-primary" id="btnBrowseCmdLibFromTokenOpt" style="font-family: var(--font-mono); font-size: 11px;">
+                Browse Command Library 📚
+              </button>
+              <button class="btn btn-secondary" id="btnOpenCliFromTokenOpt" style="font-family: var(--font-mono); font-size: 11px;">
+                Open in Claude CLI (⌥C) →
+              </button>
+            </div>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            ${slashCmds.map(sc => `
+              <div class="slash-command-row" data-cmd="${sc.command}">
+                <div style="display: flex; align-items: center; gap: 12px; min-width: 220px;">
+                  <span class="slash-cmd-badge">${sc.command}</span>
+                  <span style="font-family: var(--font-mono); font-size: 11px; color: var(--ink-tertiary);">${sc.args || ''}</span>
+                </div>
+                <div style="flex: 1; font-size: 12px; color: var(--ink-secondary);">
+                  ${sc.description}
+                </div>
+                <div style="min-width: 200px; text-align: right; font-family: var(--font-mono); font-size: 10px; color: var(--accent-emerald);">
+                  ${sc.tokenImpact}
+                </div>
+                <button class="btn btn-secondary btn-test-slash-cmd" data-cmd="${sc.command}" style="padding: 3px 8px; font-size: 10px; font-family: var(--font-mono);">
+                  Run ⚡
+                </button>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
+        <!-- 4 Core Pillars of Token Conservation -->
+        <h2 style="font-size: 20px; font-weight: 700; color: var(--ink-primary); margin-bottom: 16px; font-family: var(--font-display);">
+          The Four Architectural Pillars of Token Conservation
+        </h2>
+
+        <div class="token-pillars-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(460px, 1fr)); gap: 20px; margin-bottom: 28px;">
+          ${data.pillars.map((p, idx) => `
+            <div class="token-pillar-card">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <span style="font-family: var(--font-mono); font-size: 11px; color: var(--accent-cyan); font-weight: 700;">
+                  PILLAR 0${idx + 1} // ${p.name}
+                </span>
+                <span class="badge" style="background: rgba(16,185,129,0.15); color: var(--accent-emerald); font-size: 10px; font-weight: 700;">
+                  ${p.discount}
+                </span>
+              </div>
+              <p style="font-size: 13px; color: var(--ink-primary); font-weight: 500; margin-bottom: 12px; line-height: 1.4;">
+                ${p.rule}
+              </p>
+              
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; font-size: 11px;">
+                <div style="background: rgba(244,63,94,0.08); border: 1px solid rgba(244,63,94,0.25); padding: 8px 10px; border-radius: 4px;">
+                  <div style="font-weight: 700; color: #fca5a5; margin-bottom: 4px;">✕ ANTI-PATTERN</div>
+                  <div style="color: var(--ink-secondary); line-height: 1.35;">${p.badPractice}</div>
+                </div>
+                <div style="background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.25); padding: 8px 10px; border-radius: 4px;">
+                  <div style="font-weight: 700; color: #86efac; margin-bottom: 4px;">✓ SOTA HARNESS</div>
+                  <div style="color: var(--ink-secondary); line-height: 1.35;">${p.goodPractice}</div>
+                </div>
+              </div>
+
+              <div class="code-block" style="margin-top: 8px;">
+                <div class="code-block-header">
+                  <span>${p.id}.ts</span>
+                  <button class="btn-copy-code" data-code="${encodeURIComponent(p.codeSnippet)}" style="background: none; border: none; color: var(--ink-tertiary); cursor: pointer; font-size: 10px;">Copy</button>
+                </div>
+                <pre><code>${p.codeSnippet}</code></pre>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+
+        <!-- Interactive Token Cost & Prompt Refactorer -->
+        <div class="tactical-box" style="padding: 24px; margin-bottom: 32px;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+            <div>
+              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                <span class="badge" style="background: rgba(56,189,248,0.15); color: var(--accent-cyan); font-weight: 700;">
+                  INTERACTIVE REFACTORER
+                </span>
+                <span class="badge" style="background: rgba(16,185,129,0.15); color: var(--accent-emerald);">
+                  SELF-HEALING OPTIMIZER
+                </span>
+              </div>
+              <h3 style="font-size: 20px; font-weight: 700; color: var(--ink-primary); font-family: var(--font-display);">
+                Prompt Refactorer & Token Savings Calculator
+              </h3>
+              <p style="font-size: 12px; color: var(--ink-secondary); margin-top: 4px;">
+                Simulate how unoptimized, sprawling developer prompts are restructured into cacheable, high-density directives:
+              </p>
+            </div>
+
+            <!-- Preset Scenarios -->
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <button class="btn btn-secondary btn-prompt-preset active" data-preset="repo-dump" style="font-size: 11px; font-family: var(--font-mono);">
+                Preset 1: Blind Monorepo Dump
+              </button>
+              <button class="btn btn-secondary btn-prompt-preset" data-preset="tool-loop" style="font-size: 11px; font-family: var(--font-mono);">
+                Preset 2: Tool Error Reprompt
+              </button>
+              <button class="btn btn-secondary btn-prompt-preset" data-preset="uncached-sys" style="font-size: 11px; font-family: var(--font-mono);">
+                Preset 3: Dynamic Tail Invalidation
+              </button>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <!-- Input Prompt -->
+            <div>
+              <div style="font-family: var(--font-mono); font-size: 11px; color: var(--ink-tertiary); margin-bottom: 6px; display: flex; justify-content: space-between;">
+                <span>UNOPTIMIZED DEVELOPER PROMPT</span>
+                <span id="unoptTokensCount" style="color: #fca5a5;">~48,500 tokens ($0.145)</span>
+              </div>
+              <textarea id="txtPromptInput" style="width: 100%; height: 260px; background: var(--bg-tertiary); border: 1px solid var(--line-dim); border-radius: 4px; padding: 12px; font-family: var(--font-mono); font-size: 11px; color: var(--ink-primary); line-height: 1.5; resize: vertical;">Here is the entire codebase from /src (15 files concatenated below).
+Read all of this and find why the door harness calculation fails with error 500 when ambient temp is 85C.
+If you need any other file let me know and I will paste it.
+
+[... 48,000 TOKENS OF CODE DUMP OMITTED ...]
+</textarea>
+              <div style="margin-top: 10px; display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 11px; color: var(--ink-tertiary);">Direct execution without cache_control</span>
+                <button class="btn btn-primary" id="btnExecutePromptRefactor" style="display: flex; align-items: center; gap: 6px;">
+                  <span>Refactor with Caching & Slices ⚡</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Output Refactored Prompt -->
+            <div>
+              <div style="font-family: var(--font-mono); font-size: 11px; color: var(--accent-emerald); margin-bottom: 6px; display: flex; justify-content: space-between;">
+                <span>REFACTORED HIGH-DENSITY DIRECTIVE</span>
+                <span id="optTokensCount" style="color: #86efac;">~580 tokens ($0.00017) • 98.8% Saved</span>
+              </div>
+              <div style="width: 100%; height: 260px; background: rgba(16,185,129,0.04); border: 1px solid rgba(16,185,129,0.25); border-radius: 4px; padding: 12px; font-family: var(--font-mono); font-size: 11px; color: var(--ink-primary); line-height: 1.45; overflow-y: auto; white-space: pre-wrap;" id="refactoredOutputBox">${sampleOptimizedPrompt}</div>
+              <div style="margin-top: 10px; display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 11px; color: var(--accent-emerald); font-family: var(--font-mono);" id="refactorSavingsBadge">
+                  ✓ Net Savings: 47,920 tokens (saves $0.1453 per call)
+                </span>
+                <button class="btn btn-secondary" id="btnCopyRefactoredPrompt" style="font-family: var(--font-mono); font-size: 11px;">
+                  Copy Refactored Prompt
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  attachTokenOptimizerEvents() {
+    // Open CLI button
+    document.getElementById('btnOpenCliFromTokenOpt')?.addEventListener('click', () => {
+      this.switchView('harness-studio');
+      if (!this.claudeCliSplitOpen) {
+        this.toggleClaudeCliSideBySide();
+      }
+    });
+
+    // Preset buttons
+    const presets = {
+      'repo-dump': {
+        input: `Here is the entire codebase from /src (15 files concatenated below).\nRead all of this and find why the door harness calculation fails with error 500 when ambient temp is 85C.\nIf you need any other file let me know and I will paste it.\n\n[... 48,000 TOKENS OF CODE DUMP OMITTED ...]`,
+        unopt: '~48,500 tokens ($0.1455)',
+        opt: '~580 tokens ($0.00017) • 98.8% Saved',
+        savings: '✓ Net Savings: 47,920 tokens (saves $0.1453 per call)',
+        output: `[SYSTEM: CACHED HEAD (cache_control: {"type": "ephemeral"})]\nYou are a Staff Systems Architect. The project follows strict invariants defined in CLAUDE.md.\n\n[RULES FOR DETERMINISTIC TOOL USE]\n1. Never dump entire repositories or cat files blindly.\n2. Locate code using: grep_search({ Query: "calculate_derating", SearchPath: "./src" })\n3. Read exclusively necessary slice bounds: view_file({ AbsolutePath: "...", StartLine: 45, EndLine: 65 })\n4. On retryable upstream timeouts (504), execute local backoff with jitter; do not re-prompt user.\n\n[USER QUERY]\nAudit physical splice clearance in the vehicle door harness routing and report compliance.`
+      },
+      'tool-loop': {
+        input: `Trace fetch_order timed out with 504. Claude, please ask the user what to do.\n[User turn 2]: Try again.\n[User turn 3]: It timed out again, what should we do?\n[User turn 4]: Try changing the timeout to 5000ms.\n[... 24,500 TOKENS OF REPETITIVE USER TURNS ...]`,
+        unopt: '~24,500 tokens ($0.0735)',
+        opt: '~340 tokens ($0.00010) • 98.6% Saved',
+        savings: '✓ Net Savings: 24,160 tokens (saves $0.0734 per call)',
+        output: `// SELF-HEALING HARNESS ERROR BOUNDARY (0 Reprompts)\nclaude.on('ToolError', async (error, call) => {\n  if (error.code === 504 || error.is_retryable) {\n    telemetry.recordSpan('tool_retry', { tool: call.name, retry_count: 1 });\n    // Self-healing: Idempotent exponential backoff with jitter (max 3 retries)\n    return await executeToolWithBackoff(call, { maxRetries: 3, baseDelayMs: 250 });\n  }\n  throw error;\n});\n\n// Result: Model executes without repetitive multi-turn re-prompting token blowouts.`
+      },
+      'uncached-sys': {
+        input: `[Dynamic User Context at Line 1]\nUser: Calculate derating for harness 800V.\n\n[System Core Prompt at Line 500: 42,000 tokens of static rules and tool schemas]\nCLAUDE.md guidelines, MCP schemas, domain models, etc...\n\nResult: 100% cache invalidation on every conversation turn!`,
+        unopt: '~55,000 tokens ($0.1650/turn)',
+        opt: '~4,200 tokens ($0.00126/turn) • 92.4% Saved',
+        savings: '✓ Net Savings: 50,800 tokens (Anthropic Prompt Caching read discount)',
+        output: `// CORRECT ORDER: Static Invariants FIRST with cache_control\nconst message = await anthropic.messages.create({\n  model: "claude-3-7-sonnet-20250219",\n  system: [\n    { type: "text", text: SYSTEM_PROMPT_STATIC, cache_control: { type: "ephemeral" } },\n    { type: "text", text: CLAUDE_MD_INVARIANTS, cache_control: { type: "ephemeral" } }\n  ],\n  tools: MCP_TOOLS.map((t, i) => i === MCP_TOOLS.length - 1 ? { ...t, cache_control: { type: "ephemeral" } } : t),\n  messages: dynamicTailHistory // Only dynamic messages change at tail\n});`
+      }
+    };
+
+    document.querySelectorAll('.btn-prompt-preset').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.btn-prompt-preset').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const p = presets[btn.dataset.preset];
+        if (p) {
+          document.getElementById('txtPromptInput').value = p.input;
+          document.getElementById('unoptTokensCount').textContent = p.unopt;
+          document.getElementById('optTokensCount').textContent = p.opt;
+          document.getElementById('refactorSavingsBadge').textContent = p.savings;
+          document.getElementById('refactoredOutputBox').textContent = p.output;
+          this.playHaptic('click');
+        }
+      });
+    });
+
+    // Execute Refactor button
+    document.getElementById('btnExecutePromptRefactor')?.addEventListener('click', () => {
+      this.playHaptic('success');
+      alert(`⚡ PROMPT REFACTORED FOR ANTHROPIC PROMPT CACHING & HIERARCHICAL SEARCH\n\n` +
+            `• Static Invariants: Anchored at Prompt Head with cache_control: {"type": "ephemeral"}\n` +
+            `• Tool Directives: Switched from blind dumping to grep_search + slice windows\n` +
+            `• Error Handling: Configured local backoff with zero user-turn token waste\n` +
+            `• Net Savings: 98.8% token expenditure reduced ($0.30/M cached read).`);
+    });
+
+    // Copy refactored prompt
+    document.getElementById('btnCopyRefactoredPrompt')?.addEventListener('click', () => {
+      const text = document.getElementById('refactoredOutputBox')?.textContent || '';
+      navigator.clipboard?.writeText(text);
+      this.playHaptic('click');
+      alert('✓ Refactored prompt copied to clipboard!');
+    });
+
+    // Test slash command buttons
+    document.querySelectorAll('.btn-test-slash-cmd').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const cmd = btn.dataset.cmd;
+        this.switchView('harness-studio');
+        if (!this.claudeCliSplitOpen) {
+          this.toggleClaudeCliSideBySide();
+        }
+        this.executeClaudeSplitCommand(cmd);
+        this.playHaptic('click');
+      });
+    });
+
+    // Copy code blocks
+    document.querySelectorAll('.btn-copy-code').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const code = decodeURIComponent(btn.dataset.code || '');
+        navigator.clipboard?.writeText(code);
+        btn.textContent = 'Copied!';
+        setTimeout(() => btn.textContent = 'Copy', 2000);
+        this.playHaptic('click');
+      });
+    });
+  }
+
+  // =========================================================================
+  // 1B. CLAUDE COMMANDS & SKILLS LIBRARY (SEARCHABLE REGISTRY & CLIPBOARD)
+  // =========================================================================
+  escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
+  getFilteredCommands() {
+    const q = (this.cmdLibSearchQuery || '').toLowerCase().trim();
+    const cat = this.cmdLibSelectedCategory || 'ALL';
+
+    return (CLAUDE_COMMANDS_LIBRARY || []).filter(c => {
+      const matchCat = (cat === 'ALL' || c.category === cat);
+      if (!matchCat) return false;
+      if (!q) return true;
+
+      const inName = c.name.toLowerCase().includes(q);
+      const inCmd = c.command.toLowerCase().includes(q);
+      const inSyntax = c.syntax.toLowerCase().includes(q);
+      const inDesc = c.description.toLowerCase().includes(q);
+      const inExample = c.example.toLowerCase().includes(q);
+      const inTags = c.tags.some(t => t.toLowerCase().includes(q));
+
+      return inName || inCmd || inSyntax || inDesc || inExample || inTags;
+    });
+  }
+
+  renderCommandLibraryView() {
+    const categories = ['ALL', 'Slash Commands', 'Inference & Tokens', 'DRC & Harness', 'CLI & Terminal', 'Industrial Recipes'];
+    const filtered = this.getFilteredCommands();
+    const activeBuilderCmd = (CLAUDE_COMMANDS_LIBRARY || []).find(c => c.id === this.cmdBuilderSelectedId) || CLAUDE_COMMANDS_LIBRARY[0];
+
+    return `
+      <div class="cmd-lib-layout">
+        <!-- Hero Header -->
+        <div class="cmd-lib-hero">
+          <div style="display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap;">
+            <span class="badge" style="background: rgba(56,189,248,0.15); color: var(--accent-cyan); font-weight: 700;">
+              ENTERPRISE SKILL REGISTRY
+            </span>
+            <span class="badge" style="background: rgba(16,185,129,0.15); color: var(--accent-emerald);">
+              1-CLICK CLIPBOARD COPY
+            </span>
+            <span class="badge" style="background: rgba(129,140,248,0.15); color: var(--accent-indigo);">
+              SIDE-BY-SIDE SPLIT READY (⌥C)
+            </span>
+            <span class="badge" style="background: rgba(251,146,60,0.15); color: #fb923c;">
+              TOKEN-OPTIMIZED
+            </span>
+          </div>
+          <h1 style="font-family: var(--font-serif); font-size: 38px; color: var(--ink-primary); margin-bottom: 10px; line-height: 1.15;">
+            Claude Command & Skills Library
+          </h1>
+          <p style="font-size: 14px; color: var(--ink-secondary); line-height: 1.6; max-width: 980px;">
+            Searchable registry of slash commands, CLI directives, and industrial harness recipes with 1-click copy & paste into Claude Code CLI. Pre-configured with deterministic invariants, thinking budgets, and prompt caching patterns.
+          </p>
+        </div>
+
+        <!-- Metric / Stats Banner -->
+        <div class="token-metric-banner" style="margin-bottom: 24px;">
+          <div class="token-metric-card">
+            <div class="token-metric-num" style="color: var(--accent-cyan);">${(CLAUDE_COMMANDS_LIBRARY || []).length} Commands</div>
+            <div class="token-metric-lbl">Registered Enterprise Directives</div>
+            <div class="token-metric-sub">Slash commands, CLI flags & recipes</div>
+          </div>
+          <div class="token-metric-card">
+            <div class="token-metric-num" style="color: var(--accent-emerald);">1-Click Copy</div>
+            <div class="token-metric-lbl">Formatted Clipboard Export</div>
+            <div class="token-metric-sub">Instant paste to terminal or web chat</div>
+          </div>
+          <div class="token-metric-card">
+            <div class="token-metric-num" style="color: #a78bfa;">Instant Paste</div>
+            <div class="token-metric-lbl">Direct Split CLI Dispatch</div>
+            <div class="token-metric-sub">Auto-pastes into active Claude session</div>
+          </div>
+          <div class="token-metric-card">
+            <div class="token-metric-num" style="color: #fb923c;">-90% Cost</div>
+            <div class="token-metric-lbl">Prompt Caching Compliant</div>
+            <div class="token-metric-sub">Anchors invariants at prompt head</div>
+          </div>
+        </div>
+
+        <!-- Interactive Command Builder & Scratchpad -->
+        <div class="cmd-builder-box">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
+            <div>
+              <div style="font-family: var(--font-mono); font-size: 11px; color: var(--accent-cyan); font-weight: 700;">
+                INTERACTIVE COMMAND BUILDER & CLIPBOARD SCRATCHPAD
+              </div>
+              <div style="font-size: 12px; color: var(--ink-secondary); margin-top: 2px;">
+                Customize arguments, options, and objectives before copying or running in Claude Code CLI:
+              </div>
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <button class="btn btn-secondary" id="btnBuilderCopy" style="font-family: var(--font-mono); font-size: 11px;">
+                📋 Copy Prepared Command
+              </button>
+              <button class="btn btn-primary" id="btnBuilderSendToCli" style="font-family: var(--font-mono); font-size: 11px;">
+                ⚡ Paste into Claude CLI
+              </button>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; align-items: flex-end;">
+            <div>
+              <label style="font-family: var(--font-mono); font-size: 10px; color: var(--ink-tertiary); display: block; margin-bottom: 6px; font-weight: 700;">SELECT DIRECTIVE</label>
+              <select id="selBuilderCommand" style="width: 100%; padding: 9px 12px; background: var(--bg-tertiary); border: 1px solid var(--line-dim); border-radius: 4px; font-family: var(--font-mono); font-size: 12px; color: var(--ink-primary); outline: none;">
+                ${(CLAUDE_COMMANDS_LIBRARY || []).filter(c => c.interactive).map(c => `
+                  <option value="${c.id}" ${c.id === (activeBuilderCmd.id) ? 'selected' : ''}>${c.command} — ${c.name}</option>
+                `).join('')}
+              </select>
+            </div>
+
+            <div id="builderParamContainer">
+              ${this.renderBuilderParamInput(activeBuilderCmd)}
+            </div>
+
+            <div>
+              <label style="font-family: var(--font-mono); font-size: 10px; color: var(--accent-emerald); display: block; margin-bottom: 6px; font-weight: 700;">LIVE COMMAND PREVIEW</label>
+              <div id="builderLivePreview" style="padding: 9px 12px; background: rgba(16,185,129,0.06); border: 1px solid rgba(16,185,129,0.3); border-radius: 4px; font-family: var(--font-mono); font-size: 12px; color: var(--ink-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                ${activeBuilderCmd.example}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Search Bar & Category Filters -->
+        <div class="cmd-lib-search-bar">
+          <div class="cmd-search-box">
+            <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            <input type="text" id="cmdLibSearchInput" class="cmd-search-input" placeholder="Search commands, flags, keywords (/goal, USCAR, token, compact, cache, mcp)..." value="${this.escapeHtml(this.cmdLibSearchQuery || '')}" />
+            ${this.cmdLibSearchQuery ? '<button id="cmdLibSearchClear" class="cmd-search-clear">✕ Clear</button>' : ''}
+          </div>
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <span id="cmdLibResultCount" style="font-family: var(--font-mono); font-size: 11px; color: var(--ink-secondary); padding: 7px 12px; background: var(--bg-tertiary); border: 1px solid var(--line-dim); border-radius: 4px;">
+              ${filtered.length} Commands Available
+            </span>
+            <button class="btn btn-secondary" id="btnOpenCliFromCmdLib" style="font-family: var(--font-mono); font-size: 11px;">
+              Open Claude CLI (⌥C) →
+            </button>
+          </div>
+        </div>
+
+        <div class="cmd-category-filters">
+          ${categories.map(cat => {
+            const count = cat === 'ALL' ? (CLAUDE_COMMANDS_LIBRARY || []).length : (CLAUDE_COMMANDS_LIBRARY || []).filter(c => c.category === cat).length;
+            const active = this.cmdLibSelectedCategory === cat ? 'active' : '';
+            return `
+              <button class="cmd-cat-btn ${active}" data-category="${cat}">
+                <span>${cat}</span>
+                <span class="badge-count">${count}</span>
+              </button>
+            `;
+          }).join('')}
+        </div>
+
+        <!-- Command Cards Container -->
+        <div class="cmd-grid" id="cmdCardsContainer">
+          ${this.renderCommandCardsHtml(filtered)}
+        </div>
+      </div>
+    `;
+  }
+
+  renderBuilderParamInput(cmd) {
+    if (!cmd) return '';
+    if (cmd.options && cmd.options.length > 0) {
+      return `
+        <label style="font-family: var(--font-mono); font-size: 10px; color: var(--ink-tertiary); display: block; margin-bottom: 6px; font-weight: 700;">SELECT PARAMETER</label>
+        <select id="inpBuilderParam" style="width: 100%; padding: 9px 12px; background: var(--bg-tertiary); border: 1px solid var(--line-dim); border-radius: 4px; font-family: var(--font-mono); font-size: 12px; color: var(--ink-primary); outline: none;">
+          ${cmd.options.map(opt => `
+            <option value="${opt}" ${opt === cmd.defaultOption ? 'selected' : ''}>${opt}</option>
+          `).join('')}
+        </select>
+      `;
+    }
+    return `
+      <label style="font-family: var(--font-mono); font-size: 10px; color: var(--ink-tertiary); display: block; margin-bottom: 6px; font-weight: 700;">SPECIFY ARGUMENT / OBJECTIVE</label>
+      <input type="text" id="inpBuilderParam" placeholder="${cmd.placeholder || 'Type argument...'}" value="${cmd.placeholder || ''}" style="width: 100%; padding: 9px 12px; background: var(--bg-tertiary); border: 1px solid var(--line-dim); border-radius: 4px; font-family: var(--font-mono); font-size: 12px; color: var(--ink-primary); outline: none;" />
+    `;
+  }
+
+  renderCommandCardsHtml(commands) {
+    if (!commands || commands.length === 0) {
+      return `
+        <div style="grid-column: 1 / -1; padding: 48px 24px; text-align: center; background: var(--bg-secondary); border: 1px dashed var(--line-dim); border-radius: var(--radius-lg);">
+          <div style="font-size: 16px; font-weight: 600; color: var(--ink-primary); margin-bottom: 6px;">No commands matched your search query</div>
+          <div style="font-size: 12px; color: var(--ink-tertiary); margin-bottom: 16px;">Try adjusting your keywords, searching for tags like #uscar or #tokens, or resetting filters.</div>
+          <button class="btn btn-secondary" id="btnResetCmdSearch" style="font-size: 11px; font-family: var(--font-mono);">
+            Reset Search Filters
+          </button>
+        </div>
+      `;
+    }
+
+    return commands.map(c => `
+      <div class="cmd-card" data-cmd-id="${c.id}">
+        <div>
+          <div class="cmd-card-top">
+            <div class="cmd-title-group">
+              <span class="badge" style="background: rgba(56,189,248,0.12); color: ${c.categoryBadgeColor || 'var(--accent-cyan)'}; font-size: 9px; font-weight: 700; margin-bottom: 6px; display: inline-block;">
+                ${c.category.toUpperCase()}
+              </span>
+              <div class="cmd-title-text">
+                <span>${c.name}</span>
+              </div>
+            </div>
+            <div class="cmd-actions">
+              <button class="btn-cmd-copy" data-copy="${encodeURIComponent(c.copyText)}" title="Copy command to clipboard">
+                📋 Copy
+              </button>
+              <button class="btn-cmd-run" data-cmd="${encodeURIComponent(c.copyText)}" title="Paste and execute in Claude CLI">
+                ⚡ Run in CLI
+              </button>
+            </div>
+          </div>
+
+          <div class="cmd-syntax-banner">
+            <code>${c.syntax}</code>
+            <button class="btn-copy-syntax" data-copy="${encodeURIComponent(c.syntax)}" title="Copy syntax" style="background: none; border: none; color: var(--ink-tertiary); cursor: pointer; font-size: 10px; font-family: var(--font-mono);">
+              Copy Syntax
+            </button>
+          </div>
+
+          <p class="cmd-desc">
+            ${c.description}
+          </p>
+
+          <div class="cmd-example-block">
+            <div class="cmd-example-header">
+              <span>Ready-to-run Example</span>
+              <button class="btn-copy-example" data-copy="${encodeURIComponent(c.example)}" style="background: none; border: none; color: var(--ink-tertiary); cursor: pointer; font-size: 10px; font-family: var(--font-mono);">
+                Copy Example
+              </button>
+            </div>
+            <pre style="margin: 0; white-space: pre-wrap; font-family: var(--font-mono); font-size: 11px; color: var(--ink-primary); line-height: 1.4;"><code>${c.example}</code></pre>
+          </div>
+
+          <div class="cmd-token-formula">
+            <span>⚡ ${c.tokenImpact}</span>
+          </div>
+        </div>
+
+        <div class="cmd-card-footer">
+          <div class="cmd-tags-list">
+            ${c.tags.map(t => `<span class="cmd-tag-item" data-tag="${t}" style="cursor: pointer;">#${t}</span>`).join('')}
+          </div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  attachCommandLibraryEvents() {
+    const bindCardActions = () => {
+      // Copy buttons
+      document.querySelectorAll('.btn-cmd-copy, .btn-copy-syntax, .btn-copy-example').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const text = decodeURIComponent(btn.dataset.copy || '');
+          navigator.clipboard?.writeText(text);
+          const orig = btn.innerHTML;
+          btn.classList.add('copied');
+          btn.innerHTML = '✓ Copied!';
+          this.playHaptic('click');
+          setTimeout(() => {
+            btn.classList.remove('copied');
+            btn.innerHTML = orig;
+          }, 1800);
+        });
+      });
+
+      // Run in CLI buttons
+      document.querySelectorAll('.btn-cmd-run').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const cmd = decodeURIComponent(btn.dataset.cmd || '');
+          navigator.clipboard?.writeText(cmd);
+          this.playHaptic('click');
+          this.switchView('harness-studio');
+          if (!this.claudeCliSplitOpen) {
+            this.toggleClaudeCliSideBySide();
+          }
+          const cliInput = document.getElementById('claudeSplitInput');
+          if (cliInput) {
+            cliInput.value = cmd;
+            cliInput.focus();
+          }
+        });
+      });
+
+      // Clickable tags
+      document.querySelectorAll('.cmd-tag-item').forEach(tagEl => {
+        tagEl.addEventListener('click', () => {
+          const t = tagEl.dataset.tag;
+          if (t) {
+            this.cmdLibSearchQuery = t;
+            const inp = document.getElementById('cmdLibSearchInput');
+            if (inp) inp.value = t;
+            this.updateCommandLibraryView();
+            this.playHaptic('click');
+          }
+        });
+      });
+
+      // Reset search button inside empty state
+      document.getElementById('btnResetCmdSearch')?.addEventListener('click', () => {
+        this.cmdLibSearchQuery = '';
+        this.cmdLibSelectedCategory = 'ALL';
+        const inp = document.getElementById('cmdLibSearchInput');
+        if (inp) inp.value = '';
+        document.querySelectorAll('.cmd-cat-btn').forEach(b => {
+          b.classList.toggle('active', b.dataset.category === 'ALL');
+        });
+        this.updateCommandLibraryView();
+        this.playHaptic('click');
+      });
+    };
+
+    // Live search input
+    const searchInput = document.getElementById('cmdLibSearchInput');
+    searchInput?.addEventListener('input', (e) => {
+      this.cmdLibSearchQuery = e.target.value;
+      this.updateCommandLibraryView();
+    });
+
+    // Clear search button
+    document.getElementById('cmdLibSearchClear')?.addEventListener('click', () => {
+      this.cmdLibSearchQuery = '';
+      if (searchInput) searchInput.value = '';
+      this.updateCommandLibraryView();
+      this.playHaptic('click');
+    });
+
+    // Category filter pills
+    document.querySelectorAll('.cmd-cat-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.cmd-cat-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        this.cmdLibSelectedCategory = btn.dataset.category || 'ALL';
+        this.updateCommandLibraryView();
+        this.playHaptic('click');
+      });
+    });
+
+    // Open CLI from top button
+    document.getElementById('btnOpenCliFromCmdLib')?.addEventListener('click', () => {
+      this.switchView('harness-studio');
+      if (!this.claudeCliSplitOpen) {
+        this.toggleClaudeCliSideBySide();
+      }
+    });
+
+    // Interactive Command Builder logic
+    const selBuilder = document.getElementById('selBuilderCommand');
+    const paramContainer = document.getElementById('builderParamContainer');
+    const previewEl = document.getElementById('builderLivePreview');
+
+    const updateBuilderPreview = () => {
+      const selectedId = selBuilder?.value;
+      const cmd = (CLAUDE_COMMANDS_LIBRARY || []).find(c => c.id === selectedId);
+      if (!cmd) return;
+
+      const paramVal = document.getElementById('inpBuilderParam')?.value || '';
+      let built = cmd.command;
+      if (paramVal) {
+        if (cmd.command.startsWith('claude -p')) {
+          built = `claude -p "${paramVal}"`;
+        } else if (cmd.command.startsWith('/')) {
+          built = `${cmd.command} ${paramVal}`;
+        } else {
+          built = `${cmd.command} ${paramVal}`;
+        }
+      }
+      if (previewEl) previewEl.textContent = built;
+      return built;
+    };
+
+    selBuilder?.addEventListener('change', () => {
+      this.cmdBuilderSelectedId = selBuilder.value;
+      const cmd = (CLAUDE_COMMANDS_LIBRARY || []).find(c => c.id === selBuilder.value);
+      if (paramContainer && cmd) {
+        paramContainer.innerHTML = this.renderBuilderParamInput(cmd);
+        document.getElementById('inpBuilderParam')?.addEventListener('input', updateBuilderPreview);
+        document.getElementById('inpBuilderParam')?.addEventListener('change', updateBuilderPreview);
+      }
+      updateBuilderPreview();
+      this.playHaptic('click');
+    });
+
+    document.getElementById('inpBuilderParam')?.addEventListener('input', updateBuilderPreview);
+    document.getElementById('inpBuilderParam')?.addEventListener('change', updateBuilderPreview);
+
+    document.getElementById('btnBuilderCopy')?.addEventListener('click', () => {
+      const built = updateBuilderPreview();
+      if (built) {
+        navigator.clipboard?.writeText(built);
+        const btn = document.getElementById('btnBuilderCopy');
+        if (btn) {
+          const orig = btn.innerHTML;
+          btn.innerHTML = '✓ Copied!';
+          this.playHaptic('click');
+          setTimeout(() => btn.innerHTML = orig, 1800);
+        }
+      }
+    });
+
+    document.getElementById('btnBuilderSendToCli')?.addEventListener('click', () => {
+      const built = updateBuilderPreview();
+      if (built) {
+        navigator.clipboard?.writeText(built);
+        this.playHaptic('click');
+        this.switchView('harness-studio');
+        if (!this.claudeCliSplitOpen) {
+          this.toggleClaudeCliSideBySide();
+        }
+        const cliInput = document.getElementById('claudeSplitInput');
+        if (cliInput) {
+          cliInput.value = built;
+          cliInput.focus();
+        }
+      }
+    });
+
+    // Initial binding for card actions
+    bindCardActions();
+  }
+
+  updateCommandLibraryView() {
+    const filtered = this.getFilteredCommands();
+    const container = document.getElementById('cmdCardsContainer');
+    if (container) {
+      container.innerHTML = this.renderCommandCardsHtml(filtered);
+    }
+    const countEl = document.getElementById('cmdLibResultCount');
+    if (countEl) {
+      countEl.textContent = `${filtered.length} Commands Available`;
+    }
+
+    // Re-bind dynamic card events
+    document.querySelectorAll('.btn-cmd-copy, .btn-copy-syntax, .btn-copy-example').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const text = decodeURIComponent(btn.dataset.copy || '');
+        navigator.clipboard?.writeText(text);
+        const orig = btn.innerHTML;
+        btn.classList.add('copied');
+        btn.innerHTML = '✓ Copied!';
+        this.playHaptic('click');
+        setTimeout(() => {
+          btn.classList.remove('copied');
+          btn.innerHTML = orig;
+        }, 1800);
+      });
+    });
+
+    document.querySelectorAll('.btn-cmd-run').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const cmd = decodeURIComponent(btn.dataset.cmd || '');
+        navigator.clipboard?.writeText(cmd);
+        this.playHaptic('click');
+        this.switchView('harness-studio');
+        if (!this.claudeCliSplitOpen) {
+          this.toggleClaudeCliSideBySide();
+        }
+        const cliInput = document.getElementById('claudeSplitInput');
+        if (cliInput) {
+          cliInput.value = cmd;
+          cliInput.focus();
+        }
+      });
+    });
+
+    document.querySelectorAll('.cmd-tag-item').forEach(tagEl => {
+      tagEl.addEventListener('click', () => {
+        const t = tagEl.dataset.tag;
+        if (t) {
+          this.cmdLibSearchQuery = t;
+          const inp = document.getElementById('cmdLibSearchInput');
+          if (inp) inp.value = t;
+          this.updateCommandLibraryView();
+          this.playHaptic('click');
+        }
+      });
+    });
+
+    document.getElementById('btnResetCmdSearch')?.addEventListener('click', () => {
+      this.cmdLibSearchQuery = '';
+      this.cmdLibSelectedCategory = 'ALL';
+      const inp = document.getElementById('cmdLibSearchInput');
+      if (inp) inp.value = '';
+      document.querySelectorAll('.cmd-cat-btn').forEach(b => {
+        b.classList.toggle('active', b.dataset.category === 'ALL');
+      });
+      this.updateCommandLibraryView();
+      this.playHaptic('click');
+    });
+  }
+
+  // =========================================================================
+  // VOICE-NATIVE AGENT RUNTIME METHODS
+  // Continuous Conversation State, The Second Loop & Physical Safety Barrier
+  // =========================================================================
+
+  renderVoiceRuntimeView() {
+    const data = VOICE_RUNTIME_DATA;
+    const session = this.voiceSessionState;
+    const activeTab = session.activeTab || 'scenarios';
+
+    return `
+      <div class="voice-runtime-layout">
+        <!-- Hero Header -->
+        <div class="voice-hero-banner">
+          <div class="voice-hero-kicker">
+            <span class="hud-pulse-dot emerald"></span>
+            <span>VOICE-NATIVE AGENT RUNTIME • DIGITAL & PHYSICAL EMBODIED AI</span>
+          </div>
+          <h1 class="voice-hero-headline">
+            Continuous Conversation Layer Above Individual Agents
+          </h1>
+          <p class="voice-hero-desc">
+            Voice is an interaction and execution layer, not merely audio wrapped around a chatbot. By lifting conversational state and grounded identity above isolated applications, the runtime maintains unified discourse context across digital CAD tools, multi-agent swarms, and physical robotic workcells.
+          </p>
+
+          <!-- 3 Pillars Grid -->
+          <div class="voice-pillars-grid">
+            <div class="voice-pillar-card">
+              <span class="voice-pillar-tag" style="background: rgba(14,165,233,0.15); color: var(--accent-cyan);">LAYER 0: IDENTITY & STATE</span>
+              <h3 class="voice-pillar-title">Continuous State & Pronouns</h3>
+              <p class="voice-pillar-body">
+                Maintains cross-turn discourse memory, acoustic speaker validation (${session.activeSpeaker}, ${session.voiceprintConfidence}% confidence), and spatial deixis resolution ("that robot", "it", "the bundle").
+              </p>
+            </div>
+
+            <div class="voice-pillar-card">
+              <span class="voice-pillar-tag" style="background: rgba(99,102,241,0.15); color: var(--accent-indigo);">LOOP 2: REPLANNING</span>
+              <h3 class="voice-pillar-title">Grounded Interruption Loop</h3>
+              <p class="voice-pillar-body">
+                Detects mid-sentence barge-in (&lt;30ms audio cutoff), executes grounded entity corrections ("No, not that robot—the G1 beside it"), and replans dynamic action trees without discarding valid upstream work.
+              </p>
+            </div>
+
+            <div class="voice-pillar-card">
+              <span class="voice-pillar-tag" style="background: rgba(244,63,94,0.15); color: var(--accent-rose);">MANDATORY BOUNDARY</span>
+              <h3 class="voice-pillar-title">Physical Safety Admissibility</h3>
+              <p class="voice-pillar-body">
+                <code>Voice → Intent → Action → Safety Validator → Human Gate → Controller</code>. Never allows raw LLM tokens into actuators. Enforces ISO 10218, USCAR-21, and AS50881.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Interactive Voice Console Grid -->
+        <div class="voice-console-grid">
+          <!-- Left Column: Audio Waveform, Identity & Continuous Stream -->
+          <div class="voice-audio-card">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <h3 style="font-size: 15px; font-weight: 700; color: var(--ink-primary); margin: 0 0 2px 0;">
+                  Live Audio Stream & VAD
+                </h3>
+                <span style="font-family: var(--font-mono); font-size: 11px; color: var(--ink-tertiary);">
+                  WebRTC VAD • 20ms Sliding Window • Conformer ASR
+                </span>
+              </div>
+              <span class="voice-hud-latency-pill" id="voiceLiveLatencyBadge">
+                <span class="hud-pulse-dot emerald"></span> 212ms E2E
+              </span>
+            </div>
+
+            <!-- Waveform Canvas -->
+            <div class="voice-wave-container">
+              <canvas class="voice-wave-canvas" id="voiceWaveCanvas" width="500" height="70"></canvas>
+              <div class="voice-wave-telemetry">
+                <span>VAD: <strong id="telemetryVad">${session.status === 'listening' ? 'ACTIVE (SNR 24dB)' : 'PASSIVE (IDLE)'}</strong></span>
+                <span>ASR: <strong id="telemetryAsr">Whisper/Conformer Streaming</strong></span>
+                <span>TTS: <strong id="telemetryTts">Neural Prosody (16kHz)</strong></span>
+              </div>
+            </div>
+
+            <!-- Voice Controls Bar -->
+            <div class="voice-audio-controls">
+              <button class="btn-voice-record ${session.isRecording ? 'recording' : ''}" id="btnToggleVoiceRecord">
+                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg>
+                <span id="btnRecordText">${session.isRecording ? 'Stop Audio Stream' : 'Speak / Microphone (VAD)'}</span>
+              </button>
+
+              <button class="btn-voice-interrupt" id="btnTriggerBargeIn" title="Trigger Instantaneous Barge-In Interruption & Grounded Correction">
+                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                <span>Barge-In Interrupt</span>
+              </button>
+
+              <button class="btn-cmd-copy" id="btnToggleMuteTts" title="Toggle audio TTS playback">
+                <span id="ttsMuteIcon">${session.speechSynthesisMuted ? '🔇 Unmute TTS' : '🔊 TTS Active'}</span>
+              </button>
+
+              <button class="btn-cmd-copy" id="btnResetVoiceSession" title="Clear conversation history and restore nominal state" style="margin-left: auto;">
+                <span>↺ Reset Session</span>
+              </button>
+            </div>
+
+            <!-- Voice Persona & Regional Accent Engine Panel -->
+            ${this.renderVoiceProfilePanel()}
+
+            <!-- Continuous Identity & Grounding Box -->
+            <div class="voice-grounding-box">
+              <div class="voice-grounding-header">
+                <span>Continuous Identity & Grounded Entities</span>
+                <span style="color: var(--accent-cyan); font-weight: 700;">ID: ${session.sessionId}</span>
+              </div>
+
+              <div style="font-size: 11px; color: var(--ink-secondary); margin-bottom: 10px;">
+                Authenticated: <strong style="color: var(--ink-primary);">${session.activeSpeaker}</strong> (Biometric Voiceprint: <span style="color: var(--accent-emerald); font-weight: 700;">${session.voiceprintConfidence}% match</span>)
+              </div>
+
+              <div class="voice-grounded-chips" id="voiceGroundedChips">
+                ${(session.groundedEntities || []).map(ent => `
+                  <div class="grounded-entity-chip ${ent.id === session.activeGroundedId ? 'highlight' : ''}" data-ent-id="${ent.id}" title="${ent.type} • ${ent.state}">
+                    <span style="font-size: 10px;">${ent.type.includes('Robot') ? '🤖' : ent.type.includes('CAD') ? '⚡' : '🔧'}</span>
+                    <span>${ent.name}</span>
+                  </div>
+                `).join('')}
+              </div>
+
+              <div style="margin-top: 12px; font-family: var(--font-mono); font-size: 10px; color: var(--ink-tertiary); line-height: 1.4; border-top: 1px solid var(--line-dim); padding-top: 8px;">
+                <span>Deictic Resolution Map:</span>
+                <div style="color: var(--ink-secondary); margin-top: 3px;">
+                  "that robot" → <code style="color: var(--accent-cyan);">Unitree G1 #04</code> &nbsp;•&nbsp; 
+                  "the G1 beside it" → <code style="color: var(--accent-indigo);">Unitree G1 #05 (+1.2m)</code> &nbsp;•&nbsp; 
+                  "it / wire" → <code style="color: var(--accent-emerald);">Wire #101 (USCAR-21)</code>
+                </div>
+              </div>
+            </div>
+
+            <!-- Conversational Stream Transcript -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
+              <span style="font-size: 12px; font-weight: 700; color: var(--ink-primary); text-transform: uppercase; font-family: var(--font-mono);">
+                Grounded Conversation Stream
+              </span>
+              <span style="font-size: 11px; font-family: var(--font-mono); color: var(--ink-tertiary);">
+                ${session.conversationHistory.length} Turns
+              </span>
+            </div>
+
+            <div class="voice-stream-container" id="voiceStreamMessages">
+              ${this.renderVoiceStreamMessages()}
+            </div>
+          </div>
+
+          <!-- Right Column: Interactive Loops & Scenario Execution Matrix -->
+          <div class="voice-execution-card">
+            <!-- Architectural Subtabs -->
+            <div class="voice-subtabs">
+              <button class="voice-subtab-btn ${activeTab === 'scenarios' ? 'active' : ''}" data-voicetab="scenarios">
+                Interactive Scenarios (5 Drills)
+              </button>
+              <button class="voice-subtab-btn ${activeTab === 'pipeline' ? 'active' : ''}" data-voicetab="pipeline">
+                Loop 1: Linear 11-Stage Pipeline
+              </button>
+              <button class="voice-subtab-btn ${activeTab === 'second-loop' ? 'active' : ''}" data-voicetab="second-loop">
+                Loop 2: Grounded Interruption & Replanning
+              </button>
+              <button class="voice-subtab-btn ${activeTab === 'safety' ? 'active' : ''}" data-voicetab="safety">
+                Physical Safety Boundary Gate
+              </button>
+            </div>
+
+            <!-- Pipeline Stage Stepper (Always Visible Overview) -->
+            <div class="voice-stepper" id="voicePipelineStepper">
+              ${this.renderVoicePipelineStepper(session.activePipelineStageId)}
+            </div>
+
+            <!-- Dynamic Tab Content -->
+            <div id="voiceTabContent">
+              ${this.renderVoiceTabContent(activeTab)}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Human Confirmation Interlock Modal -->
+      <div class="voice-confirm-modal" id="voiceConfirmModal">
+        <div class="voice-confirm-dialog">
+          <div class="voice-confirm-header">
+            <svg width="24" height="24" fill="none" stroke="var(--accent-amber)" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+            <h3 class="voice-confirm-title">High-Consequence Safety Interlock</h3>
+          </div>
+          <div class="voice-confirm-body" id="voiceConfirmBody">
+            Energizing the 800V DC High Voltage rail on Harness W-101 is classified as an irreversible Level-4 hazard.
+            Deterministic Safety Validator has gated the command. Dual-factor authorization required.
+          </div>
+          <div class="voice-confirm-actions">
+            <button class="btn-confirm-cancel" id="btnConfirmCancel">Cancel Action (Abort)</button>
+            <button class="btn-confirm-execute" id="btnConfirmAuthorize">CONFIRM & DISPATCH CONTROLLER</button>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  renderVoiceProfilePanel() {
+    const session = this.voiceSessionState;
+    const regions = VOICE_RUNTIME_DATA?.voiceRegions || [];
+    const types = VOICE_RUNTIME_DATA?.voiceTypes || [];
+    const activeRegion = regions.find(r => r.id === session.selectedRegion) || regions[0];
+    const activeType = types.find(t => t.id === session.selectedVoiceType) || types[0];
+
+    return `
+      <!-- Voice Persona & Regional Accent Engine -->
+      <div class="voice-profile-panel" id="voiceProfilePanel">
+        <div class="voice-profile-header">
+          <div class="voice-profile-title">
+            <span>🎙️ Voice Persona & Regional Accent Engine</span>
+          </div>
+          <span style="font-family: var(--font-mono); font-size: 10px; color: var(--accent-cyan); background: rgba(14,165,233,0.12); padding: 2px 8px; border-radius: 4px; border: 1px solid rgba(14,165,233,0.25);">
+            TTS Multi-Accent Native
+          </span>
+        </div>
+
+        <!-- 1. Regional Accents Selection -->
+        <div class="voice-section-subtitle">
+          <span>1. Select Voice Region / Accent</span>
+          <span style="font-family: var(--font-mono); color: var(--accent-cyan); font-weight: 700;">${activeRegion?.flag || ''} ${activeRegion?.name || ''}</span>
+        </div>
+        <div class="voice-regions-grid" id="voiceRegionsGrid">
+          ${regions.map(r => `
+            <div class="voice-region-chip ${r.id === session.selectedRegion ? 'active' : ''}" data-region-id="${r.id}" title="${r.name} (${r.lang})">
+              <span>${r.flag}</span>
+              <span>${r.name.replace(' (US)', '').replace(' (UK)', '').replace(' (EU)', '')}</span>
+            </div>
+          `).join('')}
+        </div>
+
+        <!-- 2. Voice Persona / Type Selection -->
+        <div class="voice-section-subtitle">
+          <span>2. Select Voice Persona & Cadence</span>
+          <span style="font-family: var(--font-mono); color: var(--accent-indigo); font-weight: 700;">${activeType?.name || ''}</span>
+        </div>
+        <div class="voice-types-grid" id="voiceTypesGrid">
+          ${types.map(t => `
+            <div class="voice-type-card ${t.id === session.selectedVoiceType ? 'active' : ''}" data-type-id="${t.id}">
+              <div class="voice-type-header">
+                <span class="voice-type-name">${t.icon} ${t.name}</span>
+                <span class="voice-type-cadence-pill">${t.rate}x • ${t.pitch}p</span>
+              </div>
+              <div class="voice-type-desc">${t.tagline}</div>
+            </div>
+          `).join('')}
+        </div>
+
+        <!-- 3. Hardware Voice & Fine-Tuning Controls -->
+        <div class="voice-tuning-controls">
+          <div class="voice-synth-select-row">
+            <label class="voice-slider-label">
+              <span>Hardware / Browser Synthesizer Voice</span>
+              <span id="voiceSynthCount">Detecting system voices...</span>
+            </label>
+            <select class="voice-synth-select" id="voiceSynthSelect">
+              <option value="">Auto-Selected Profile (${session.selectedRegion})</option>
+            </select>
+          </div>
+
+          <div class="voice-slider-item">
+            <div class="voice-slider-label">
+              <span>Speaking Rate (Speed)</span>
+              <span id="voiceRateValue">${session.customRate.toFixed(2)}x</span>
+            </div>
+            <input type="range" class="voice-slider-range" id="voiceRateRange" min="0.8" max="1.4" step="0.02" value="${session.customRate}">
+          </div>
+
+          <div class="voice-slider-item">
+            <div class="voice-slider-label">
+              <span>Pitch (Frequency)</span>
+              <span id="voicePitchValue">${session.customPitch.toFixed(2)}</span>
+            </div>
+            <input type="range" class="voice-slider-range" id="voicePitchRange" min="0.7" max="1.3" step="0.02" value="${session.customPitch}">
+          </div>
+
+          <div class="voice-actions-bar">
+            <div class="voice-current-summary" id="voiceCurrentSummary">
+              Active: <strong style="color: var(--ink-primary);">${activeRegion?.flag || '🇺🇸'} ${activeRegion?.name || 'American'}</strong> • <span style="color: var(--accent-cyan);">${activeType?.name || 'Systems Architect'}</span>
+            </div>
+            <button class="btn-preview-voice" id="btnTestVoiceProfile" title="Test Voice with Regional Accent">
+              <span>🔊 Preview Voice Profile</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  renderVoiceStreamMessages() {
+    const history = this.voiceSessionState.conversationHistory || [];
+    return history.map(msg => {
+      if (msg.sender === 'system') {
+        return `
+          <div class="voice-bubble interrupted-alert">
+            <div class="voice-bubble-meta">
+              <span>SYSTEM RUNTIME</span>
+              <span>${msg.time}</span>
+            </div>
+            <div>${msg.text}</div>
+          </div>
+        `;
+      }
+      const isUser = msg.sender === 'user';
+      return `
+        <div class="voice-bubble ${isUser ? 'user' : 'assistant'}">
+          <div class="voice-bubble-meta">
+            <span>${isUser ? 'OPERATOR (Frank)' : 'ATELIER VOICE AGENT'}</span>
+            <span>${msg.time}</span>
+          </div>
+          <div style="font-weight: 500;">${msg.text}</div>
+          ${msg.meta ? `
+            <div style="font-family: var(--font-mono); font-size: 10px; color: var(--ink-tertiary); margin-top: 6px; padding-top: 4px; border-top: 1px solid var(--line-dim);">
+              ${msg.meta}
+            </div>
+          ` : ''}
+        </div>
+      `;
+    }).join('');
+  }
+
+  renderVoicePipelineStepper(activeStageId) {
+    const stages = VOICE_RUNTIME_DATA.pipelineStages;
+    return stages.map((st, idx) => {
+      const isActive = st.id === activeStageId;
+      return `
+        <div class="voice-step-pill ${isActive ? 'active' : ''}" data-stage-id="${st.id}" style="cursor: pointer;" title="${st.name}: ${st.desc} (${st.latency}ms)">
+          <span>${idx + 1}.</span>
+          <span>${st.name.split('. ')[1] || st.name}</span>
+          <span style="opacity: 0.6; font-size: 9px;">${st.latency}ms</span>
+        </div>
+      `;
+    }).join('');
+  }
+
+  renderVoiceTabContent(tab) {
+    switch (tab) {
+      case 'scenarios':
+        return this.renderVoiceScenariosCards();
+      case 'pipeline':
+        return this.renderVoicePipelineDetails();
+      case 'second-loop':
+        return this.renderVoiceSecondLoopDetails();
+      case 'safety':
+        return this.renderVoiceSafetyDetails();
+      default:
+        return this.renderVoiceScenariosCards();
+    }
+  }
+
+  renderVoiceScenariosCards() {
+    const scenarios = VOICE_RUNTIME_DATA.scenarios;
+    return `
+      <div>
+        <div style="margin-bottom: 14px;">
+          <h4 style="font-size: 14px; font-weight: 700; color: var(--ink-primary); margin: 0 0 4px 0;">
+            Interactive Industrial Test Scenarios
+          </h4>
+          <p style="font-size: 12px; color: var(--ink-secondary); margin: 0;">
+            Test the full linear loop, grounded conversational interruptions ("No, not that robot—the G1 beside it"), parameter overrides, and deterministic physical safety rejections.
+          </p>
+        </div>
+
+        <div class="scenarios-grid">
+          ${scenarios.map(sc => `
+            <div class="scenario-card ${sc.id === this.voiceSessionState.activeScenario?.id ? 'active' : ''}" data-scenario-id="${sc.id}">
+              <div>
+                <span class="scenario-badge" style="background: ${sc.badgeColor}22; color: ${sc.badgeColor}; border: 1px solid ${sc.badgeColor}44;">
+                  ${sc.badge}
+                </span>
+                <h4 class="scenario-title">${sc.name}</h4>
+                <p class="scenario-utterance">"${sc.audioTranscript}"</p>
+              </div>
+
+              <div>
+                <div style="font-family: var(--font-mono); font-size: 11px; margin-bottom: 8px;">
+                  <span style="color: var(--ink-tertiary);">Status:</span>
+                  <span style="color: ${sc.safetyStatus.includes('REJECTION') ? 'var(--accent-rose)' : sc.safetyStatus.includes('HOLD') ? 'var(--accent-amber)' : 'var(--accent-emerald)'}; font-weight: 700;">
+                    ${sc.safetyCode}
+                  </span>
+                </div>
+                <div class="scenario-footer">
+                  <span>${sc.telemetry.totalMs}ms E2E</span>
+                  <button class="btn-run-scenario" data-run-scenario-id="${sc.id}">
+                    ▶ Run Scenario
+                  </button>
+                </div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  renderVoicePipelineDetails() {
+    const stages = VOICE_RUNTIME_DATA.pipelineStages;
+    return `
+      <div>
+        <div style="margin-bottom: 16px;">
+          <h4 style="font-size: 15px; font-weight: 700; color: var(--ink-primary); margin: 0 0 4px 0;">
+            Loop 1: Linear Voice-to-Action Execution Architecture
+          </h4>
+          <p style="font-size: 12px; color: var(--ink-secondary); margin: 0;">
+            Audio → VAD → ASR → speaker/language detection → semantic parsing → context retrieval → policy/permission gate → agent reasoning → tool execution → verification → response generation → TTS
+          </p>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          ${stages.map((st, i) => `
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: var(--bg-surface); border: 1px solid var(--line-dim); border-radius: var(--radius-sm);">
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <span style="font-family: var(--font-mono); font-size: 11px; font-weight: 700; color: var(--accent-cyan); width: 20px;">
+                  ${i + 1}
+                </span>
+                <div>
+                  <div style="font-size: 13px; font-weight: 600; color: var(--ink-primary);">${st.name}</div>
+                  <div style="font-size: 11px; color: var(--ink-secondary);">${st.desc}</div>
+                </div>
+              </div>
+              <span class="badge" style="font-family: var(--font-mono); font-size: 11px; background: rgba(56,189,248,0.1); color: var(--accent-cyan); border: 1px solid rgba(56,189,248,0.25);">
+                ${st.latency} ms
+              </span>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  renderVoiceSecondLoopDetails() {
+    const secondLoop = VOICE_RUNTIME_DATA.secondLoop;
+    return `
+      <div>
+        <div style="margin-bottom: 16px;">
+          <h4 style="font-size: 15px; font-weight: 700; color: var(--ink-primary); margin: 0 0 4px 0;">
+            The Second Loop: Interrupt / Correction / Clarification / Replanning
+          </h4>
+          <p style="font-size: 12px; color: var(--ink-secondary); margin: 0;">
+            Real industrial conversations contain interruptions, incomplete sentences, pronouns, changing objectives and environmental references. A serious voice system maintains grounded conversational state.
+          </p>
+        </div>
+
+        <!-- Formula Banner -->
+        <div class="safety-formula-banner">
+          <span style="color: var(--accent-indigo); font-weight: 700;">SECOND LOOP SPEC:</span>
+          <span>interrupt / correction / clarification → state update → replanning</span>
+          <span style="margin-left: auto; font-size: 10px; color: var(--accent-emerald);">Barge-In: ${secondLoop.bargeInLatencyMs}ms Cutoff</span>
+        </div>
+
+        <!-- Replanning Diff Grid -->
+        <div class="voice-replanning-card">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 12px; font-weight: 700; color: var(--ink-primary);">
+              Grounded Replanning State Diff: "No, not that robot—the G1 beside it!"
+            </span>
+            <span class="badge" style="background: rgba(99,102,241,0.15); color: var(--accent-indigo);">
+              Dynamic Branch Mutation
+            </span>
+          </div>
+
+          <div class="replanning-diff-grid">
+            <div class="diff-col-box" style="border-left: 3px solid var(--accent-amber);">
+              <div class="diff-col-title">Initial Execution Plan (Invalidated at t=380ms)</div>
+              <div class="diff-col-content">Target Entity: Unitree G1 #04 (G1-04)
+Workcell: Cell 2 / Formboard Bench
+Trajectory: TRAJ-G1-04-APPROACH
+Speed Limit: 250 mm/s (ISO 10218)
+Tool Goal: Pick Terminal Tray TE-1326030
+Status: [INTERRUPTED BY OPERATOR]</div>
+            </div>
+
+            <div class="diff-col-box" style="border-left: 3px solid var(--accent-emerald);">
+              <div class="diff-col-title">Recomputed Plan (Branch Mutated & Re-verified)</div>
+              <div class="diff-col-content">Target Entity: Unitree G1 #05 (G1-05 / Offset +1.2m)
+Workcell: Cell 2 / Beside G1-04
+Trajectory: TRAJ-G1-05-APPROACH-SAFE (Recomputed)
+Speed Limit: 180 mm/s (Clamped)
+Tool Goal: Pick Terminal Tray TE-1326030
+Safety Status: PASSED (ISO-10218-SAFE)</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4 Interruption Classes -->
+        <div style="margin-top: 18px;">
+          <h5 style="font-size: 12px; font-weight: 700; text-transform: uppercase; font-family: var(--font-mono); color: var(--ink-tertiary); margin-bottom: 8px;">
+            Supported Conversational Interruption Classes
+          </h5>
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            ${secondLoop.classes.map(cls => `
+              <div style="padding: 10px 14px; background: var(--bg-surface); border: 1px solid var(--line-dim); border-radius: var(--radius-sm);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                  <strong style="color: var(--ink-primary); font-size: 12px;">${cls.name}</strong>
+                  <code style="font-size: 10px; color: var(--accent-cyan); background: rgba(56,189,248,0.1); padding: 2px 6px; border-radius: 4px;">"${cls.trigger}"</code>
+                </div>
+                <div style="font-size: 11px; color: var(--ink-secondary); line-height: 1.4;">
+                  <strong>State Update:</strong> ${cls.stateUpdate}<br/>
+                  <strong>Dynamic Replanning:</strong> ${cls.replanning}
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  renderVoiceSafetyDetails() {
+    const safety = VOICE_RUNTIME_DATA.safetyBoundary;
+    return `
+      <div>
+        <div style="margin-bottom: 16px;">
+          <h4 style="font-size: 15px; font-weight: 700; color: var(--accent-rose); margin: 0 0 4px 0;">
+            Mandatory Physical & Digital Safety Boundary
+          </h4>
+          <p style="font-size: 12px; color: var(--ink-secondary); margin: 0;">
+            For physical systems, voice is another potentially uncertain command source that must pass through deterministic admissibility validation.
+          </p>
+        </div>
+
+        <div class="safety-formula-banner">
+          <span style="font-weight: 700;">SPECIFICATION:</span>
+          <span>${safety.ruleFormula}</span>
+        </div>
+
+        <div class="safety-ironclad-rule">
+          <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+          <span>${safety.ironcladRule}</span>
+        </div>
+
+        <div style="margin-top: 20px;">
+          <h5 style="font-size: 12px; font-weight: 700; text-transform: uppercase; font-family: var(--font-mono); color: var(--ink-tertiary); margin-bottom: 10px;">
+            Deterministic Admissibility Validators
+          </h5>
+          <div style="display: flex; flex-direction: column; gap: 10px;">
+            ${safety.validators.map(v => `
+              <div style="padding: 12px 16px; background: var(--bg-surface); border: 1px solid var(--line-dim); border-radius: var(--radius-sm); border-left: 3px solid var(--accent-rose);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                  <strong style="color: var(--ink-primary); font-size: 13px;">${v.id}: ${v.rule}</strong>
+                  <span class="badge" style="background: rgba(244,63,94,0.1); color: var(--accent-rose); border: 1px solid rgba(244,63,94,0.3); font-family: var(--font-mono); font-size: 10px;">
+                    HARD ENVELOPE
+                  </span>
+                </div>
+                <div style="font-size: 12px; color: var(--ink-secondary); margin-bottom: 4px;">
+                  <strong>Condition:</strong> <code>${v.condition}</code>
+                </div>
+                <div style="font-size: 11px; color: var(--accent-rose);">
+                  <strong>On Violation:</strong> ${v.actionOnFail}
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  attachVoiceRuntimeEvents() {
+    // Waveform Canvas Visualizer initialization
+    this.initWaveformVisualizer();
+
+    // Record / Voice stream toggle
+    document.getElementById('btnToggleVoiceRecord')?.addEventListener('click', () => {
+      this.toggleVoiceRecording();
+    });
+
+    // Immediate Barge-in Interrupt trigger
+    document.getElementById('btnTriggerBargeIn')?.addEventListener('click', () => {
+      this.triggerVoiceBargeIn("No, not that robot—the G1 beside it!");
+    });
+
+    // Mute TTS toggle
+    document.getElementById('btnToggleMuteTts')?.addEventListener('click', () => {
+      this.voiceSessionState.speechSynthesisMuted = !this.voiceSessionState.speechSynthesisMuted;
+      const span = document.getElementById('ttsMuteIcon');
+      if (span) {
+        span.textContent = this.voiceSessionState.speechSynthesisMuted ? '🔇 TTS Muted' : '🔊 TTS Active';
+      }
+      if (this.voiceSessionState.speechSynthesisMuted && window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+      }
+      this.playHaptic('click');
+    });
+
+    // Reset session button
+    document.getElementById('btnResetVoiceSession')?.addEventListener('click', () => {
+      this.resetVoiceSession();
+    });
+
+    // Subtab navigation
+    document.querySelectorAll('.voice-subtab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.voice-subtab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const tab = btn.dataset.voicetab || 'scenarios';
+        this.voiceSessionState.activeTab = tab;
+        const container = document.getElementById('voiceTabContent');
+        if (container) {
+          container.innerHTML = this.renderVoiceTabContent(tab);
+          this.attachVoiceScenarioCardEvents();
+        }
+        this.playHaptic('click');
+      });
+    });
+
+    // Pipeline stage clicks
+    document.querySelectorAll('.voice-step-pill').forEach(pill => {
+      pill.addEventListener('click', () => {
+        document.querySelectorAll('.voice-step-pill').forEach(p => p.classList.remove('active'));
+        pill.classList.add('active');
+        const stId = pill.dataset.stageId;
+        this.voiceSessionState.activePipelineStageId = stId;
+        this.playHaptic('click');
+      });
+    });
+
+    // Grounded entity chip clicks
+    document.querySelectorAll('.grounded-entity-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        document.querySelectorAll('.grounded-entity-chip').forEach(c => c.classList.remove('highlight'));
+        chip.classList.add('highlight');
+        const entId = chip.dataset.entId;
+        this.voiceSessionState.activeGroundedId = entId;
+        this.updateVoiceHud();
+        this.playHaptic('click');
+      });
+    });
+
+    // Confirmation Modal Actions
+    document.getElementById('btnConfirmCancel')?.addEventListener('click', () => {
+      this.closeVoiceConfirmationModal(false);
+    });
+    document.getElementById('btnConfirmAuthorize')?.addEventListener('click', () => {
+      this.closeVoiceConfirmationModal(true);
+    });
+
+    // Voice Profile: Regional Accents Selector
+    document.querySelectorAll('.voice-region-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        document.querySelectorAll('.voice-region-chip').forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+        const regId = chip.dataset.regionId;
+        this.setVoiceRegion(regId);
+        this.playHaptic('click');
+      });
+    });
+
+    // Voice Profile: Voice Persona / Type Selector
+    document.querySelectorAll('.voice-type-card').forEach(card => {
+      card.addEventListener('click', () => {
+        document.querySelectorAll('.voice-type-card').forEach(c => c.classList.remove('active'));
+        card.classList.add('active');
+        const typeId = card.dataset.typeId;
+        this.setVoiceType(typeId);
+        this.playHaptic('click');
+      });
+    });
+
+    // Voice Profile: Hardware Synthesizer Dropdown
+    document.getElementById('voiceSynthSelect')?.addEventListener('change', (e) => {
+      this.voiceSessionState.selectedVoiceName = e.target.value;
+      this.updateVoiceHud();
+      this.updateVoiceTelemetryDisplay();
+    });
+
+    // Voice Profile: Speaking Rate Slider
+    document.getElementById('voiceRateRange')?.addEventListener('input', (e) => {
+      const val = parseFloat(e.target.value);
+      this.voiceSessionState.customRate = val;
+      const lbl = document.getElementById('voiceRateValue');
+      if (lbl) lbl.textContent = `${val.toFixed(2)}x`;
+      this.updateVoiceTelemetryDisplay();
+    });
+
+    // Voice Profile: Pitch Slider
+    document.getElementById('voicePitchRange')?.addEventListener('input', (e) => {
+      const val = parseFloat(e.target.value);
+      this.voiceSessionState.customPitch = val;
+      const lbl = document.getElementById('voicePitchValue');
+      if (lbl) lbl.textContent = val.toFixed(2);
+      this.updateVoiceTelemetryDisplay();
+    });
+
+    // Voice Profile: Test / Preview Button
+    document.getElementById('btnTestVoiceProfile')?.addEventListener('click', () => {
+      this.testVoiceProfile();
+      this.playHaptic('click');
+    });
+
+    // Populate dropdown and telemetry on load
+    this.populateVoiceSynthesizerDropdown();
+    this.updateVoiceTelemetryDisplay();
+
+    // Initial binding for scenario cards
+    this.attachVoiceScenarioCardEvents();
+  }
+
+  populateVoiceSynthesizerDropdown() {
+    const select = document.getElementById('voiceSynthSelect');
+    const countBadge = document.getElementById('voiceSynthCount');
+    if (!select || typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+
+    const voices = window.speechSynthesis.getVoices() || [];
+    const session = this.voiceSessionState;
+    const regionLang = (session.selectedRegion || 'en-US').toLowerCase();
+    const langPrefix = regionLang.split('-')[0];
+
+    // Filter voices matching exact lang (e.g. en-GB), or matching prefix (e.g. en)
+    const exactMatches = voices.filter(v => v.lang.toLowerCase().replace('_', '-') === regionLang);
+    const prefixMatches = voices.filter(v => v.lang.toLowerCase().startsWith(langPrefix) && !exactMatches.includes(v));
+    const matchingVoices = exactMatches.length > 0 ? exactMatches : (prefixMatches.length > 0 ? prefixMatches : voices);
+
+    if (countBadge) {
+      countBadge.textContent = `${matchingVoices.length} native voice${matchingVoices.length !== 1 ? 's' : ''} available`;
+    }
+
+    select.innerHTML = '';
+    
+    // Default auto-select option
+    const defOpt = document.createElement('option');
+    defOpt.value = '';
+    defOpt.textContent = `Auto-Selected Profile (${session.selectedRegion})`;
+    select.appendChild(defOpt);
+
+    matchingVoices.forEach(v => {
+      const opt = document.createElement('option');
+      opt.value = v.name;
+      opt.textContent = `${v.name} (${v.lang})${v.default ? ' [Default]' : ''}`;
+      if (session.selectedVoiceName === v.name) {
+        opt.selected = true;
+      }
+      select.appendChild(opt);
+    });
+
+    // If no voice explicitly selected, pick first exact match or matching default hint
+    if (!session.selectedVoiceName && exactMatches.length > 0) {
+      const regionData = (VOICE_RUNTIME_DATA?.voiceRegions || []).find(r => r.id === session.selectedRegion);
+      const hint = (regionData?.defaultVoiceHint || '').toLowerCase();
+      const hintVoice = exactMatches.find(v => v.name.toLowerCase().includes(hint));
+      if (hintVoice) {
+        session.selectedVoiceName = hintVoice.name;
+        select.value = hintVoice.name;
+      }
+    }
+  }
+
+  setVoiceRegion(regId) {
+    const region = (VOICE_RUNTIME_DATA?.voiceRegions || []).find(r => r.id === regId);
+    if (!region) return;
+    this.voiceSessionState.selectedRegion = regId;
+    if (region.samplePitch) this.voiceSessionState.customPitch = region.samplePitch;
+    if (region.sampleRate) this.voiceSessionState.customRate = region.sampleRate;
+    this.voiceSessionState.selectedVoiceName = '';
+
+    // Update UI range sliders
+    const rateRange = document.getElementById('voiceRateRange');
+    const rateVal = document.getElementById('voiceRateValue');
+    if (rateRange && rateVal) {
+      rateRange.value = this.voiceSessionState.customRate;
+      rateVal.textContent = `${this.voiceSessionState.customRate.toFixed(2)}x`;
+    }
+    const pitchRange = document.getElementById('voicePitchRange');
+    const pitchVal = document.getElementById('voicePitchValue');
+    if (pitchRange && pitchVal) {
+      pitchRange.value = this.voiceSessionState.customPitch;
+      pitchVal.textContent = this.voiceSessionState.customPitch.toFixed(2);
+    }
+
+    this.populateVoiceSynthesizerDropdown();
+    this.updateVoiceHud();
+    this.updateVoiceTelemetryDisplay();
+  }
+
+  setVoiceType(typeId) {
+    const vtype = (VOICE_RUNTIME_DATA?.voiceTypes || []).find(t => t.id === typeId);
+    if (!vtype) return;
+    this.voiceSessionState.selectedVoiceType = typeId;
+    if (vtype.pitch) this.voiceSessionState.customPitch = vtype.pitch;
+    if (vtype.rate) this.voiceSessionState.customRate = vtype.rate;
+
+    const rateRange = document.getElementById('voiceRateRange');
+    const rateVal = document.getElementById('voiceRateValue');
+    if (rateRange && rateVal) {
+      rateRange.value = this.voiceSessionState.customRate;
+      rateVal.textContent = `${this.voiceSessionState.customRate.toFixed(2)}x`;
+    }
+    const pitchRange = document.getElementById('voicePitchRange');
+    const pitchVal = document.getElementById('voicePitchValue');
+    if (pitchRange && pitchVal) {
+      pitchRange.value = this.voiceSessionState.customPitch;
+      pitchVal.textContent = this.voiceSessionState.customPitch.toFixed(2);
+    }
+
+    this.updateVoiceHud();
+    this.updateVoiceTelemetryDisplay();
+  }
+
+  testVoiceProfile() {
+    const session = this.voiceSessionState;
+    const region = (VOICE_RUNTIME_DATA?.voiceRegions || []).find(r => r.id === session.selectedRegion);
+    const vtype = (VOICE_RUNTIME_DATA?.voiceTypes || []).find(t => t.id === session.selectedVoiceType);
+    const phrase = region?.samplePhrase || `Continuous voice runtime configured for ${region?.name || 'English'}. All systems nominal.`;
+    this.speakAudio(phrase);
+  }
+
+  updateVoiceTelemetryDisplay() {
+    const telTts = document.getElementById('telemetryTts');
+    const summary = document.getElementById('voiceCurrentSummary');
+    const session = this.voiceSessionState;
+    const region = (VOICE_RUNTIME_DATA?.voiceRegions || []).find(r => r.id === session.selectedRegion);
+    const vtype = (VOICE_RUNTIME_DATA?.voiceTypes || []).find(t => t.id === session.selectedVoiceType);
+
+    if (telTts) {
+      const voiceShort = session.selectedVoiceName ? ` • ${session.selectedVoiceName.split(' ')[0]}` : '';
+      telTts.textContent = `Neural Prosody (${region?.name?.split(' ')[0] || 'US'}${voiceShort} • ${vtype?.name?.split(' ')[0] || 'Architect'})`;
+    }
+    if (summary) {
+      summary.innerHTML = `Active: <strong style="color: var(--ink-primary);">${region?.flag || '🇺🇸'} ${region?.name || 'American'}</strong> • <span style="color: var(--accent-cyan);">${vtype?.name || 'Systems Architect'}</span>`;
+    }
+  }
+
+  attachVoiceScenarioCardEvents() {
+    document.querySelectorAll('.btn-run-scenario').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const scenId = btn.dataset.runScenarioId;
+        if (scenId) {
+          this.runVoiceScenario(scenId);
+        }
+      });
+    });
+
+    document.querySelectorAll('.scenario-card').forEach(card => {
+      card.addEventListener('click', () => {
+        const scenId = card.dataset.scenarioId;
+        if (scenId) {
+          this.runVoiceScenario(scenId);
+        }
+      });
+    });
+  }
+
+  runVoiceScenario(scenarioId) {
+    const scenario = VOICE_RUNTIME_DATA.scenarios.find(s => s.id === scenarioId);
+    if (!scenario) return;
+
+    this.voiceSessionState.activeScenario = scenario;
+    this.playHaptic('click');
+
+    // Abort any currently speaking audio for instant transition
+    if (window.speechSynthesis) window.speechSynthesis.cancel();
+
+    // 1. Update UI state to Listening / Processing
+    this.voiceSessionState.status = 'listening';
+    this.updateVoiceHud();
+
+    // 2. Append User Speech Bubble to Transcript
+    const now = new Date();
+    const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+    
+    this.voiceSessionState.conversationHistory.push({
+      sender: 'user',
+      text: scenario.audioTranscript,
+      time: timeStr,
+      meta: `Speaker: ${scenario.speaker} • VAD: ${scenario.telemetry.vadMs}ms • ASR: ${scenario.telemetry.asrMs}ms`
+    });
+
+    this.refreshVoiceStream();
+
+    // Check if scenario is a Second Loop interruption or Safety rejection or Human Confirmation
+    setTimeout(() => {
+      // 3. Evaluate Physical Safety Barrier
+      if (scenario.id === 'scen-safety-violation') {
+        // Physical safety violation: blocked at validator
+        this.voiceSessionState.status = 'interrupted';
+        this.updateVoiceHud();
+
+        this.voiceSessionState.conversationHistory.push({
+          sender: 'system',
+          text: `[SAFETY VALIDATOR REJECTION] ${scenario.safetyDetails}`,
+          time: timeStr,
+          meta: `Rule Code: ${scenario.safetyCode} • Action Blocked from Controller`
+        });
+
+        this.voiceSessionState.conversationHistory.push({
+          sender: 'assistant',
+          text: scenario.responseAudioText,
+          time: timeStr,
+          meta: `Status: REJECTED • Safety Latency: ${scenario.telemetry.safetyMs}ms • No Actuator Motion`
+        });
+
+        this.refreshVoiceStream();
+        this.speakAudio(scenario.responseAudioText);
+
+      } else if (scenario.id === 'scen-human-confirmation') {
+        // High consequence physical operation requiring human confirmation
+        this.voiceSessionState.status = 'processing';
+        this.updateVoiceHud();
+
+        this.voiceSessionState.conversationHistory.push({
+          sender: 'system',
+          text: `[SAFETY INTERLOCK HELD] High-voltage 800V DC circuit contactor closure flagged as Level-4 hazard. Awaiting dual-factor confirmation.`,
+          time: timeStr,
+          meta: `Code: ${scenario.safetyCode} • Controller Held in Safe State`
+        });
+
+        this.voiceSessionState.conversationHistory.push({
+          sender: 'assistant',
+          text: scenario.responseAudioText,
+          time: timeStr,
+          meta: `Awaiting Operator Confirmation • Dual-Factor Gate Active`
+        });
+
+        this.refreshVoiceStream();
+        this.speakAudio(scenario.responseAudioText);
+
+        // Launch confirmation modal
+        this.openVoiceConfirmationModal(scenario, (confirmed) => {
+          if (confirmed) {
+            this.voiceSessionState.conversationHistory.push({
+              sender: 'system',
+              text: `[OPERATOR AUTHORIZED] High-voltage 800V DC contactor closure dispatched to EtherCAT controller. Pre-charge circuit engaged.`,
+              time: timeStr,
+              meta: `Operator: Frank Van Laarhoven (Signed Tier-1 Auth)`
+            });
+            this.refreshVoiceStream();
+            this.speakAudio("High voltage bus confirmed and energized. Contactors closed.");
+          } else {
+            this.voiceSessionState.conversationHistory.push({
+              sender: 'system',
+              text: `[OPERATOR ABORT] High-voltage command cancelled. Bus remains de-energized and grounded.`,
+              time: timeStr,
+              meta: `Safe State Preserved`
+            });
+            this.refreshVoiceStream();
+            this.speakAudio("Operation cancelled. High voltage rail remains safe and de-energized.");
+          }
+        });
+
+      } else if (scenario.id === 'scen-second-loop-robot') {
+        // Second loop entity grounding shift
+        this.voiceSessionState.status = 'processing';
+        this.voiceSessionState.activeGroundedId = 'G1-05'; // Mutates to Unitree G1 #05
+        this.updateVoiceHud();
+
+        this.voiceSessionState.conversationHistory.push({
+          sender: 'system',
+          text: `[BARGE-IN INTERRUPT & REPLANNING] ${scenario.interruptionDetected}. Invaliding trajectory branch for G1-04. Swapping grounded target to Unitree G1 #05.`,
+          time: timeStr,
+          meta: `Second Loop Action: ${scenario.secondLoopAction}`
+        });
+
+        this.voiceSessionState.conversationHistory.push({
+          sender: 'assistant',
+          text: scenario.responseAudioText,
+          time: timeStr,
+          meta: `DRC: ${scenario.safetyCode} • Latency: ${scenario.telemetry.totalMs}ms`
+        });
+
+        this.refreshVoiceStream();
+        this.speakAudio(scenario.responseAudioText);
+
+      } else if (scenario.id === 'scen-parameter-override') {
+        // Second loop in-flight parameter override
+        this.voiceSessionState.status = 'processing';
+        this.updateVoiceHud();
+
+        this.voiceSessionState.conversationHistory.push({
+          sender: 'system',
+          text: `[IN-FLIGHT PARAMETER OVERRIDE] Wire 101 gauge updated from 18 AWG TXL to 16 AWG Raychem 44. Recalculating USCAR-21 crimp tensile threshold (135 N target).`,
+          time: timeStr,
+          meta: `Tooling Swapped: Applicator Die C-16`
+        });
+
+        this.voiceSessionState.conversationHistory.push({
+          sender: 'assistant',
+          text: scenario.responseAudioText,
+          time: timeStr,
+          meta: `DRC: ${scenario.safetyCode} • Latency: ${scenario.telemetry.totalMs}ms`
+        });
+
+        this.refreshVoiceStream();
+        this.speakAudio(scenario.responseAudioText);
+
+      } else {
+        // Nominal linear loop
+        this.voiceSessionState.status = 'speaking';
+        this.updateVoiceHud();
+
+        this.voiceSessionState.conversationHistory.push({
+          sender: 'assistant',
+          text: scenario.responseAudioText,
+          time: timeStr,
+          meta: `DRC: ${scenario.safetyCode} • Latency: ${scenario.telemetry.totalMs}ms • 11 Stages Verified`
+        });
+
+        this.refreshVoiceStream();
+        this.speakAudio(scenario.responseAudioText);
+      }
+    }, 450);
+  }
+
+  triggerVoiceBargeIn(interruptionText = "No, not that robot—the G1 beside it!") {
+    this.playHaptic('click');
+    if (window.speechSynthesis) window.speechSynthesis.cancel();
+
+    this.voiceSessionState.status = 'interrupted';
+    this.voiceSessionState.activeGroundedId = 'G1-05';
+    this.updateVoiceHud();
+
+    const now = new Date();
+    const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+
+    this.voiceSessionState.conversationHistory.push({
+      sender: 'user',
+      text: interruptionText,
+      time: timeStr,
+      meta: `Barge-In Detected (<28ms audio cutoff) • Entity Re-Grounding Triggered`
+    });
+
+    this.voiceSessionState.conversationHistory.push({
+      sender: 'system',
+      text: `[THE SECOND LOOP: DYNAMIC REPLANNING] Verbal correction parsed. Mutating target entity pointer from G1-04 to G1-05 (+1.2m offset). Invalidating downstream actuator path without losing context.`,
+      time: timeStr,
+      meta: `State Update Complete`
+    });
+
+    const reply = "Barge-in acknowledged. Halting Unitree G1 number 4. Re-routing pick trajectory to Unitree G1 number 5 beside it.";
+    this.voiceSessionState.conversationHistory.push({
+      sender: 'assistant',
+      text: reply,
+      time: timeStr,
+      meta: `Grounded Replanning Executed • 180 mm/s Clamped Speed`
+    });
+
+    this.refreshVoiceStream();
+    this.speakAudio(reply);
+
+    // If current view is not voice-runtime, switch to it so user sees the replanning in real time
+    if (this.currentView !== 'voice-runtime') {
+      this.switchView('voice-runtime');
+    }
+  }
+
+  toggleVoiceRecording() {
+    this.voiceSessionState.isRecording = !this.voiceSessionState.isRecording;
+    this.voiceSessionState.status = this.voiceSessionState.isRecording ? 'listening' : 'ready';
+    this.updateVoiceHud();
+
+    const btnRecord = document.getElementById('btnToggleVoiceRecord');
+    const btnRecordText = document.getElementById('btnRecordText');
+    if (btnRecord && btnRecordText) {
+      btnRecord.classList.toggle('recording', this.voiceSessionState.isRecording);
+      btnRecordText.textContent = this.voiceSessionState.isRecording ? 'Stop Audio Stream' : 'Speak / Microphone (VAD)';
+    }
+
+    if (this.voiceSessionState.isRecording) {
+      this.playHaptic('click');
+      // If Web Speech Recognition is available, try to hook it
+      if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+        try {
+          const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+          const rec = new SpeechRec();
+          rec.continuous = false;
+          rec.interimResults = false;
+          rec.lang = this.voiceSessionState.selectedRegion || 'en-US';
+          rec.onresult = (evt) => {
+            const transcript = evt.results[0][0].transcript;
+            if (transcript) {
+              this.handleLiveSpeechInput(transcript);
+            }
+          };
+          rec.onend = () => {
+            this.voiceSessionState.isRecording = false;
+            this.voiceSessionState.status = 'ready';
+            this.updateVoiceHud();
+            if (btnRecord && btnRecordText) {
+              btnRecord.classList.remove('recording');
+              btnRecordText.textContent = 'Speak / Microphone (VAD)';
+            }
+          };
+          rec.start();
+        } catch (e) {
+          console.warn('SpeechRecognition start failed, falling back to simulated prompt', e);
+        }
+      } else {
+        // Fallback simulation: run scenario 2 after 1.5s
+        setTimeout(() => {
+          this.runVoiceScenario('scen-second-loop-robot');
+          this.voiceSessionState.isRecording = false;
+          this.voiceSessionState.status = 'ready';
+          this.updateVoiceHud();
+          if (btnRecord && btnRecordText) {
+            btnRecord.classList.remove('recording');
+            btnRecordText.textContent = 'Speak / Microphone (VAD)';
+          }
+        }, 1500);
+      }
+    }
+  }
+
+  handleLiveSpeechInput(transcript) {
+    const q = transcript.toLowerCase();
+    if (q.includes('beside') || q.includes('not that') || q.includes('g1')) {
+      this.triggerVoiceBargeIn(transcript);
+    } else if (q.includes('fast') || q.includes('speed') || q.includes('full speed')) {
+      this.runVoiceScenario('scen-safety-violation');
+    } else if (q.includes('energize') || q.includes('voltage') || q.includes('800v')) {
+      this.runVoiceScenario('scen-human-confirmation');
+    } else if (q.includes('16 awg') || q.includes('raychem') || q.includes('override')) {
+      this.runVoiceScenario('scen-parameter-override');
+    } else {
+      this.runVoiceScenario('scen-nominal-route');
+    }
+  }
+
+  updateVoiceHud() {
+    const st = this.voiceSessionState;
+    const pulse = document.getElementById('voiceHudPulse');
+    const label = document.getElementById('voiceHudStateLabel');
+    const grounded = document.getElementById('voiceHudGroundedEntity');
+
+    if (pulse) {
+      pulse.className = 'voice-hud-pulse';
+      if (st.status === 'listening') pulse.classList.add('listening');
+      if (st.status === 'interrupted') pulse.classList.add('interrupted');
+    }
+
+    if (label) {
+      const labels = {
+        ready: 'VOICE READY',
+        listening: 'LISTENING...',
+        processing: 'REASONING...',
+        speaking: 'SPEAKING...',
+        interrupted: 'INTERRUPTED'
+      };
+      label.textContent = labels[st.status] || 'VOICE READY';
+    }
+
+    if (grounded) {
+      const ent = (st.groundedEntities || []).find(e => e.id === st.activeGroundedId);
+      grounded.textContent = ent ? `🎯 ${ent.name} | W-101` : '🎯 Unitree G1 #04 | W-101';
+    }
+
+    const flag = document.getElementById('voiceHudAccentFlag');
+    const accentName = document.getElementById('voiceHudAccentName');
+    if (flag || accentName) {
+      const region = (VOICE_RUNTIME_DATA?.voiceRegions || []).find(r => r.id === st.selectedRegion);
+      const vtype = (VOICE_RUNTIME_DATA?.voiceTypes || []).find(t => t.id === st.selectedVoiceType);
+      if (flag && region) flag.textContent = region.flag;
+      if (accentName) {
+        const shortReg = region?.id === 'en-US' ? 'US' : region?.id === 'en-GB' ? 'UK' : (region?.name || 'US').split(' ')[0];
+        const shortType = (vtype?.name || 'Architect').split(' ')[0];
+        accentName.textContent = `${shortReg} • ${shortType}`;
+      }
+    }
+  }
+
+  refreshVoiceStream() {
+    const container = document.getElementById('voiceStreamMessages');
+    if (container) {
+      container.innerHTML = this.renderVoiceStreamMessages();
+      container.scrollTop = container.scrollHeight;
+    }
+  }
+
+  speakAudio(text) {
+    if (this.voiceSessionState.speechSynthesisMuted) return;
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+
+    try {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      const session = this.voiceSessionState;
+
+      utterance.rate = session.customRate || 1.04;
+      utterance.pitch = session.customPitch || 1.0;
+      utterance.lang = session.selectedRegion || 'en-US';
+
+      // Resolve best matching native synthesizer voice
+      const voices = window.speechSynthesis.getVoices() || [];
+      let targetVoice = null;
+
+      if (session.selectedVoiceName) {
+        targetVoice = voices.find(v => v.name === session.selectedVoiceName);
+      }
+
+      if (!targetVoice && session.selectedRegion) {
+        const exact = voices.filter(v => v.lang.toLowerCase().replace('_', '-') === session.selectedRegion.toLowerCase());
+        if (exact.length > 0) {
+          const regionData = (VOICE_RUNTIME_DATA?.voiceRegions || []).find(r => r.id === session.selectedRegion);
+          const hint = (regionData?.defaultVoiceHint || '').toLowerCase();
+          targetVoice = exact.find(v => v.name.toLowerCase().includes(hint)) || exact[0];
+        }
+      }
+
+      if (!targetVoice && voices.length > 0) {
+        const langPrefix = (session.selectedRegion || 'en').split('-')[0].toLowerCase();
+        targetVoice = voices.find(v => v.lang.toLowerCase().startsWith(langPrefix)) || voices[0];
+      }
+
+      if (targetVoice) {
+        utterance.voice = targetVoice;
+      }
+
+      utterance.onstart = () => {
+        this.voiceSessionState.status = 'speaking';
+        this.updateVoiceHud();
+      };
+
+      utterance.onend = () => {
+        this.voiceSessionState.status = 'ready';
+        this.updateVoiceHud();
+      };
+
+      utterance.onerror = (e) => {
+        console.warn('SpeechSynthesis error:', e);
+        this.voiceSessionState.status = 'ready';
+        this.updateVoiceHud();
+      };
+
+      window.speechSynthesis.speak(utterance);
+    } catch (e) {
+      console.warn('SpeechSynthesis error:', e);
+    }
+  }
+
+  initWaveformVisualizer() {
+    const canvas = document.getElementById('voiceWaveCanvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let phase = 0;
+    if (this.voiceWaveCanvasAnim) {
+      cancelAnimationFrame(this.voiceWaveCanvasAnim);
+    }
+
+    const draw = () => {
+      if (!document.getElementById('voiceWaveCanvas')) return;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const status = this.voiceSessionState.status;
+      const isSpeaking = status === 'speaking' || status === 'listening';
+      const amp = isSpeaking ? 22 : 6;
+      const freq = isSpeaking ? 0.04 : 0.015;
+      const color = status === 'interrupted' ? '#f43f5e' : status === 'listening' ? '#38bdf8' : '#10b981';
+
+      ctx.beginPath();
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = color;
+
+      for (let x = 0; x < canvas.width; x++) {
+        const y = canvas.height / 2 + Math.sin(x * freq + phase) * amp * Math.sin(x / canvas.width * Math.PI);
+        if (x === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+
+      // Second harmonic line
+      ctx.beginPath();
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = `${color}55`;
+      for (let x = 0; x < canvas.width; x++) {
+        const y = canvas.height / 2 + Math.cos(x * freq * 1.5 + phase * 1.2) * (amp * 0.6) * Math.sin(x / canvas.width * Math.PI);
+        if (x === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+
+      phase += isSpeaking ? 0.08 : 0.02;
+      this.voiceWaveCanvasAnim = requestAnimationFrame(draw);
+    };
+
+    draw();
+  }
+
+  openVoiceConfirmationModal(scenario, onConfirm) {
+    const modal = document.getElementById('voiceConfirmModal');
+    const body = document.getElementById('voiceConfirmBody');
+    if (modal && body) {
+      body.innerHTML = `
+        <div style="font-size: 13px; color: var(--ink-primary); line-height: 1.6; margin-bottom: 12px;">
+          ${scenario.safetyDetails}
+        </div>
+        <div style="background: var(--bg-surface); border: 1px solid var(--line-dim); border-radius: 6px; padding: 10px; font-family: var(--font-mono); font-size: 11px;">
+          <div>Action: <code>${scenario.proposedAction.action}</code></div>
+          <div>Circuit: <code>${scenario.proposedAction.circuit}</code></div>
+          <div>Target Voltage: <span style="color: var(--accent-rose); font-weight: 700;">800V DC (HIGH VOLTAGE)</span></div>
+        </div>
+      `;
+      modal.classList.add('active');
+      this.pendingConfirmationCallback = onConfirm;
+      this.playHaptic('click');
+    }
+  }
+
+  closeVoiceConfirmationModal(confirmed) {
+    const modal = document.getElementById('voiceConfirmModal');
+    if (modal) {
+      modal.classList.remove('active');
+    }
+    if (this.pendingConfirmationCallback) {
+      const cb = this.pendingConfirmationCallback;
+      this.pendingConfirmationCallback = null;
+      cb(confirmed);
+    }
+    this.playHaptic('click');
+  }
+
+  resetVoiceSession() {
+    this.voiceSessionState.status = 'ready';
+    this.voiceSessionState.activeGroundedId = 'G1-04';
+    this.voiceSessionState.conversationHistory = [
+      {
+        sender: 'system',
+        text: 'Voice-Native Agent Runtime session reset. Continuous grounding and identity re-synchronized.',
+        time: '05:15:00',
+        meta: `Session SES-VOICE-2026-9281`
+      }
+    ];
+    this.updateVoiceHud();
+    this.refreshVoiceStream();
+    this.playHaptic('click');
   }
 
   // 2. VEO 3 PRO / NANO BANANA VIDEO MASTERCLASS VIEW
@@ -2598,7 +4922,7 @@ class ClaudeArchitectPlatform {
   }
 
   // ==========================================================================
-  // PALANTIR AIP INDUSTRIAL HARNESS FOUNDRY & CAD STUDIO
+  // ENTERPRISE INDUSTRIAL HARNESS FOUNDRY & CAD STUDIO
   // ==========================================================================
   renderHarnessStudioView() {
     const tabs = [
@@ -2713,13 +5037,13 @@ class ClaudeArchitectPlatform {
     const selectedCadNode = this.formboardNodes.find(n => n.id === this.selectedFormboardNode) || this.formboardNodes[0];
 
     return `
-      <div class="harness-studio-wrapper palantir-grid-bg" style="min-height: 100%; padding-bottom: 40px;">
-        <!-- PALANTIR TACTICAL HUD TOP BAR -->
-        <div class="palantir-hud-bar">
+      <div class="harness-studio-wrapper cad-grid-bg" style="min-height: 100%; padding-bottom: 40px;">
+        <!-- INDUSTRIAL CAD HUD TOP BAR -->
+        <div class="cad-hud-bar">
           <div style="display: flex; align-items: center; gap: 12px;">
             <div class="hud-telemetry-chip">
               <span class="hud-pulse-dot emerald"></span>
-              <strong style="color: #fff;">FOUNDRY AIP // LEVEL 4 CLASSIFIED</strong>
+              <strong style="color: #fff;">SYSTEMS CAD // LEVEL 4 VERIFICATION</strong>
             </div>
             <div class="hud-telemetry-chip">
               <span style="color: var(--ink-tertiary);">SYS-CLK:</span>
@@ -2763,7 +5087,7 @@ class ClaudeArchitectPlatform {
             <div>
               <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
                 <span class="badge" style="background: rgba(56, 189, 248, 0.15); color: var(--accent-cyan); border-color: rgba(56, 189, 248, 0.3);">
-                  // PALANTIR AIP // INDUSTRIAL CAD FOUNDRY
+                  // INDUSTRIAL CAD FOUNDRY // CYBER-PHYSICAL FORMBOARD & ROUTING
                 </span>
                 <span class="badge" style="background: rgba(251, 146, 60, 0.15); color: #fb923c; border-color: rgba(251, 146, 60, 0.3);">
                   CYBER-PHYSICAL FORMBOARD & ROUTING
@@ -2854,8 +5178,8 @@ class ClaudeArchitectPlatform {
               <div class="tactical-preset-btn ${this.activeMissionPreset === 'citadel-finops' ? 'active' : ''}" data-preset="citadel-finops">
                 <span>🏛️</span>
                 <div>
-                  <div style="font-weight: 600;">AIP Financial Orchestrator</div>
-                  <div style="font-size: 10px; color: var(--ink-tertiary);">Palantir Invariant Bus & $500 CFO Lock</div>
+                  <div style="font-weight: 600;">Autonomous Financial Orchestrator</div>
+                  <div style="font-size: 10px; color: var(--ink-tertiary);">Invariant Policy Bus & $500 CFO Lock</div>
                 </div>
               </div>
             </div>
@@ -2915,7 +5239,7 @@ class ClaudeArchitectPlatform {
                 </div>
 
                 <!-- Canvas Board with Drop Target -->
-                <div class="cad-canvas-board palantir-grid-bg" id="formboardCanvas">
+                <div class="cad-canvas-board cad-grid-bg" id="formboardCanvas">
                   <!-- SVG Connection Bus Overlay -->
                   <svg class="cad-bus-svg" id="cadBusSvg">
                     ${this.renderSvgConnectionLines()}
@@ -2994,12 +5318,13 @@ class ClaudeArchitectPlatform {
                     <span class="claude-chip-action amber" data-cmd="claude harness remediate">Auto-Remediate</span>
                     <span class="claude-chip-action" data-cmd="claude harness calc">Derating Calc</span>
                     <span class="claude-chip-action" data-cmd="claude mcp list">MCP List</span>
+                    <span class="claude-chip-action" data-cmd="open command library" style="background: rgba(129,140,248,0.18); color: var(--accent-indigo);">Command Library 📚</span>
                     <span class="claude-chip-action" data-cmd="launch terminal">macOS Terminal ↗</span>
                   </div>
 
                   <div class="claude-split-footer">
                     <span style="color: var(--accent-cyan); font-weight: 700; font-family: var(--font-mono);">$</span>
-                    <input type="text" id="claudeSplitInput" placeholder="Type claude harness command or question..." style="flex: 1; background: transparent; border: none; outline: none; font-family: var(--font-mono); font-size: 11px; color: #fff;" />
+                    <input type="text" id="claudeSplitInput" placeholder="Type claude harness command or question..." style="flex: 1; background: transparent; border: none; outline: none; font-family: var(--font-mono); font-size: 11px; color: var(--ink-primary);" />
                     <button class="btn btn-secondary" id="btnClaudeSplitSend" style="padding: 4px 10px; font-size: 10px; font-family: var(--font-mono);">
                       Send
                     </button>
@@ -3007,7 +5332,7 @@ class ClaudeArchitectPlatform {
                 </div>
               ` : ''}
 
-              <!-- PALANTIR DRC RADAR & SIGNAL WAVEFORM HUD -->
+              <!-- INDUSTRIAL DRC RADAR & SIGNAL WAVEFORM HUD -->
               <div class="drc-radar-panel">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                   <div style="display: flex; align-items: center; gap: 8px;">
@@ -3626,7 +5951,7 @@ class ClaudeArchitectPlatform {
     // 6. Export BOM & CLAUDE.md
     document.getElementById('btnHarnessExportBom')?.addEventListener('click', () => {
       this.playHaptic('success');
-      alert(`// PALANTIR AIP // PRODUCTION HARNESS BOM & INVARIANTS EXPORTED\n\n` +
+      alert(`// INDUSTRIAL SYSTEMS CAD // PRODUCTION HARNESS BOM & INVARIANTS EXPORTED\n\n` +
             `Project: ${this.activeMissionPreset.toUpperCase()}\n` +
             `Total Components: ${this.formboardNodes.length} nodes\n` +
             `USCAR-21 / AS50881 Compliance: VERIFIED (100%)\n` +
@@ -4189,16 +6514,171 @@ class ClaudeArchitectPlatform {
 
     const lower = cmd.toLowerCase();
 
-    if (lower.includes('help') || lower === '?') {
+    // 0. Library Navigation
+    if (lower === 'open command library' || lower === '/library' || lower === 'library' || lower === '/commands') {
+      this.switchView('command-library');
+      this.claudeSplitHistory.push({
+        time: timestamp,
+        sender: 'system',
+        text: '📚 Opened Claude Command & Skills Library in main viewport. 1-click copy & paste active.'
+      });
+      this.render();
+      return;
+    }
+
+    // 1. System Slash Commands
+    if (cmd.startsWith('/goal')) {
+      const obj = cmd.replace(/^\/goal\s*/i, '') || 'Autonomous Invariant Defense & DRC Validation';
+      this.claudeSplitHistory.push({
+        time: timestamp,
+        sender: 'system',
+        text: `[GOAL ORCHESTRATION INITIATED: /goal]\nObjective: "${obj}"\nPreToolUse Invariants: ARMED\nEvaluation Phase: Autonomous loop runs until 100% verification checks pass.`
+      });
       this.claudeSplitHistory.push({
         time: timestamp,
         sender: 'claude',
-        text: 'AVAILABLE CLAUDE HARNESS CLI COMMANDS:\n' +
-              '• claude harness verify       : Runs automated USCAR-21 & AS50881 DRC rule validation\n' +
+        text: `✓ Autonomous Goal Pursuit Active.\n1. Auditing active formboard nodes against USCAR-21 (§4.2)...\n2. Splice-to-bend clearance: Verified.\n3. Continuous loop: System self-heals without prompting user for repetitive intermediate approvals.`
+      });
+    } else if (cmd.startsWith('/effort')) {
+      const arg = cmd.replace(/^\/effort\s*/i, '').trim().toLowerCase() || 'medium';
+      const budgets = {
+        'low': { tokens: '1,024 thinking tokens', desc: 'Minimalist deterministic refactor (fastest, saves 90% thinking tokens)' },
+        'medium': { tokens: '4,096 thinking tokens', desc: 'Standard business & routing logic (balanced)' },
+        'high': { tokens: '16,384 thinking tokens', desc: 'Multi-system physical derating & complex invariant derivation' },
+        'max': { tokens: '32,768 thinking tokens', desc: 'Maximum architectural depth & formal verification proof' }
+      };
+      const selected = budgets[arg] || budgets['medium'];
+      this.thinkingEffort = arg;
+      this.claudeSplitHistory.push({
+        time: timestamp,
+        sender: 'system',
+        text: `[INFERENCE BUDGET ADJUSTED: /effort ${arg}]\nBudget: ${selected.tokens}\nBehavior: ${selected.desc}`
+      });
+    } else if (cmd.startsWith('/plan')) {
+      const task = cmd.replace(/^\/plan\s*/i, '') || 'Harness Refactoring & Invariant Defense';
+      this.claudeSplitHistory.push({
+        time: timestamp,
+        sender: 'claude',
+        text: `[ARCHITECTURAL PHASE-GATE PLAN: ${task}]\n` +
+              `Gate 1: Dependency & Invariant Pre-Audit (Verify USCAR-21 §4.2, 150mm splice offset)\n` +
+              `Gate 2: Minimalist Slice Search (Locate exact lines via grep_search, avoiding full file dumps)\n` +
+              `Gate 3: Targeted Atomic Mutation (Apply patch without polluting context window)\n` +
+              `Gate 4: PostToolUse DRC Telemetry Assertion (Exit code 0 required before user handoff)\n` +
+              `⚡ Token Protection: Plan prevents redundant file rollback cycles (-42,000 tokens saved).`
+      });
+    } else if (cmd.startsWith('/compact')) {
+      this.claudeSplitHistory.push({
+        time: timestamp,
+        sender: 'system',
+        text: `[DYNAMIC CONTEXT COMPACTION: /compact]\n` +
+              `• Scanned Context Window: 74,280 tokens across 28 conversation turns.\n` +
+              `• Compacting: Collapsing raw stdout, tool payloads, and repetitive command traces...\n` +
+              `• State Summary Checkpoint generated (180 words, 5 invariant locks).\n` +
+              `✓ Active Context Reduced to 11,400 tokens (-84.6% reduction).\n` +
+              `⚡ Cost on subsequent turns reduced from $0.22/turn to $0.034/turn.`
+      });
+    } else if (cmd.startsWith('/cost') || cmd.startsWith('/tokens')) {
+      this.claudeSplitHistory.push({
+        time: timestamp,
+        sender: 'claude',
+        text: `[TOKEN CONSUMPTION & CACHING LEDGER]\n` +
+              `┌────────────────────────────────┬────────────┬──────────────┐\n` +
+              `│ Cache Status                   │ Tokens     │ Cost (USD)   │\n` +
+              `├────────────────────────────────┼────────────┼──────────────┤\n` +
+              `│ Cached Reads ($0.30/M)         │ 184,200    │ $0.0552      │\n` +
+              `│ Uncached Inputs ($3.00/M)      │ 12,400     │ $0.0372      │\n` +
+              `│ Generation Outputs ($15.00/M)  │ 4,120      │ $0.0618      │\n` +
+              `├────────────────────────────────┼────────────┼──────────────┤\n` +
+              `│ TOTAL ACTIVE SESSION           │ 200,720    │ $0.1542      │\n` +
+              `└────────────────────────────────┴────────────┴──────────────┘\n` +
+              `⚡ Prompt Caching Savings: $0.4974 saved (89.6% net discount).`
+      });
+    } else if (cmd.startsWith('/cache-status')) {
+      this.claudeSplitHistory.push({
+        time: timestamp,
+        sender: 'system',
+        text: `[ANTHROPIC PROMPT CACHE TELEMETRY: /cache-status]\n` +
+              `• Cache Checkpoint 1 (System Invariants): HIT (TTL: 5m, size: 8,420 tokens)\n` +
+              `• Cache Checkpoint 2 (CLAUDE.md Rules): HIT (size: 4,180 tokens)\n` +
+              `• Cache Checkpoint 3 (MCP Tool Definitions): HIT (size: 6,800 tokens)\n` +
+              `• Cache Read Discount: Active (90% off input cost)\n` +
+              `• Invalidation Risk: 0% (Static elements strictly ordered at prompt head).`
+      });
+    } else if (cmd.startsWith('/harness-verify') || lower.includes('harness verify') || lower.includes('drc') || lower.includes('check')) {
+      const violations = this.formboardNodes.filter(n => n.violation).length;
+      if (violations === 0) {
+        this.claudeSplitHistory.push({
+          time: timestamp,
+          sender: 'claude',
+          text: '✓ [/harness-verify] PASS: All USCAR-21 (§4.2) and AS50881 physical invariants satisfied. Splice clearance ≥ 150mm. Cavity dummy plugs installed. Ready for production release.'
+        });
+      } else {
+        this.claudeSplitHistory.push({
+          time: timestamp,
+          sender: 'warn',
+          text: `✕ [/harness-verify] FAIL: ${violations} critical violation(s) detected. Ultrasonic Splice is placed < 150mm from mechanical bend vertex. Cyclic vibration fatigue risk.`
+        });
+        this.claudeSplitHistory.push({
+          time: timestamp,
+          sender: 'agent',
+          text: '⚡ Self-Healing Recommendation: Execute "claude harness remediate" to offset splice +160mm along wire vector and restore structural integrity.'
+        });
+      }
+    } else if (cmd.startsWith('/grill-me')) {
+      const prop = cmd.replace(/^\/grill-me\s*/i, '') || 'Physical Wire Bundle & Invariant Routing';
+      this.claudeSplitHistory.push({
+        time: timestamp,
+        sender: 'claude',
+        text: `[STAFF ARCHITECT STRESS-TEST INTERVIEW: /grill-me]\n` +
+              `Proposal: "${prop}"\n\n` +
+              `Question 1: If ambient temperature rises to 105°C under engine bay soak, what specific SAE derating factor prevents insulation melt?\n` +
+              `Question 2: How does your harness prevent copper strand fatigue at the door hinge dynamic flex zone without increasing bundle diameter beyond 14mm?\n` +
+              `Question 3: Why does placing an ultrasonic splice 40mm from a bend vertex guarantee shear failure under SAE J2380 random vibration?`
+      });
+    } else if (cmd.startsWith('/learn')) {
+      const rule = cmd.replace(/^\/learn\s*/i, '') || 'Enforce USCAR-21 150mm splice minimum';
+      this.claudeSplitHistory.push({
+        time: timestamp,
+        sender: 'system',
+        text: `[PERSISTENT INVARIANT REGISTERED: /learn]\n` +
+              `Learned Rule: "${rule}"\n` +
+              `Target: /workspace/CLAUDE.md\n` +
+              `Status: Persisted to system memory. Future Claude sessions will enforce this rule with 0 additional prompt token overhead.`
+      });
+    } else if (cmd.startsWith('/schedule')) {
+      const spec = cmd.replace(/^\/schedule\s*/i, '') || '3600 "Run DRC verification audit"';
+      this.claudeSplitHistory.push({
+        time: timestamp,
+        sender: 'system',
+        text: `[BACKGROUND SCHEDULE REGISTERED: /schedule]\n` +
+              `Schedule Spec: ${spec}\n` +
+              `Mode: Reactive wake-up notification (Zero token consumption while awaiting trigger).`
+      });
+    } else if (cmd.startsWith('/theme')) {
+      const t = cmd.replace(/^\/theme\s*/i, '').trim().toLowerCase() || 'dark';
+      this.setTheme(t);
+      this.claudeSplitHistory.push({
+        time: timestamp,
+        sender: 'system',
+        text: `[THEME CHANGED: /theme ${t}]\nActive Theme: ${t.toUpperCase()}`
+      });
+    } else if (lower.includes('help') || lower === '?') {
+      this.claudeSplitHistory.push({
+        time: timestamp,
+        sender: 'claude',
+        text: 'AVAILABLE SYSTEM COMMANDS & HARNESS TOOLS:\n' +
+              '• /goal <objective>           : Persistent autonomous loop until 100% checks pass\n' +
+              '• /effort <low|med|high|max>  : Adjusts Claude reasoning depth & thinking tokens\n' +
+              '• /plan <task>                : Generates phase-gate architectural execution plan\n' +
+              '• /compact                    : Compresses session history into 250-word state (-80%)\n' +
+              '• /cost                       : Displays real-time token ledger and prompt cache hits\n' +
+              '• /cache-status               : Inspects Anthropic prompt cache TTL & hit rates\n' +
+              '• /harness-verify             : Runs automated USCAR-21 & AS50881 DRC rule validation\n' +
+              '• /grill-me <proposal>        : Technical stress-test interview with Staff Architect\n' +
+              '• /learn <rule>               : Persists operational invariants directly into CLAUDE.md\n' +
+              '• /schedule <time> <cmd>      : Sets background timer or recurring cron trigger\n' +
               '• claude harness remediate    : Auto-relocates splices to ≥160mm & installs IP68 seals\n' +
               '• claude harness calc         : Computes wire bundle diameter & continuous ampacity\n' +
-              '• claude harness preset <name>: Loads mission preset (ev, aerospace, robot, citadel)\n' +
-              '• claude mcp list             : Inspects active JSON-RPC MCP server tools\n' +
               '• launch terminal             : Opens native macOS Terminal running Claude Code\n' +
               '• clear                       : Clears terminal scrollback'
       });
@@ -4212,26 +6692,6 @@ class ClaudeArchitectPlatform {
         sender: 'system',
         text: 'Opened MCP Tools Inspector: 4 tools bound to server atelier-harness.'
       });
-    } else if (lower.includes('harness verify') || lower.includes('drc') || lower.includes('check')) {
-      const violations = this.formboardNodes.filter(n => n.violation).length;
-      if (violations === 0) {
-        this.claudeSplitHistory.push({
-          time: timestamp,
-          sender: 'claude',
-          text: '✓ DRC VERIFICATION PASS: All USCAR-21 (§4.2) and AS50881 physical invariants satisfied. Splice clearance ≥ 150mm. Ready for production release.'
-        });
-      } else {
-        this.claudeSplitHistory.push({
-          time: timestamp,
-          sender: 'warn',
-          text: `DRC VIOLATION: ${violations} critical violation(s) detected. Ultrasonic Splice is placed < 150mm from mechanical bend. Cyclic vibration fatigue risk.`
-        });
-        this.claudeSplitHistory.push({
-          time: timestamp,
-          sender: 'agent',
-          text: '⚡ Agent Recommendation: Execute "claude harness remediate" to offset splice +160mm and restore structural integrity.'
-        });
-      }
     } else if (lower.includes('harness calc') || lower.includes('derate') || lower.includes('diameter')) {
       this.claudeSplitHistory.push({
         time: timestamp,

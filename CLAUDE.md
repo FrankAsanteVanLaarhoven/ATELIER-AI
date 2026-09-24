@@ -19,10 +19,10 @@ This repository is an enterprise-grade operating system, curriculum, and interac
 │   ├── aerospace_fly_by_wire/      # Boeing/Airbus AS50881 EWIS triple-redundancy
 │   └── robotic_automation_cell/    # KUKA/Fanuc continuous-flex torsion harness
 ├── content/                        # Master curriculum content (5 Domains, 24 sub-modules)
-├── demo/                           # Palantir Foundry / Gotham tactical web platform
+├── demo/                           # Enterprise Industrial Systems OS & CAD Foundry
 │   ├── index.html                  # Master entrypoint with side-by-side Claude CLI docking
 │   ├── app.js                      # Tactical CAD Formboard, DRC Engine, Waveform Oscilloscope
-│   ├── style.css                   # Obsidian Linear & Palantir Foundry dark mode design system
+│   ├── style.css                   # Enterprise slate dark/light design system
 │   ├── data.js                     # Curriculum, exam banks, case studies, and mission presets
 │   └── server.py                   # High-performance server with Claude CLI bridge & API
 ├── exam_engine/                    # 60-question psychometric exam bank & live proctoring

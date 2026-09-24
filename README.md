@@ -65,10 +65,10 @@ Real-world enterprise case studies with interactive fault injection:
 - **Case 2 (Enterprise Code Delivery Harness)**: Inject monorepo context blowouts to test path-exclusion rules and subagent context bounds.
 - **Case 3 (Executive Cowork & Slides)**: Inject conflicting revenue values between CRM and accounting to verify date cutoff disagreement surfacing.
 
-### 5. Palantir Foundry Tactical CAD Formboard & Side-by-Side Claude Code CLI
+### 5. Enterprise Industrial CAD Formboard & Side-by-Side Claude Code CLI
 Grounding AI agent architecture in mission-critical physical harness engineering standards (**USCAR-2, USCAR-21, AS50881, IPC/WHMA-A-620**):
 - **Core Principle**: *"Mechanical first. Electrical second. Test third."* $\leftrightarrow$ In AI: *"Harness first. Model second. Eval third."*
-- **Palantir Foundry / Gotham Tactical HUD**: Carbon-fiber military/aerospace cockpit theme (`#06080d` blueprint grid background, tactical crosshairs, real-time bus load indicators, and signal pulse animations).
+- **Enterprise High-Density Tactical HUD**: Aerospace cockpit telemetry interface with blueprint grid, crosshair guides, real-time bus load telemetry, and signal pulse animations.
 - **Interactive Drag-and-Drop Formboard & CAD Foundry ("Harness On The Fly")**:
   - Drag-and-drop component palette with Connectors (TE Deutsch DT06-4S, MIL-DTL-38999, Amphenol Radsok 400A), Splices, Thermal Conduit Sleeves, Vibration Clips, and Telemetry Taps.
   - Interactive SVG bus wiring with dynamic pulsing signal flow lines.
@@ -84,7 +84,7 @@ Grounding AI agent architecture in mission-critical physical harness engineering
   - **EV 800V Powertrain**: Tesla/Bosch Dual SiC Inverter (USCAR-21 splice invariants, high-voltage interlock loop).
   - **Aerospace Fly-By-Wire**: Boeing/Airbus AS50881 Triple-Redundant Avionics EWIS.
   - **6-Axis Robotic Cell**: KUKA/Fanuc Articulated Continuous-Flex Torsion Harness (ISO 10218-1).
-  - **AIP Financial Orchestrator**: Palantir Invariant Bus with $500 CFO Lock and dual-signature approval.
+  - **Autonomous Financial Orchestrator**: Deterministic Invariant Bus with $500 CFO Lock and dual-signature approval.
 - **Live 100MHz Signal Oscilloscope**: Hardware canvas visualization simulating nominal impedance matching vs. simulated fault / HTTP 504 packet jitter.
 - **Claude Code Configuration & Skills**:
   - Canonical [`CLAUDE.md`](CLAUDE.md) project guidelines and physical invariants.
