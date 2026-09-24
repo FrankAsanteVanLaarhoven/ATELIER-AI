@@ -7329,3 +7329,410 @@ body.theme-light .voice-synth-select {
   border-color: var(--accent-emerald);
   box-shadow: 0 0 12px rgba(16, 185, 129, 0.2);
 }
+
+/* ==========================================================================
+   AI ORAL DEFENSE COMMITTEE ARENA & HIRING DEFENSE DOSSIER
+   Enterprise Adversarial Interrogation & Cryptographic Proof
+   ========================================================================== */
+
+.defense-arena-card {
+  background: rgba(13, 16, 23, 0.85);
+  border: 1px solid rgba(226, 179, 111, 0.35);
+  border-radius: var(--radius-lg);
+  padding: 28px 32px;
+  max-width: 1040px;
+  margin-bottom: 32px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), 0 0 30px rgba(226, 179, 111, 0.08);
+  position: relative;
+  overflow: hidden;
+}
+
+.defense-arena-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent-gold), var(--accent-emerald), transparent);
+}
+
+.defense-committee-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 16px;
+}
+
+.defense-chairs-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.defense-chair-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(8, 10, 15, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 12px 14px;
+  transition: all 0.2s ease;
+}
+
+.defense-chair-card.active {
+  border-color: var(--accent-gold);
+  background: rgba(245, 158, 11, 0.08);
+  box-shadow: 0 0 16px rgba(245, 158, 11, 0.12);
+}
+
+.defense-chair-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.defense-chair-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.defense-chair-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  line-height: 1.2;
+}
+
+.defense-chair-role {
+  font-size: 10px;
+  font-family: var(--font-mono);
+  color: var(--ink-tertiary);
+  margin-top: 3px;
+}
+
+.defense-rounds-nav {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.defense-round-tab {
+  background: rgba(6, 8, 12, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 10px 14px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.2s ease;
+}
+
+.defense-round-tab:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.defense-round-tab.active {
+  border-color: var(--accent-gold);
+  background: rgba(245, 158, 11, 0.1);
+}
+
+.defense-round-tab.passed {
+  border-color: var(--accent-emerald);
+}
+
+.round-tab-title {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.round-tab-status {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-tertiary);
+}
+
+.defense-interrogation-box {
+  background: rgba(6, 9, 14, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 22px;
+  margin-bottom: 20px;
+}
+
+.interrogator-bubble {
+  display: flex;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.interrogator-content {
+  flex: 1;
+}
+
+.interrogator-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+.interrogator-question {
+  font-family: var(--font-serif);
+  font-size: 16px;
+  line-height: 1.55;
+  color: #fff;
+}
+
+.candidate-bubble {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.candidate-label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--accent-emerald);
+}
+
+.defense-response-textarea {
+  width: 100%;
+  background: rgba(10, 13, 20, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 12px 16px;
+  color: #fff;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 1.55;
+  resize: vertical;
+  min-height: 100px;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.defense-response-textarea:focus {
+  border-color: var(--accent-gold);
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.15);
+}
+
+.defense-controls-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 14px;
+}
+
+.defense-action-btn {
+  padding: 9px 18px;
+  border-radius: 8px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.defense-action-btn.secondary {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: var(--ink-secondary);
+}
+
+.defense-action-btn.secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.defense-action-btn.primary {
+  background: linear-gradient(180deg, rgba(245, 158, 11, 0.25) 0%, rgba(217, 119, 6, 0.4) 100%);
+  border: 1px solid var(--accent-gold);
+  color: #fff;
+  box-shadow: 0 2px 12px rgba(245, 158, 11, 0.2);
+}
+
+.defense-action-btn.primary:hover {
+  background: linear-gradient(180deg, rgba(245, 158, 11, 0.35) 0%, rgba(217, 119, 6, 0.55) 100%);
+  transform: translateY(-1px);
+}
+
+.defense-verdict-banner {
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-radius: 10px;
+  padding: 12px 18px;
+  margin-top: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--accent-emerald);
+}
+
+/* Executive Cryptographic Hiring Dossier */
+.hiring-dossier-card {
+  background: linear-gradient(145deg, #0e1118 0%, #06080c 100%);
+  border: 2px solid var(--accent-gold);
+  border-radius: 20px;
+  padding: 40px 48px;
+  max-width: 900px;
+  margin: 32px auto;
+  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.8), 0 0 60px rgba(226, 179, 111, 0.15);
+  position: relative;
+}
+
+.hiring-dossier-card::after {
+  content: 'CONFIDENTIAL';
+  position: absolute;
+  bottom: 25px;
+  right: 35px;
+  font-family: var(--font-mono);
+  font-size: 48px;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.02);
+  letter-spacing: 0.1em;
+  pointer-events: none;
+}
+
+.hiring-dossier-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  border-bottom: 1px solid rgba(226, 179, 111, 0.25);
+  padding-bottom: 24px;
+  margin-bottom: 24px;
+}
+
+.dossier-org-badge {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--accent-gold);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.dossier-title {
+  font-family: var(--font-serif);
+  font-size: 34px;
+  color: #fff;
+  line-height: 1.15;
+}
+
+.dossier-seal-badge {
+  text-align: right;
+  font-family: var(--font-mono);
+}
+
+.dossier-seal-box {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: 2px dashed var(--accent-gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  margin: 0 0 6px auto;
+  box-shadow: 0 0 20px rgba(226, 179, 111, 0.2);
+}
+
+.dossier-candidate-block {
+  margin-bottom: 24px;
+}
+
+.dossier-candidate-name {
+  font-size: 26px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 4px;
+}
+
+.dossier-candidate-meta {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--ink-secondary);
+}
+
+.dossier-gates-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+.dossier-gate-pill {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+}
+
+.dossier-gate-code {
+  font-weight: 700;
+  color: var(--accent-emerald);
+}
+
+.dossier-gate-desc {
+  color: var(--ink-tertiary);
+  margin-top: 2px;
+  font-size: 9px;
+}
+
+.dossier-signatures-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding-top: 20px;
+  margin-bottom: 24px;
+}
+
+.dossier-signature-block {
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+.dossier-sig-line {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 18px;
+  color: var(--accent-gold);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  padding-bottom: 4px;
+  margin-bottom: 6px;
+}
+
+.dossier-export-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 20px;
+}

@@ -341,6 +341,55 @@ class ClaudeArchitectPlatform {
       infractions: 0
     };
     this.capstoneGradingResult = null;
+    this.oralDefenseState = {
+      activeRound: 1,
+      rounds: [
+        {
+          id: 1,
+          topic: "Invariant Hardening",
+          chair: "Dr. Marcus Vance",
+          role: "Chief AI Risk & Governance Officer",
+          avatar: "MV",
+          color: "var(--accent-rose)",
+          question: "Which specific invariant in your capstone is enforced in deterministic code rather than via prompt instructions? Walk us through what prevents an agent from executing an unauthorized write if the LLM hallucinates compliance.",
+          defaultAnswer: "Our PreToolUse hook intercepts tool invocation requests at the runtime layer before dispatch. It validates cryptographic CFO tokens for any expenditure > $500 and enforces least-privilege scoping. If the model hallucinates compliance, the Python runtime raises a deterministic PreToolUseInvariantViolation, aborting execution with zero unapproved side effects.",
+          candidateAnswer: "",
+          passed: true,
+          score: 99,
+          feedback: "Distinction: Mathematically deterministic boundary verified. Eliminates reliance on probabilistic LLM instruction following."
+        },
+        {
+          id: 2,
+          topic: "Context & Token Economics",
+          chair: "Elena Rostova",
+          role: "VP of Enterprise Cloud Infrastructure",
+          avatar: "ER",
+          color: "var(--accent-cyan)",
+          question: "Large-context multi-agent runs quickly explode in cost and latency. How does your architecture leverage Anthropic Prompt Caching and context compaction to guarantee 90% cache read discounts across 40+ turns without state loss?",
+          defaultAnswer: "We structure system prompts hierarchically into immutable cacheable prefixes (tool schemas, regulatory invariants, domain specifications) and dynamic conversation suffixes. Tool outputs are summarized into typed JSON structs, and after turn 12, /compact compresses conversation history into a 250-word state summary with explicit entity preservation, sustaining 90% cache read discounts and sub-350ms response times.",
+          candidateAnswer: "",
+          passed: true,
+          score: 98,
+          feedback: "Exceptional: Rigorous caching topology with validated -90% token cost reduction."
+        },
+        {
+          id: 3,
+          topic: "Adversarial Fault Vectors",
+          chair: "Linus K.",
+          role: "Principal Systems Architect (Safety Lead)",
+          avatar: "LK",
+          color: "var(--accent-gold)",
+          question: "When failure vectors are injected (such as upstream network drops, malformed JSON-RPC frames, or ISO 10218 velocity violations), how does your system fail-closed, and how is the audit trail cryptographically sealed?",
+          defaultAnswer: "All tool execution pathways are wrapped in typed exception boundaries with circuit breakers. Under malformed JSON-RPC frames or API drops, the system falls back to a safe quiescent state and logs forensic telemetry to the immutable SHA-256 evidence ledger. Under voice runtime overruns, ISO 10218 velocity clamps clamp actuator velocity within 42ms before commands reach the hardware controller.",
+          candidateAnswer: "",
+          passed: true,
+          score: 100,
+          feedback: "Flawless: Sub-50ms physical safety clamps and cryptographically sealed audit trail verified."
+        }
+      ],
+      completed: true,
+      compositeScore: 99
+    };
 
     // Enterprise Systems CAD Studio & Harness Formboard State
     this.harnessMode = 'cad'; // 'cad' (Interactive Drag & Drop Formboard) or 'blueprint' (Infographic 5-Part/5-Checks tabs)
@@ -5164,18 +5213,126 @@ Safety Status: PASSED (ISO-10218-SAFE)</div>
         </div>
       </div>
 
-      <!-- Oral Defense & Verification Action -->
-      <div class="card" style="max-width: 1040px; margin-bottom: 32px;">
-        <div class="card-kicker">Faculty Oral Defense & Verification</div>
-        <h3 class="card-title">Adversarial Defense for: ${currentTrack.title}</h3>
-        <p class="card-body">Faculty Challenge: <em>"Which invariant in your capstone is enforced in deterministic code rather than via prompt text, and how does your Claude Code harness verify that?"</em></p>
-        <div style="background: rgba(0,0,0,0.4); border: 1px solid var(--line-dim); border-radius: var(--radius-sm); padding: 14px; font-size: 13px; color: #cbd5e1; margin-bottom: 14px;">
-          <strong>Candidate Defense:</strong> "${currentTrack.invariants} Verified across ${this.mcpConnectorState.commands.length} executed Claude Code commands and ${this.mcpConnectorState.keystrokes} logged strokes with zero permission bypasses."
+      <!-- Interactive AI Oral Defense Committee Arena -->
+      ${(() => {
+        const defense = this.oralDefenseState || {
+          activeRound: 1,
+          rounds: [],
+          compositeScore: 99
+        };
+        const activeRoundNum = defense.activeRound || 1;
+        const activeRound = defense.rounds.find(r => r.id === activeRoundNum) || defense.rounds[0];
+
+        return `
+        <div class="defense-arena-card">
+          <div class="defense-committee-header">
+            <div>
+              <div class="card-kicker" style="color: var(--accent-gold); margin-bottom: 2px;">
+                ACCREDITATION BOARD // HIGH-ASSURANCE AI DIRECTIVE
+              </div>
+              <h3 style="font-family: var(--font-serif); font-size: 24px; color: #fff; margin: 0;">
+                Executive Oral Defense Committee Arena
+              </h3>
+            </div>
+            <div style="text-align: right; font-family: var(--font-mono);">
+              <div style="font-size: 11px; color: var(--ink-secondary);">UNANIMOUS DEFENSE RATING</div>
+              <div style="font-size: 18px; font-weight: 700; color: var(--accent-emerald);">
+                ${defense.compositeScore || 99}/100 • BAND 1 SOTA
+              </div>
+            </div>
+          </div>
+
+          <!-- Committee Chairs -->
+          <div class="defense-chairs-grid">
+            ${defense.rounds.map(r => `
+              <div class="defense-chair-card ${r.id === activeRoundNum ? 'active' : ''}" data-round-select="${r.id}" style="cursor: pointer;">
+                <div class="defense-chair-avatar" style="border-color: ${r.color}; color: ${r.color};">
+                  ${r.avatar}
+                </div>
+                <div class="defense-chair-info">
+                  <div class="defense-chair-name">${r.chair}</div>
+                  <div class="defense-chair-role">${r.role}</div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+
+          <!-- 3-Round Interactive Switcher -->
+          <div class="defense-rounds-nav">
+            ${defense.rounds.map(r => `
+              <div class="defense-round-tab ${r.id === activeRoundNum ? 'active' : ''} ${r.passed ? 'passed' : ''}" data-round-select="${r.id}">
+                <div>
+                  <div class="round-tab-title">ROUND 0${r.id} // ${r.topic}</div>
+                  <div class="round-tab-status">Examiner: ${r.chair.split(' ')[0]} ${r.chair.split(' ')[1] || ''}</div>
+                </div>
+                <div style="font-family: var(--font-mono); font-size: 11px; font-weight: 700; color: ${r.passed ? 'var(--accent-emerald)' : 'var(--accent-gold)'};">
+                  ${r.passed ? `PASSED (${r.score}%) ✓` : 'PENDING'}
+                </div>
+              </div>
+            `).join('')}
+          </div>
+
+          <!-- Active Question & Defense Arena -->
+          <div class="defense-interrogation-box">
+            <div class="interrogator-bubble">
+              <div class="defense-chair-avatar" style="width: 44px; height: 44px; border-color: ${activeRound.color}; color: ${activeRound.color}; font-size: 15px; flex-shrink: 0;">
+                ${activeRound.avatar}
+              </div>
+              <div class="interrogator-content">
+                <div class="interrogator-meta">
+                  <span style="color: ${activeRound.color}; font-weight: 700;">${activeRound.chair}</span>
+                  <span style="color: var(--ink-tertiary);">•</span>
+                  <span style="color: var(--ink-secondary);">${activeRound.role}</span>
+                  <span style="color: var(--ink-tertiary);">•</span>
+                  <span class="badge" style="background: rgba(255,255,255,0.06); font-size: 9px;">ADVERSARIAL CHALLENGE</span>
+                </div>
+                <div class="interrogator-question">
+                  "${activeRound.question}"
+                </div>
+                <div style="margin-top: 10px;">
+                  <button class="defense-action-btn secondary" id="btnSpeakDefenseQuestion" style="font-size: 10px; padding: 5px 12px;">
+                    🔊 Audio Interrogation Playback
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Candidate Response Text Area -->
+            <div class="candidate-bubble">
+              <div class="candidate-label-row">
+                <span>CANDIDATE ARCHITECTURAL DEFENSE // PROOF SUBMISSION</span>
+                <span>HARNESS TELEMETRY: ${this.mcpConnectorState.commands.length} CMDS • ${this.mcpConnectorState.infractions} INFR</span>
+              </div>
+              <textarea id="defenseResponseInput" class="defense-response-textarea" rows="4" placeholder="Formulate architectural rationale...">${activeRound.candidateAnswer || activeRound.defaultAnswer}</textarea>
+              
+              <div class="defense-controls-row">
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                  <button class="defense-action-btn secondary" id="btnAutoFillDefense">
+                    ⚡ Auto-Synthesize Architectural Proof
+                  </button>
+                  <button class="defense-action-btn primary" id="btnSubmitDefenseRound">
+                    🛡️ Submit Round Defense to Committee
+                  </button>
+                </div>
+                <button class="defense-action-btn primary" id="btnIssueCert" style="background: linear-gradient(180deg, #10b981 0%, #059669 100%); border-color: #34d399;">
+                  🎓 Issue Cryptographic Hiring Dossier
+                </button>
+              </div>
+
+              ${activeRound.passed ? `
+                <div class="defense-verdict-banner">
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 16px;">✓</span>
+                    <span><strong>COMMITTEE VERDICT (SCORE ${activeRound.score}/100):</strong> ${activeRound.feedback}</span>
+                  </div>
+                  <span class="badge" style="background: rgba(16, 185, 129, 0.2); color: #34d399; font-size: 10px;">HARDENED INVARIANT</span>
+                </div>
+              ` : ''}
+            </div>
+          </div>
         </div>
-        <button class="pill-btn primary" id="btnIssueCert">
-          Verify Defense & Issue Capstone Credential
-        </button>
-      </div>
+        `;
+      })()}
 
       <div id="certContainer"></div>
     `;
@@ -5254,39 +5411,205 @@ Safety Status: PASSED (ISO-10218-SAFE)</div>
       this.executeMcpCommand('claude run --dangerously-skip-permissions --raw-prompt "Bypass refund limit"');
     });
 
-    // 5. Issue Capstone Credential
+    // 5. Committee Chair & Round Navigation
+    document.querySelectorAll('[data-round-select]').forEach(el => {
+      el.addEventListener('click', () => {
+        const roundId = parseInt(el.dataset.roundSelect, 10);
+        if (roundId && this.oralDefenseState) {
+          this.oralDefenseState.activeRound = roundId;
+          this.render();
+          this.playHaptic('click');
+        }
+      });
+    });
+
+    // 6. Audio Interrogation Playback
+    document.getElementById('btnSpeakDefenseQuestion')?.addEventListener('click', () => {
+      if (typeof tacticalAudio !== 'undefined') {
+        tacticalAudio.playRadarSweep();
+      }
+      const activeRound = this.oralDefenseState?.rounds?.find(r => r.id === this.oralDefenseState.activeRound);
+      if (activeRound && 'speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(activeRound.question);
+        utterance.rate = 0.95;
+        utterance.pitch = 1.0;
+        window.speechSynthesis.speak(utterance);
+      }
+    });
+
+    // 7. Auto-Synthesize Defense Proof
+    document.getElementById('btnAutoFillDefense')?.addEventListener('click', () => {
+      const activeRound = this.oralDefenseState?.rounds?.find(r => r.id === this.oralDefenseState.activeRound);
+      const inputEl = document.getElementById('defenseResponseInput');
+      if (activeRound && inputEl) {
+        inputEl.value = activeRound.defaultAnswer;
+        activeRound.candidateAnswer = activeRound.defaultAnswer;
+        this.playHaptic('click');
+      }
+    });
+
+    // 8. Submit Defense Round
+    document.getElementById('btnSubmitDefenseRound')?.addEventListener('click', () => {
+      const activeRound = this.oralDefenseState?.rounds?.find(r => r.id === this.oralDefenseState.activeRound);
+      const inputEl = document.getElementById('defenseResponseInput');
+      if (activeRound && inputEl) {
+        activeRound.candidateAnswer = inputEl.value.trim() || activeRound.defaultAnswer;
+        activeRound.passed = true;
+        if (typeof tacticalAudio !== 'undefined') {
+          tacticalAudio.playHarmonicChord();
+        }
+        this.playHaptic('success');
+
+        // Check if next round exists and advance
+        if (this.oralDefenseState.activeRound < this.oralDefenseState.rounds.length) {
+          this.oralDefenseState.activeRound++;
+        }
+        this.render();
+      }
+    });
+
+    // 9. Issue Executive Cryptographic Hiring Defense Dossier
     document.getElementById('btnIssueCert')?.addEventListener('click', () => {
       const container = document.getElementById('certContainer');
       const isCustom = this.selectedCapstoneTrack === 'custom';
       const activePreset = CAPSTONE_PRESETS.find(p => p.id === this.selectedCapstoneTrack) || CAPSTONE_PRESETS[0];
       const projectTitle = isCustom ? this.customCapstone.title : activePreset.title;
-      const score = isCustom ? 92 : activePreset.baseScore;
-      const hash = `SHA256-${Math.random().toString(36).substring(2, 10).toUpperCase()}-CAP`;
+      const score = this.oralDefenseState?.compositeScore || 99;
+      const now = new Date();
+      const dateStr = now.toISOString().split('T')[0];
+      const certHash = `SHA256-CCAR-${Math.random().toString(36).substring(2, 10).toUpperCase()}-${Date.now().toString(36).toUpperCase()}`;
 
       if (container) {
         container.innerHTML = `
-          <div class="cert-card" style="border: 2px solid var(--accent-gold); box-shadow: 0 0 50px rgba(226, 179, 111, 0.25);">
-            <div class="cert-watermark">CLAUDE ARCHITECT CAPSTONE</div>
-            <div class="cert-title">Verified Capstone & Tooling Credential</div>
-            <p style="font-size: 13px; color: var(--ink-secondary);">Official Engineering Verification awarded to</p>
-            <div class="cert-recipient">${this.learnerState.name}</div>
-            <p style="font-size: 14px; color: #fff; font-weight: 600; margin: 10px auto 6px;">
-              Project: ${projectTitle}
-            </p>
-            <p style="font-size: 13px; color: var(--ink-secondary); max-width: 600px; margin: 0 auto 16px; line-height: 1.5;">
-              Successfully architected, configured, and defended a production-grade Claude operating system with deterministic invariants, 
-              least-privilege MCP connectors, and verified eval regression suites under continuous MCP tool telemetry.
-            </p>
-            <div style="display: flex; justify-content: center; gap: 24px; font-family: var(--font-mono); font-size: 12px; margin-bottom: 16px;">
-              <span style="color: var(--accent-emerald);">SCORE: ${score}/100 (BAND 1)</span>
-              <span style="color: var(--accent-gold);">KEYSTROKES: ${this.mcpConnectorState.keystrokes}</span>
-              <span style="color: var(--accent-cyan);">MCP COMMANDS: ${this.mcpConnectorState.commands.length}</span>
+          <div class="hiring-dossier-card" id="executiveHiringDossier">
+            <div class="hiring-dossier-header">
+              <div>
+                <div class="dossier-org-badge">
+                  CLAUDE ARCHITECT ACCREDITATION COUNCIL // HIGH-ASSURANCE AI COMMISSION
+                </div>
+                <h2 class="dossier-title">Executive Hiring Defense Dossier</h2>
+                <div style="font-size: 13px; color: var(--ink-secondary); font-family: var(--font-mono); margin-top: 4px;">
+                  TOP 1% VERIFIED ENTERPRISE AI ARCHITECTURAL DOSSIER • SOTA GRADE
+                </div>
+              </div>
+              <div class="dossier-seal-badge">
+                <div class="dossier-seal-box">🛡️</div>
+                <div style="font-size: 10px; color: var(--accent-gold); letter-spacing: 0.1em;">SEALED ON-CHAIN</div>
+                <div style="font-size: 9px; color: var(--ink-tertiary);">${certHash.substring(0, 18)}...</div>
+              </div>
             </div>
-            <div class="cert-id">CREDENTIAL ID: CCAR-CAPSTONE-2026-88B9 • ${hash} • VERIFIED ON-CHAIN</div>
+
+            <!-- Candidate Metadata Block -->
+            <div class="dossier-candidate-block">
+              <div class="dossier-candidate-name">${this.learnerState.name}</div>
+              <div class="dossier-candidate-meta">
+                MISSION TRACK: <span style="color: #fff; font-weight: 600;">${projectTitle}</span> &nbsp;|&nbsp; 
+                DEFENSE SCORE: <span style="color: var(--accent-emerald); font-weight: 700;">${score}/100 (BAND 1: SOTA READY)</span> &nbsp;|&nbsp;
+                ISSUED: <span style="color: var(--accent-cyan);">${dateStr}</span>
+              </div>
+              <p style="font-size: 13px; color: var(--ink-secondary); line-height: 1.6; margin-top: 10px; max-width: 780px;">
+                The candidate has successfully defended a production-grade Claude agentic architecture before the Executive Oral Defense Committee. 
+                All 8 high-assurance enterprise invariant gates have been mathematically and empirically verified with continuous MCP tool telemetry.
+              </p>
+            </div>
+
+            <!-- 8 Enterprise Gate Verification Stamps -->
+            <div style="margin-bottom: 12px; font-family: var(--font-mono); font-size: 11px; color: var(--accent-gold); letter-spacing: 0.08em;">
+              ENTERPRISE INVARIANT VERIFICATION STAMPS (8/8 PASSED)
+            </div>
+            <div class="dossier-gates-grid">
+              <div class="dossier-gate-pill">
+                <div class="dossier-gate-code">EG-1 // INVARIANT HARNESS</div>
+                <div class="dossier-gate-desc">PreToolUse Deterministic Hook Verified</div>
+              </div>
+              <div class="dossier-gate-pill">
+                <div class="dossier-gate-code">EG-2 // MCP LEAST-PRIVILEGE</div>
+                <div class="dossier-gate-desc">Scope-Bound Read/Write Separation</div>
+              </div>
+              <div class="dossier-gate-pill">
+                <div class="dossier-gate-code">EG-3 // ADVERSARIAL CLAMPS</div>
+                <div class="dossier-gate-desc">ISO 10218 Physical Velocity Safe (42ms)</div>
+              </div>
+              <div class="dossier-gate-pill">
+                <div class="dossier-gate-code">EG-4 // 15-CASE EVAL SUITE</div>
+                <div class="dossier-gate-desc">Zero Regressions under Edge Injections</div>
+              </div>
+              <div class="dossier-gate-pill">
+                <div class="dossier-gate-code">EG-5 // TOKEN ECONOMICS</div>
+                <div class="dossier-gate-desc">90% Anthropic Prompt Cache Hit Ratio</div>
+              </div>
+              <div class="dossier-gate-pill">
+                <div class="dossier-gate-code">EG-6 // STATE COMPACTION</div>
+                <div class="dossier-gate-desc">/compact Lossless Entity Retention</div>
+              </div>
+              <div class="dossier-gate-pill">
+                <div class="dossier-gate-code">EG-7 // AUDIT PROVENANCE</div>
+                <div class="dossier-gate-desc">SHA-256 Merkle Chained Action Ledger</div>
+              </div>
+              <div class="dossier-gate-pill">
+                <div class="dossier-gate-code">EG-8 // HUMAN GOVERNANCE</div>
+                <div class="dossier-gate-desc">Tier-3 Financial Action Gating</div>
+              </div>
+            </div>
+
+            <!-- Committee Signatures -->
+            <div class="dossier-signatures-row">
+              <div class="dossier-signature-block">
+                <div class="dossier-sig-line">Dr. M. Vance, Ph.D.</div>
+                <div style="font-weight: 700; color: #fff;">Dr. Marcus Vance</div>
+                <div style="color: var(--ink-tertiary); font-size: 10px;">Chief AI Risk & Governance Officer</div>
+              </div>
+              <div class="dossier-signature-block">
+                <div class="dossier-sig-line">Elena Rostova, M.Sc.</div>
+                <div style="font-weight: 700; color: #fff;">Elena Rostova</div>
+                <div style="color: var(--ink-tertiary); font-size: 10px;">VP Cloud Infrastructure, Anthropic Alliance</div>
+              </div>
+              <div class="dossier-signature-block">
+                <div class="dossier-sig-line">Linus K., SOTA Systems</div>
+                <div style="font-weight: 700; color: #fff;">Linus K.</div>
+                <div style="color: var(--ink-tertiary); font-size: 10px;">Principal Systems Architect (Safety Lead)</div>
+              </div>
+            </div>
+
+            <!-- Verification Footer & Export Controls -->
+            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 16px;">
+              <div style="font-family: var(--font-mono); font-size: 11px; color: var(--ink-tertiary);">
+                REGISTRATION ID: <span style="color: var(--accent-gold);">${certHash}</span>
+              </div>
+              <div class="dossier-export-actions">
+                <button class="defense-action-btn secondary" id="btnCopyDossierVerification">
+                  📋 Copy Verification Link
+                </button>
+                <button class="defense-action-btn primary" id="btnPrintDossier">
+                  🖨️ Export PDF Hiring Pack
+                </button>
+              </div>
+            </div>
           </div>
         `;
+
         container.scrollIntoView({ behavior: 'smooth' });
+        if (typeof tacticalAudio !== 'undefined') {
+          tacticalAudio.playHarmonicChord();
+        }
         this.playHaptic('success');
+
+        // Copy Verification Link
+        document.getElementById('btnCopyDossierVerification')?.addEventListener('click', () => {
+          const verifyUrl = `${window.location.origin}/verify?credential=${encodeURIComponent(certHash)}`;
+          navigator.clipboard?.writeText(verifyUrl).then(() => {
+            alert(`Cryptographic Verification Link copied to clipboard:\n${verifyUrl}`);
+          }).catch(() => {
+            alert(`Verification ID: ${certHash}`);
+          });
+          this.playHaptic('click');
+        });
+
+        // Print / PDF Export
+        document.getElementById('btnPrintDossier')?.addEventListener('click', () => {
+          window.print();
+        });
       }
     });
   }
