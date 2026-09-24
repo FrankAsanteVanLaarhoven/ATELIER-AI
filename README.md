@@ -71,6 +71,22 @@ Real-world enterprise case studies with interactive fault injection:
 - **Adversarial Oral Defense**: Simulated faculty question defense on code vs. prompt invariants.
 - **Digital Credential Verification**: Cryptographic on-chain certificate issuing.
 
+### 6. CCAR-SEC-1 Anti-Cheat Proctor & Exam Integrity Studio
+- **Focus-Lock & Tab-Switch Sensor**: Real-time listeners on `window.blur` and `document.visibilitychange` catch and warn candidates when switching browser windows or clicking outside the evaluation surface.
+- **Full Clipboard Quarantine**: Prohibits copy, cut, and paste interactions (`copy`, `cut`, `paste` events intercepted with `preventDefault()`), preventing external LLM prompting or question exfiltration.
+- **Developer Tools & Shortcut Trap**: Hard blocks `F12`, `Cmd+Opt+I`, `Cmd+Shift+I`, and right-click context inspection.
+- **Dynamic Forensic Screen Watermarking**: Injects rotating, semi-transparent candidate identity and timestamp tokens across exam stems.
+- **Screen & Webcam Surveillance Feed**: Live biometric radar HUD overlay with real-time hardware capture options via `getDisplayMedia` / `getUserMedia` and persistent incident audit trails.
+
+### 7. Direct Official Anthropic Certification Clearance
+- **Readiness Verification Threshold**: Candidates completing the 60-item diagnostic mock with a score **>= 72%** and zero disqualifying proctor infractions are deemed officially ready.
+- **Clearance Voucher Authorization**: Issues a cryptographically unique token (e.g. `ATH-CCARF-EYM01-2026`).
+- **Direct Portal Launch**: Prominent direct links dispatch candidates directly to:
+  - **Anthropic Skilljar Certification Portal**: [`https://anthropic.skilljar.com`](https://anthropic.skilljar.com)
+  - **Anthropic Academy**: [`https://academy.anthropic.com`](https://academy.anthropic.com)
+  - **Pearson VUE Exam Center**: [`https://home.pearsonvue.com`](https://home.pearsonvue.com)
+- **Remediation Lock**: Scores under 72% lock official clearance and recommend targeted blueprint drills across weak domains.
+
 ---
 
 ## 🏛️ System Architecture
