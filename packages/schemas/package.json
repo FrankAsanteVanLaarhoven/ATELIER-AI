@@ -1,0 +1,20 @@
+{
+  "name": "@atelier-ai/schemas",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Typed contracts and runtime validators for ATELIER-AI assessment, curriculum, and telemetry.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "node --test"
+  },
+  "keywords": [
+    "atelier-ai",
+    "claude-architect",
+    "schemas",
+    "psychometrics"
+  ],
+  "author": "Atelier AI Systems Engineering",
+  "license": "Apache-2.0"
+}

@@ -15,7 +15,11 @@ description: Master discipline of Agentic AI Harness Engineering and physical-to
 
 ## 1. The Core Duality: Why Systems Fail
 
-A wire can handle 15A on paper; it will still burn if it is 10mm from the exhaust or clipped every 400mm in a high-vibration zone. In 1979, US automakers suffered massive warranty claims not because engineers were careless, but because **harnessing is a mechanical system disguised as an electrical one**. This forced the creation of standards like **USCAR-2**, **USCAR-21**, **IPC/WHMA-A-620**, and aerospace **AS50881**.
+A wire can handle 15A on paper; it will still burn if it is 10mm from the exhaust or clipped every 400mm in a high-vibration zone. In 1979, US automakers suffered massive warranty claims not because engineers were careless, but because **harnessing is a mechanical system disguised as an electrical one**. This forced the creation of standards like **USCAR-21 Rev 4**, **SAE AS50881 Rev G**, **IPC/WHMA-A-620D**, and robotics **ISO 10218-1:2011**.
+
+> [!CAUTION]
+> **Safety Demarcation & Non-Certification Notice:**  
+> All physical DRC checks, routing calculations, and harness formulas in Atelier are **educational simulations** designed to teach AI systems architects how to structure deterministic invariants. LLMs, Claude Code scripts, and agent loops **must never** be deployed as primary safety functions, safety interlocks, or emergency stops for physical robotics, autonomous vehicles, or high-voltage (HV) systems. Certified physical safety requires dedicated deterministic safety PLCs, interlock switches, and hardwired E-stops complying with **ISO 13849-1 (PL d/e)** or **IEC 61508**.
 
 In Agentic AI, modern teams make the exact same error:
 - They assume the model’s parameter count and reasoning benchmarks guarantee production success.

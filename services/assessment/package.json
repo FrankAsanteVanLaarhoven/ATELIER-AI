@@ -1,0 +1,22 @@
+{
+  "name": "@atelier-ai/assessment-service",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Server-authoritative assessment service: form generation, timing, autosave, protected answer keys, and psychometric scoring.",
+  "main": "dist/server.js",
+  "scripts": {
+    "start": "node --experimental-strip-types src/server.ts",
+    "test": "node --test --experimental-strip-types test/assessment.test.ts"
+  },
+  "dependencies": {
+    "@atelier-ai/schemas": "workspace:*"
+  },
+  "keywords": [
+    "atelier-ai",
+    "assessment-engine",
+    "server-scoring",
+    "psychometrics"
+  ],
+  "author": "Atelier AI Systems Engineering",
+  "license": "Apache-2.0"
+}

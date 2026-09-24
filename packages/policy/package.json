@@ -1,0 +1,19 @@
+{
+  "name": "@atelier-ai/policy",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Deterministic security policy, consequential tool authorization, financial locks, and claims validation.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "test": "node --test --experimental-strip-types test/policy.test.ts"
+  },
+  "keywords": [
+    "atelier-ai",
+    "security-policy",
+    "deterministic-invariants",
+    "tool-authorization"
+  ],
+  "author": "Atelier AI Systems Engineering",
+  "license": "Apache-2.0"
+}

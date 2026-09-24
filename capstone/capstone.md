@@ -40,18 +40,25 @@ Intake → classify risk → plan → retrieve/act → validate → review → h
 - Slide narrative/design quality — 5
 - Demonstration and defense — 5
 
-## Pass bands for this training service
-- 85–100: production-readiness evidence is strong; minor improvements remain.
-- 70–84: technically competent but important gaps remain before production.
-- 55–69: partial capability; remediation required before advanced deployment.
-- <55: rebuild core architecture/evaluation components and resubmit.
+## Pass bands & Atelier Credentialing
+- **Band 1 (85–100 points)**: *Production-Readiness Verified* — Issues the **Atelier Certified Architect — Capstone Defense Record (`ATELIER-CAPSTONE-2026`)** with verifiable execution traces and cryptographic SHA-256 artifact digest.
+- **Band 2 (70–84 points)**: *Technically Competent* — Core invariants satisfied; requires secondary review before production release.
+- **Band 3 (55–69 points)**: *Remediation Required* — Gaps in failure recovery, tool boundaries, or test coverage.
+- **Band 4 (<55 points)**: *Unsatisfactory* — Fundamental architectural or invariant defects; resubmission required.
 
-These are training-service bands, not Anthropic certification scores.
+> **Governance Notice:** *These evaluation bands and badges represent internal Atelier competency frameworks and do not confer official Anthropic or Pearson VUE credentials.*
 
-## Defense questions
-- Which invariant is enforced in code rather than prompt text, and why?
-- Which agent has the narrowest tool set, and what failure does that prevent?
+## Required Claude Surface Coverage
+Candidates must demonstrate distinct understanding across three separate operating profiles:
+1. **Claude (Chat / Web)**: Advanced multi-step reasoning, trade-off analysis, and document synthesis.
+2. **Claude Code (CLI / IDE)**: Repository-aware engineering, `CLAUDE.md`, `.claude/rules/`, progressive disclosure skills, and headless CI verification.
+3. **Cowork / Delegated Operations**: File connectors, long-running batch tasks, human approvals, and operational provenance.
+
+## Defense Questions (Oral Examination)
+- Which invariant is enforced in deterministic code rather than prompt text, and why?
+- Which agent has the narrowest tool set, and what failure does that boundary prevent?
 - What happens when a source is inaccessible but other sources succeed?
-- How do you resume safely after a mid-task failure?
-- Which metric would make you roll back the skill/harness release?
-- What evidence shows your slide deck did not introduce unsupported claims?
+- How do you resume safely and idempotently after a mid-task failure?
+- Which metric would trigger an automated rollback of your skill/harness release?
+- What evidence proves your slide deck did not introduce unsupported claims?
+- How do you verify that LLMs are not deployed as primary safety functions in physical operations?
