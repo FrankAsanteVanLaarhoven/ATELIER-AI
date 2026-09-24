@@ -26,12 +26,24 @@ async function main() {
       console.log(JSON.stringify(bp));
     } else if (cmd === 'list-labs') {
       const labs = SandboxManager.listLabs();
-      console.log(JSON.stringify(labs));
+      console.log(JSON.stringify({ labs }));
     } else if (cmd === 'get-lab') {
       const labId = args[0] || 'lab-1.1-reasoning-effort';
       const lab = SandboxManager.getLab(labId);
       const state = SandboxManager.getLabState(labId);
-      console.log(JSON.stringify({ lab, state }));
+      const files = lab ? lab.starterRepo.files.map(f => ({
+        path: f.path,
+        content: state?.modifiedFiles?.[f.path] ?? f.content,
+        isReadOnly: f.isReadOnly
+      })) : [];
+      console.log(JSON.stringify({
+        lab: lab ? {
+          ...lab,
+          files,
+          invariants: lab.acceptanceTests.map(t => ({ id: t.id, description: t.name }))
+        } : null,
+        state
+      }));
     } else if (cmd === 'reset-lab') {
       const labId = args[0] || 'lab-1.1-reasoning-effort';
       const state = SandboxManager.resetLab(labId);
