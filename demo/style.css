@@ -7736,3 +7736,239 @@ body.theme-light .voice-synth-select {
   gap: 12px;
   margin-top: 20px;
 }
+
+/* ==========================================================================
+   PUBLIC CRYPTOGRAPHIC VERIFICATION PORTAL (/verify)
+   ========================================================================== */
+.verify-portal-layout {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 24px 20px 80px 20px;
+  animation: fadeIn 0.4s ease-out;
+}
+
+.verify-top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(14, 17, 24, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 12px 20px;
+  margin-bottom: 24px;
+}
+
+.verify-authority-badge {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-secondary);
+}
+
+.verify-authority-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent-emerald);
+  box-shadow: 0 0 10px var(--accent-emerald);
+}
+
+.verify-search-card {
+  background: linear-gradient(135deg, rgba(20, 24, 35, 0.7) 0%, rgba(10, 12, 18, 0.9) 100%);
+  border: 1px solid rgba(14, 165, 233, 0.25);
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 30px;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.verify-search-row {
+  display: flex;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.verify-input {
+  flex: 1;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  padding: 12px 16px;
+  color: #fff;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  transition: all 0.2s ease;
+}
+
+.verify-input:focus {
+  outline: none;
+  border-color: var(--accent-cyan);
+  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.2);
+}
+
+.verify-sample-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-tertiary);
+}
+
+.verify-sample-chip {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  padding: 4px 8px;
+  color: var(--accent-cyan);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.verify-sample-chip:hover {
+  background: rgba(14, 165, 233, 0.15);
+  border-color: var(--accent-cyan);
+}
+
+.verify-audit-grid {
+  display: grid;
+  grid-template-columns: 1.25fr 0.95fr;
+  gap: 28px;
+  align-items: start;
+}
+
+@media (max-width: 1080px) {
+  .verify-audit-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.verify-cert-card {
+  background: linear-gradient(150deg, #111520 0%, #080a0f 100%);
+  border: 2px solid var(--accent-gold);
+  border-radius: 20px;
+  padding: 40px;
+  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.8), 0 0 50px rgba(226, 179, 111, 0.12);
+  position: relative;
+  overflow: hidden;
+}
+
+.verify-watermark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-25deg);
+  font-family: var(--font-mono);
+  font-size: 72px;
+  font-weight: 900;
+  color: rgba(255, 255, 255, 0.015);
+  letter-spacing: 0.2em;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.verify-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  border-radius: 9999px;
+  padding: 6px 14px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent-emerald);
+  letter-spacing: 0.08em;
+  margin-bottom: 20px;
+}
+
+.verify-merkle-card {
+  background: rgba(14, 18, 28, 0.7);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+  padding: 28px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+}
+
+.verify-merkle-root-box {
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(14, 165, 233, 0.3);
+  border-radius: 10px;
+  padding: 14px;
+  margin: 16px 0;
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+.merkle-leaf-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  transition: all 0.15s ease;
+}
+
+.merkle-leaf-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(14, 165, 233, 0.3);
+}
+
+/* Print Certificate Rules */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #viewContainer,
+  #viewContainer * {
+    visibility: visible;
+  }
+  .verify-portal-layout {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+  .verify-top-bar,
+  .verify-search-card,
+  .verify-merkle-card,
+  .dossier-export-actions,
+  #appSidebar,
+  #appHeader {
+    display: none !important;
+  }
+  .verify-audit-grid {
+    display: block !important;
+  }
+  .verify-cert-card {
+    border: 2px solid #000 !important;
+    background: #fff !important;
+    color: #000 !important;
+    box-shadow: none !important;
+    page-break-inside: avoid;
+    padding: 30px !important;
+  }
+  .verify-cert-card * {
+    color: #000 !important;
+  }
+  .dossier-org-badge,
+  .dossier-sig-line {
+    color: #b45309 !important;
+  }
+}
+
